@@ -142,6 +142,7 @@ public class SessionsContentProvider extends ContentProvider {
         switch (uriID) {
             case GROUP_NONE:
                 final String PROJ_GROUP_NONE =
+                        " %7$s as '%7$s'," +
                         "   %1$s as '%3$s', " +
                                 "       case " +
                                 "           when %2$s is NULL then " +
@@ -163,7 +164,8 @@ public class SessionsContentProvider extends ContentProvider {
                         GroupsDescription.COLUMN_START,
                         GroupsDescription.COLUMN_END,
                         GroupsDescription.COLUMN_DURATION,
-                        GroupsDescription.COLUMN_UNCOMPLETED_COUNT
+                        GroupsDescription.COLUMN_UNCOMPLETED_COUNT,
+                        SessionDescription._ID
                 );
 
             case GROUP_DAY:
@@ -171,6 +173,7 @@ public class SessionsContentProvider extends ContentProvider {
             case GROUP_MONTH:
             case GROUP_YEAR:
                 final String PROJ_GROUP =
+                        " min(%7$s) as '%7$s'," +
                         "   min(%1$s) as '%3$s', " +
                                 "   max( " +
                                 "       case " +
@@ -195,7 +198,8 @@ public class SessionsContentProvider extends ContentProvider {
                         GroupsDescription.COLUMN_START,
                         GroupsDescription.COLUMN_END,
                         GroupsDescription.COLUMN_DURATION,
-                        GroupsDescription.COLUMN_UNCOMPLETED_COUNT
+                        GroupsDescription.COLUMN_UNCOMPLETED_COUNT,
+                        SessionDescription._ID
                 );
             default:
                 return null;

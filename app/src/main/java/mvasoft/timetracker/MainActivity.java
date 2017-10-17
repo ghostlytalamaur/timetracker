@@ -137,7 +137,6 @@ public class MainActivity extends AppCompatActivity
 
                 private void swapCurrentGroupCursor(Cursor cursor) {
                     mCurrentGroups.swapCursor(cursor);
-                    updateItemsView();
                     updateFabIcon();
                 }
 
@@ -370,10 +369,6 @@ public class MainActivity extends AppCompatActivity
             mFab.setImageResource(android.R.drawable.ic_media_pause);
         else
             mFab.setImageResource(android.R.drawable.ic_media_play);
-    }
-
-    private void updateItemsView() {
-        mAdapter.notifyDataSetChanged();
     }
 
     private void updateCurrenDayText(TextView v, GroupsList groups, int textId, int emptyTextId) {

@@ -21,6 +21,27 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
     private DateTimeFormatter mDateTimeFormatter;
     private SimpleDateFormat mDateFormat;
     private GroupsList mGroups;
+    private GroupsList.IGroupsChangesListener mGruopsListener = new GroupsList.IGroupsChangesListener() {
+        @Override
+        public void onDataChanged() {
+            notifyDataSetChanged();
+        }
+
+        @Override
+        public void onItemRemoved(int index) {
+            notifyItemRemoved(index);
+        }
+
+        @Override
+        public void onItemChanged(int index) {
+            notifyItemChanged(index);
+        }
+
+        @Override
+        public void onItemMoved(int oldIndex, int newIndex) {
+            notifyItemMoved(oldIndex, newIndex);
+        }
+    };
 
 
     SessionsAdapter() {
@@ -77,7 +98,11 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
     }
 
     public void setList(GroupsList groups) {
+        if (mGroups != null)
+            mGroups.setChangesListener(null);
         mGroups = groups;
+        if (mGroups != null)
+            mGroups.setChangesListener(mGruopsListener);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
