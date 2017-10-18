@@ -5,6 +5,7 @@
 /.idea/libraries
 .DS_Store
 /build
+*/**/build
 /captures
 .externalNativeBuild
 
@@ -17,4 +18,3 @@
 
 # Java class files
 *.class
-*/build/*
