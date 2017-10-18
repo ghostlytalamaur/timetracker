@@ -26,8 +26,11 @@
         app:layout_constraintVertical_bias="0.0"
         android:layout_marginStart="16dp" />
 
-    <android.support.v7.widget.RecyclerView
+    <org.lucasr.twowayview.widget.TwoWayView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/items_view"
+        app:twowayview_layoutManager="ListLayoutManager"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="32dp"
@@ -36,9 +39,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0">
-
-    </android.support.v7.widget.RecyclerView>
+        app:layout_constraintVertical_bias="0.0"
+        />
 
     <TextView
         android:id="@+id/tvWeek"

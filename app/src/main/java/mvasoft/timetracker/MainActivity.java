@@ -7,9 +7,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
+import android.view.MenuInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.LoaderManager;
@@ -30,6 +30,10 @@ import android.widget.TextView;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
+import org.lucasr.twowayview.ItemClickSupport;
+import org.lucasr.twowayview.ItemSelectionSupport;
+import org.lucasr.twowayview.widget.DividerItemDecoration;
+import org.lucasr.twowayview.widget.TwoWayView;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -59,105 +63,10 @@ public class MainActivity extends AppCompatActivity
     private Timer mUpdateTimer;
     private Runnable mUpdateViewRunnable;
 
-    private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks =
-            new LoaderManager.LoaderCallbacks<Cursor>() {
-                @Override
-                public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-                    switch (id) {
-                        case GROUPS_LOADER_ID:
-                            return new CursorLoader(MainActivity.this,
-                                    getCurrentGroupsUri(),
-                                    null, null, null,
-                                    DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
-                        case TODAY_LOADER_ID:
-                            return new CursorLoader(MainActivity.this,
-                                    DatabaseDescription.GroupsDescription.GROUP_DAY_URI,
-                                    null,
-                                    String.format("date(%1$s, 'unixepoch') = date('now')",
-                                            DatabaseDescription.SessionDescription.COLUMN_START),
-                                    null,
-                                    DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
-                        case WEEK_LOADER_ID:
-                            return new CursorLoader(MainActivity.this,
-                                    DatabaseDescription.GroupsDescription.GROUP_WEEK_URI,
-                                    null,
-                                    String.format(
-                                            "date(%1$s, 'unixepoch', 'weekday 0', '-7 days')" +
-                                                    "= date('now', 'unixepoch', 'weekday 0', '-7 days')",
-                                            DatabaseDescription.SessionDescription.COLUMN_START),
-                                    null,
-                                    DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
-                        default:
-                            return null;
-                    }
-                }
-
-                private Uri getCurrentGroupsUri() {
-                    switch (mCurrentGroupType) {
-                        case gt_None:
-                            return DatabaseDescription.GroupsDescription.GROUP_NONE_URI;
-                        case gt_Day:
-                            return DatabaseDescription.GroupsDescription.GROUP_DAY_URI;
-                        case gt_Week:
-                            return DatabaseDescription.GroupsDescription.GROUP_WEEK_URI;
-                        case gt_Month:
-                            return DatabaseDescription.GroupsDescription.GROUP_MONTH_URI;
-                        case gt_Year:
-                            return DatabaseDescription.GroupsDescription.GROUP_YEAR_URI;
-                    }
-
-                    return null;
-                }
-
-                @Override
-                public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-                    swapCursor(loader.getId(), data);
-                }
-
-                @Override
-                public void onLoaderReset(Loader<Cursor> loader) {
-                    swapCursor(loader.getId(), null);
-                }
-
-                private void swapCursor(int id, Cursor cursor) {
-                    switch (id) {
-                        case GROUPS_LOADER_ID: {
-                            swapCurrentGroupCursor(cursor);
-                            break;
-                        }
-                        case TODAY_LOADER_ID: {
-                            swapTodayCursor(cursor);
-                        }
-                        case WEEK_LOADER_ID: {
-                            swapWeekCursor(cursor);
-                            break;
-                        }
-                    }
-                }
-
-                private void swapCurrentGroupCursor(Cursor cursor) {
-                    mCurrentGroups.swapCursor(cursor);
-                    updateFabIcon();
-                }
-
-                private void swapTodayCursor(Cursor cursor) {
-                    mTodayGroup.swapCursor(cursor);
-                    updateTimeText();
-                }
-
-                private void swapWeekCursor(Cursor cursor) {
-                    mWeekGroup.swapCursor(cursor);
-                    updateTimeText();
-                }
-            };
-
-    private class FabOnClickListener implements View.OnClickListener {
-
-        @Override
-        public void onClick(View view) {
-            toggleSession();
-        }
-    }
+    private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks;
+    private ItemSelectionSupport mSelectionSupport;
+    private ActionMode.Callback mActionModeCallbacks;
+    private ActionMode mActionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,12 +89,13 @@ public class MainActivity extends AppCompatActivity
                 appendSeconds().
                 toFormatter();
 
+        mActionModeCallbacks = new ActionModeCallbacks();
 
         mTodayTv = (TextView) findViewById(R.id.tvDay);
         mWeekTv = (TextView) findViewById(R.id.tvWeek);
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
-        mFab.setOnClickListener(new FabOnClickListener());
+        mFab.setOnClickListener(new FabClickListener());
 
 
         mCurrentGroupType = GroupType.values()[getPreferences(MODE_PRIVATE).
@@ -207,11 +117,25 @@ public class MainActivity extends AppCompatActivity
         mAdapter = new SessionsAdapter();
         mAdapter.setList(mCurrentGroups);
 
-        RecyclerView itemsView = (RecyclerView) findViewById(R.id.items_view);
-        itemsView.addItemDecoration(new DividerItemDecoration(itemsView.getContext(),
-                DividerItemDecoration.VERTICAL));
-        itemsView.setLayoutManager(new LinearLayoutManager(this));
+        final TwoWayView itemsView = (TwoWayView) findViewById(R.id.items_view);
         itemsView.setAdapter(mAdapter);
+//        itemsView.addItemDecoration(new DividerItemDecoration(itemsView.getContext(), null));
+        itemsView.addItemDecoration(new android.support.v7.widget.DividerItemDecoration(itemsView.getContext(),
+                android.support.v7.widget.DividerItemDecoration.VERTICAL));
+        mSelectionSupport = ItemSelectionSupport.addTo(itemsView);
+
+        ItemClickSupport clickSupport = ItemClickSupport.addTo(itemsView);
+        clickSupport.setOnItemLongClickListener(new ItemClickSupport.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(RecyclerView parent, View view, int position, long id) {
+                if (mActionMode != null)
+                    return false;
+
+                startSupportActionMode(mActionModeCallbacks);
+                mSelectionSupport.setItemChecked(position, true);
+                return true;
+            }
+        });
 
         mUpdateViewRunnable = new Runnable() {
             @Override
@@ -229,6 +153,7 @@ public class MainActivity extends AppCompatActivity
         }, 1000, 1000);
 
 
+        mLoaderCallbacks = new GroupsLoaderCallbacks();
         getSupportLoaderManager().initLoader(GROUPS_LOADER_ID, null, mLoaderCallbacks);
         getSupportLoaderManager().initLoader(TODAY_LOADER_ID, null, mLoaderCallbacks);
     }
@@ -380,4 +305,134 @@ public class MainActivity extends AppCompatActivity
             v.setText(getString(emptyTextId));
     }
 
+
+    private class FabClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View view) {
+            toggleSession();
+        }
+    }
+
+    private class ActionModeCallbacks implements ActionMode.Callback {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mActionMode = mode;
+            MenuInflater menuInflater = mode.getMenuInflater();
+            menuInflater.inflate(R.menu.action_mode, menu);
+            mFab.setVisibility(View.INVISIBLE);
+            mSelectionSupport.setChoiceMode(ItemSelectionSupport.ChoiceMode.MULTIPLE);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mActionMode = null;
+            mSelectionSupport.clearChoices();
+            mSelectionSupport.setChoiceMode(ItemSelectionSupport.ChoiceMode.NONE);
+            mFab.setVisibility(View.VISIBLE);
+        }
+
+    }
+
+    private class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            switch (id) {
+                case GROUPS_LOADER_ID:
+                    return new CursorLoader(MainActivity.this,
+                            getCurrentGroupsUri(),
+                            null, null, null,
+                            DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
+                case TODAY_LOADER_ID:
+                    return new CursorLoader(MainActivity.this,
+                            DatabaseDescription.GroupsDescription.GROUP_DAY_URI,
+                            null,
+                            String.format("date(%1$s, 'unixepoch') = date('now')",
+                                    DatabaseDescription.SessionDescription.COLUMN_START),
+                            null,
+                            DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
+                case WEEK_LOADER_ID:
+                    return new CursorLoader(MainActivity.this,
+                            DatabaseDescription.GroupsDescription.GROUP_WEEK_URI,
+                            null,
+                            String.format(
+                                    "date(%1$s, 'unixepoch', 'weekday 0', '-7 days')" +
+                                            "= date('now', 'unixepoch', 'weekday 0', '-7 days')",
+                                    DatabaseDescription.SessionDescription.COLUMN_START),
+                            null,
+                            DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
+                default:
+                    return null;
+            }
+        }
+
+        private Uri getCurrentGroupsUri() {
+            switch (mCurrentGroupType) {
+                case gt_None:
+                    return DatabaseDescription.GroupsDescription.GROUP_NONE_URI;
+                case gt_Day:
+                    return DatabaseDescription.GroupsDescription.GROUP_DAY_URI;
+                case gt_Week:
+                    return DatabaseDescription.GroupsDescription.GROUP_WEEK_URI;
+                case gt_Month:
+                    return DatabaseDescription.GroupsDescription.GROUP_MONTH_URI;
+                case gt_Year:
+                    return DatabaseDescription.GroupsDescription.GROUP_YEAR_URI;
+            }
+
+            return null;
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+            swapCursor(loader.getId(), data);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+            swapCursor(loader.getId(), null);
+        }
+
+        private void swapCursor(int id, Cursor cursor) {
+            switch (id) {
+                case GROUPS_LOADER_ID: {
+                    swapCurrentGroupCursor(cursor);
+                    break;
+                }
+                case TODAY_LOADER_ID: {
+                    swapTodayCursor(cursor);
+                }
+                case WEEK_LOADER_ID: {
+                    swapWeekCursor(cursor);
+                    break;
+                }
+            }
+        }
+
+        private void swapCurrentGroupCursor(Cursor cursor) {
+            mCurrentGroups.swapCursor(cursor);
+            updateFabIcon();
+        }
+
+        private void swapTodayCursor(Cursor cursor) {
+            mTodayGroup.swapCursor(cursor);
+            updateTimeText();
+        }
+
+        private void swapWeekCursor(Cursor cursor) {
+            mWeekGroup.swapCursor(cursor);
+            updateTimeText();
+        }
+    }
 }

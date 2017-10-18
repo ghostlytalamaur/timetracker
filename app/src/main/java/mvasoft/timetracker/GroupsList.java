@@ -198,6 +198,10 @@ class GroupsList {
             mDuration = duration;
             mUncompletedCount = cnt;
         }
+
+        public long getID() {
+            return mID;
+        }
     }
 
     public enum GroupType {

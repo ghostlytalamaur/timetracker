@@ -1,0 +1,121 @@
+[
+    {
+        "outputFile": "D:\\dev\\android\\TimeTracker2\\app\\libs\\twoway-view_core\\build\\intermediates\\incremental\\mergeReleaseResources\\merged.dir\\values\\values.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 559,
+                    "endColumn": 74,
+                    "endOffset": 629
+                },
+                "from": {
+                    "file": "C:\\Users\\mihal\\.android\\build-cache\\151aa3425115285017a3a9dd11948be22264d141\\output\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 372,
+                        "endColumn": 74,
+                        "endOffset": 442
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 634,
+                    "endColumn": 75,
+                    "endOffset": 705
+                },
+                "from": {
+                    "file": "C:\\Users\\mihal\\.android\\build-cache\\151aa3425115285017a3a9dd11948be22264d141\\output\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 447,
+                        "endColumn": 75,
+                        "endOffset": 518
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 710,
+                    "endColumn": 71,
+                    "endOffset": 777
+                },
+                "from": {
+                    "file": "C:\\Users\\mihal\\.android\\build-cache\\151aa3425115285017a3a9dd11948be22264d141\\output\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 523,
+                        "endColumn": 71,
+                        "endOffset": 590
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 782,
+                    "endColumn": 65,
+                    "endOffset": 843
+                },
+                "from": {
+                    "file": "C:\\Users\\mihal\\.android\\build-cache\\151aa3425115285017a3a9dd11948be22264d141\\output\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 595,
+                        "endColumn": 65,
+                        "endOffset": 656
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 848,
+                    "endColumn": 58,
+                    "endOffset": 902
+                },
+                "from": {
+                    "file": "D:\\dev\\android\\TimeTracker2\\app\\libs\\twoway-view_core\\src\\main\\res\\values\\ids.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 671,
+                        "endColumn": 58,
+                        "endOffset": 725
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 907,
+                    "endColumn": 62,
+                    "endOffset": 965
+                },
+                "from": {
+                    "file": "D:\\dev\\android\\TimeTracker2\\app\\libs\\twoway-view_core\\src\\main\\res\\values\\ids.xml",
+                    "position": {
+                        "startLine": 20,
+                        "startColumn": 4,
+                        "startOffset": 731,
+                        "endColumn": 62,
+                        "endOffset": 789
+                    }
+                }
+            }
+        ]
+    }
+]

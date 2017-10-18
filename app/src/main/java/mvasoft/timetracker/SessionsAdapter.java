@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Checkable;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
@@ -69,6 +70,8 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
                 appendLiteral(" ").
                 appendYear(4, 4).
                 toFormatter();
+
+        setHasStableIds(true);
     }
 
     public void updateNotClosedView() {
@@ -82,7 +85,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(
-                R.layout.session_item, parent, false);
+                R.layout.session_item_ex, parent, false);
         return new ViewHolder(view);
     }
 
@@ -105,16 +108,24 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             mGroups.setChangesListener(mGruopsListener);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    @Override
+    public long getItemId(int position) {
+        return mGroups.get(position).getID();
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements Checkable {
 
         private GroupsList.SessionGroup mGroup;
+        private View mLayout;
         private TextView mStartView;
         private TextView mEndView;
         private TextView mElapsedView;
+        private boolean mChecked;
 
         public ViewHolder(View itemView) {
             super(itemView);
 
+            mLayout = itemView.findViewById(R.id.item_ex_layout);
             mStartView = itemView.findViewById(R.id.tvStart);
             mEndView = itemView.findViewById(R.id.tvEnd);
             mElapsedView = itemView.findViewById(R.id.tvElapsed);
@@ -140,6 +151,21 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             }
         }
 
+        @Override
+        public void setChecked(boolean b) {
+            mChecked = b;
+            mLayout.setActivated(mChecked);
+        }
+
+        @Override
+        public boolean isChecked() {
+            return mChecked;
+        }
+
+        @Override
+        public void toggle() {
+            setChecked(!mChecked);
+        }
     }
 
 }

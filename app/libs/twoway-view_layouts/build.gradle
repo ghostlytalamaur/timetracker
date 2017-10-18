@@ -1,0 +1,23 @@
+apply plugin: 'com.android.library'
+
+repositories {
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+    resourcePrefix 'twowayview_'
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 26
+    }
+}
+
+dependencies {
+    compile project(':app:libs:twoway-view_core')
+    compile 'com.android.support:recyclerview-v7:26.0.0-alpha1'
+}
+
+//apply from: "${rootDir}/gradle/scripts/gradle-mvn-push.gradle"
