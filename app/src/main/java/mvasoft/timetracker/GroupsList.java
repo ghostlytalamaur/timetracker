@@ -50,6 +50,11 @@ class GroupsList {
             mListener.onItemMoved(idx, i);
     }
 
+    private void notifyItemInserted(int index) {
+        if (mListener != null)
+            mListener.onItemInserted(index);
+    }
+
     public void setChangesListener(IGroupsChangesListener listener) {
         if (mListener != listener)
             mListener = listener;
@@ -61,13 +66,12 @@ class GroupsList {
             return;
         }
 
-        int idx;
-        HashSet<Integer> processed = new HashSet<>();
+        HashSet<Long> processedIds = new HashSet<>();
         for (int i = 0; i < mCursor.getCount(); i++) {
             mCursor.moveToPosition(i);
             long id = mCursor.getLong(mCursor.getColumnIndex(DatabaseDescription.SessionDescription._ID));
 
-            idx = indexByID(id);
+            int idx = indexByID(id);
             long start = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_START));
             long end = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_END));
             long duration = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_DURATION));
@@ -75,6 +79,7 @@ class GroupsList {
 
             if (idx < 0) {
                 mList.add(i, new SessionGroup(id, start, end, duration, cnt));
+                notifyItemInserted(i);
             }
             else if (!get(idx).sameData(start, end, duration, cnt)) {
                 get(idx).updateData(start, end, duration, cnt);
@@ -84,15 +89,19 @@ class GroupsList {
                     notifyItemMoved(idx, i);
                 }
             }
-            processed.add(i);
+            processedIds.add(id);
         }
 
-        for (int i = 0; i < count(); i++)
-            if (!processed.contains(i)) {
+        // todo: rewrite removing items.
+        // 1. backward cycle.
+        // 2. indices in processedIds set may be invalid after insertion.
+        for (int i = count() - 1; i >= 0; i--)
+            if (!processedIds.contains(get(i).getID())) {
                 mList.remove(i);
                 notifyItemRemoved(i);
             }
     }
+
 
     private void fillList() {
         mList.clear();
@@ -217,5 +226,6 @@ class GroupsList {
         void onItemRemoved(int index);
         void onItemChanged(int index);
         void onItemMoved(int oldIndex, int newIndex);
+        void onItemInserted(int index);
     }
 }

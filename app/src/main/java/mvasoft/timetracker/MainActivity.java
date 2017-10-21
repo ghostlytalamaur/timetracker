@@ -1,10 +1,13 @@
 package mvasoft.timetracker;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.view.ActionMode;
@@ -35,6 +38,7 @@ import org.lucasr.twowayview.ItemSelectionSupport;
 import org.lucasr.twowayview.widget.DividerItemDecoration;
 import org.lucasr.twowayview.widget.TwoWayView;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -306,6 +310,10 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    /* *************************************************************************************
+        Classes
+       **************************************************************************************/
+
     private class FabClickListener implements View.OnClickListener {
 
         @Override
@@ -332,6 +340,10 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_delete_selected:
+                    deleteSelectedGroups();
+            }
             return false;
         }
 
@@ -341,6 +353,42 @@ public class MainActivity extends AppCompatActivity
             mSelectionSupport.clearChoices();
             mSelectionSupport.setChoiceMode(ItemSelectionSupport.ChoiceMode.NONE);
             mFab.setVisibility(View.VISIBLE);
+        }
+
+    }
+
+    private Uri getCurrentGroupsUri() {
+        switch (mCurrentGroupType) {
+            case gt_None:
+                return DatabaseDescription.GroupsDescription.GROUP_NONE_URI;
+            case gt_Day:
+                return DatabaseDescription.GroupsDescription.GROUP_DAY_URI;
+            case gt_Week:
+                return DatabaseDescription.GroupsDescription.GROUP_WEEK_URI;
+            case gt_Month:
+                return DatabaseDescription.GroupsDescription.GROUP_MONTH_URI;
+            case gt_Year:
+                return DatabaseDescription.GroupsDescription.GROUP_YEAR_URI;
+        }
+
+        return null;
+    }
+
+    private void deleteSelectedGroups() {
+        long[] ids = mSelectionSupport.getCheckedItemIds();
+        ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+        for (long id : ids) {
+            ContentProviderOperation op = ContentProviderOperation.newDelete(
+                    Uri.withAppendedPath(getCurrentGroupsUri(), Long.toString(id))).build();
+            operations.add(op);
+        }
+
+        try {
+            getContentResolver().applyBatch(DatabaseDescription.AUTHORITY, operations);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
         }
 
     }
@@ -375,23 +423,6 @@ public class MainActivity extends AppCompatActivity
                 default:
                     return null;
             }
-        }
-
-        private Uri getCurrentGroupsUri() {
-            switch (mCurrentGroupType) {
-                case gt_None:
-                    return DatabaseDescription.GroupsDescription.GROUP_NONE_URI;
-                case gt_Day:
-                    return DatabaseDescription.GroupsDescription.GROUP_DAY_URI;
-                case gt_Week:
-                    return DatabaseDescription.GroupsDescription.GROUP_WEEK_URI;
-                case gt_Month:
-                    return DatabaseDescription.GroupsDescription.GROUP_MONTH_URI;
-                case gt_Year:
-                    return DatabaseDescription.GroupsDescription.GROUP_YEAR_URI;
-            }
-
-            return null;
         }
 
         @Override

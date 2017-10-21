@@ -42,6 +42,11 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
         public void onItemMoved(int oldIndex, int newIndex) {
             notifyItemMoved(oldIndex, newIndex);
         }
+
+        @Override
+        public void onItemInserted(int index) {
+            notifyItemInserted(index);
+        }
     };
 
 

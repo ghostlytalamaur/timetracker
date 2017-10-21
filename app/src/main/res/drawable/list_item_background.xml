@@ -4,5 +4,5 @@
     "http://schemas.android.com/apk/res/android">
     <item android:state_activated="true"
         android:drawable="@color/colorControlHighlight" />
-    <item android:drawable="@android:color/transparent" />
+    <item android:drawable="@drawable/list_item_ripple" />
 </selector>
