@@ -24,6 +24,7 @@
     <style name="ListSelectedBackground">
         <!--<item name="android:clickable">true</item>-->
         <!--<item name="android:background">?attr/selectableItemBackground</item>-->
+        <item name="android:clickable">true</item>
         <item name="android:background">@drawable/list_item_background</item>
 
     </style>

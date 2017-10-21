@@ -11,6 +11,8 @@ import android.os.RemoteException;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.view.ActionMode;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuInflater;
 import android.view.View;
@@ -35,8 +37,6 @@ import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.lucasr.twowayview.ItemClickSupport;
 import org.lucasr.twowayview.ItemSelectionSupport;
-import org.lucasr.twowayview.widget.DividerItemDecoration;
-import org.lucasr.twowayview.widget.TwoWayView;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -71,6 +71,92 @@ public class MainActivity extends AppCompatActivity
     private ItemSelectionSupport mSelectionSupport;
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+
+
+        MenuItem item = menu.findItem(R.id.action_group_type);
+        Spinner spGroups = (Spinner) item.getActionView();
+
+        final ArrayAdapter<CharSequence> spAdapter = ArrayAdapter.createFromResource(this, R.array.group_types,
+                R.layout.spinner_item);
+        spAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+        spGroups.setAdapter(spAdapter);
+        spGroups.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                setCurrentGroupType(GroupType.values()[i]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                setCurrentGroupType(GroupType.gt_None);
+            }
+        });
+        spGroups.setSelection(mCurrentGroupType.ordinal());
+        return true;
+    }
+
+    private void setCurrentGroupType(GroupType type) {
+        mCurrentGroupType = type;
+        getPreferences(MODE_PRIVATE).edit().
+                putInt(PreferencesConst.GROUP_TYPE, type.ordinal()).apply();
+        getSupportLoaderManager().restartLoader(GROUPS_LOADER_ID, null, mLoaderCallbacks);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        switch (id) {
+            case R.id.action_settings: return true;
+            case R.id.action_fill_fake_sessions: FakeSessionFiller.fill(this);
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,25 +207,18 @@ public class MainActivity extends AppCompatActivity
         mAdapter = new SessionsAdapter();
         mAdapter.setList(mCurrentGroups);
 
-        final TwoWayView itemsView = (TwoWayView) findViewById(R.id.items_view);
+        final RecyclerView itemsView = (RecyclerView) findViewById(R.id.items_view);
         itemsView.setAdapter(mAdapter);
-//        itemsView.addItemDecoration(new DividerItemDecoration(itemsView.getContext(), null));
-        itemsView.addItemDecoration(new android.support.v7.widget.DividerItemDecoration(itemsView.getContext(),
-                android.support.v7.widget.DividerItemDecoration.VERTICAL));
+        itemsView.setLayoutManager(new LinearLayoutManager(this));
+        itemsView.addItemDecoration(new DividerItemDecoration(itemsView.getContext(),
+                DividerItemDecoration.VERTICAL));
         mSelectionSupport = ItemSelectionSupport.addTo(itemsView);
+        mAdapter.setItemSelection(mSelectionSupport);
 
+        SessionClickListener sessionClickListener = new SessionClickListener();
         ItemClickSupport clickSupport = ItemClickSupport.addTo(itemsView);
-        clickSupport.setOnItemLongClickListener(new ItemClickSupport.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(RecyclerView parent, View view, int position, long id) {
-                if (mActionMode != null)
-                    return false;
-
-                startSupportActionMode(mActionModeCallbacks);
-                mSelectionSupport.setItemChecked(position, true);
-                return true;
-            }
-        });
+        clickSupport.setOnItemClickListener(sessionClickListener);
+        clickSupport.setOnItemLongClickListener(sessionClickListener);
 
         mUpdateViewRunnable = new Runnable() {
             @Override
@@ -162,102 +241,28 @@ public class MainActivity extends AppCompatActivity
         getSupportLoaderManager().initLoader(TODAY_LOADER_ID, null, mLoaderCallbacks);
     }
 
-    private void setCurrentGroupType(GroupType type) {
-        mCurrentGroupType = type;
-        getPreferences(MODE_PRIVATE).edit().
-                putInt(PreferencesConst.GROUP_TYPE, type.ordinal()).apply();
-        getSupportLoaderManager().restartLoader(GROUPS_LOADER_ID, null, mLoaderCallbacks);
-    }
-
     private void updateTimeText() {
         mAdapter.updateNotClosedView();
         updateCurrenDayText(mTodayTv, mTodayGroup, R.string.text_today, R.string.text_today_empty);
         updateCurrenDayText(mWeekTv, mWeekGroup, R.string.text_week, R.string.text_week_empty);
     }
 
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+    private void updateCurrenDayText(TextView v, GroupsList groups, int textId, int emptyTextId) {
+        long elapsed = groups.getDuration();
+        if (elapsed > 0)
+            v.setText(String.format(getString(textId),
+                    mPeriodFormatter.print(new Period(elapsed * 1000L))));
+        else
+            v.setText(getString(emptyTextId));
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+    private void toggleSession() {
+        if (stopSession())
+            Snackbar.make(mFab, "SessionDescription stopped.", Snackbar.LENGTH_LONG).show();
+        else if (startNewSession())
+            Snackbar.make(mFab, "SessionDescription started.", Snackbar.LENGTH_LONG).show();
 
-
-        MenuItem item = menu.findItem(R.id.action_group_type);
-        Spinner spGroups = (Spinner) item.getActionView();
-
-        final ArrayAdapter<CharSequence> spAdapter = ArrayAdapter.createFromResource(this, R.array.group_types,
-                R.layout.spinner_item);
-        spAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        spGroups.setAdapter(spAdapter);
-        spGroups.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                setCurrentGroupType(GroupType.values()[i]);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-                setCurrentGroupType(GroupType.gt_None);
-            }
-        });
-        spGroups.setSelection(mCurrentGroupType.ordinal());
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-    private boolean startNewSession() {
-        ContentValues values = new ContentValues();
-        values.put(DatabaseDescription.SessionDescription.COLUMN_START,
-                System.currentTimeMillis() / 1000L);
-        return getContentResolver().insert(DatabaseDescription.SessionDescription.CONTENT_URI, values) != null;
+        updateFabIcon();
     }
 
     private boolean stopSession() {
@@ -272,13 +277,18 @@ public class MainActivity extends AppCompatActivity
                 values, null, null) > 0;
     }
 
-    private void toggleSession() {
-        if (stopSession())
-            Snackbar.make(mFab, "SessionDescription stopped.", Snackbar.LENGTH_LONG).show();
-        else if (startNewSession())
-            Snackbar.make(mFab, "SessionDescription started.", Snackbar.LENGTH_LONG).show();
+    private boolean startNewSession() {
+        ContentValues values = new ContentValues();
+        values.put(DatabaseDescription.SessionDescription.COLUMN_START,
+                System.currentTimeMillis() / 1000L);
+        return getContentResolver().insert(DatabaseDescription.SessionDescription.CONTENT_URI, values) != null;
+    }
 
-        updateFabIcon();
+    private void updateFabIcon() {
+        if (mCurrentGroups.hasOpenedSessions())
+            mFab.setImageResource(android.R.drawable.ic_media_pause);
+        else
+            mFab.setImageResource(android.R.drawable.ic_media_play);
     }
 
     private long getOpenedSessionID() {
@@ -293,22 +303,52 @@ public class MainActivity extends AppCompatActivity
         return id;
     }
 
-    private void updateFabIcon() {
-        if (mCurrentGroups.hasOpenedSessions())
-            mFab.setImageResource(android.R.drawable.ic_media_pause);
-        else
-            mFab.setImageResource(android.R.drawable.ic_media_play);
+    private boolean deleteSelectedGroups() {
+        long[] ids = mSelectionSupport.getCheckedItemIds();
+        ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+        for (long id : ids) {
+            ContentProviderOperation op = ContentProviderOperation.newDelete(
+                    Uri.withAppendedPath(getCurrentGroupsUri(), Long.toString(id))).build();
+            operations.add(op);
+        }
+
+        try {
+            getContentResolver().applyBatch(DatabaseDescription.AUTHORITY, operations);
+            return true;
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
-    private void updateCurrenDayText(TextView v, GroupsList groups, int textId, int emptyTextId) {
-        long elapsed = groups.getDuration();
-        if (elapsed > 0)
-            v.setText(String.format(getString(textId),
-                    mPeriodFormatter.print(new Period(elapsed * 1000L))));
-        else
-            v.setText(getString(emptyTextId));
+    private Uri getCurrentGroupsUri() {
+        switch (mCurrentGroupType) {
+            case gt_None:
+                return DatabaseDescription.GroupsDescription.GROUP_NONE_URI;
+            case gt_Day:
+                return DatabaseDescription.GroupsDescription.GROUP_DAY_URI;
+            case gt_Week:
+                return DatabaseDescription.GroupsDescription.GROUP_WEEK_URI;
+            case gt_Month:
+                return DatabaseDescription.GroupsDescription.GROUP_MONTH_URI;
+            case gt_Year:
+                return DatabaseDescription.GroupsDescription.GROUP_YEAR_URI;
+        }
+
+        return null;
     }
 
+    private void updateActionModeTitle() {
+        if (mActionMode == null)
+            return;
+
+        mActionMode.setTitle(String.format(getString(R.string.title_session_selected),
+                mSelectionSupport.getCheckedItemCount()));
+
+    }
 
     /* *************************************************************************************
         Classes
@@ -340,11 +380,14 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            boolean res = false;
             switch (item.getItemId()) {
                 case R.id.action_delete_selected:
-                    deleteSelectedGroups();
+                    res = deleteSelectedGroups();
             }
-            return false;
+            if (res)
+                mActionMode.finish();
+            return res;
         }
 
         @Override
@@ -353,42 +396,6 @@ public class MainActivity extends AppCompatActivity
             mSelectionSupport.clearChoices();
             mSelectionSupport.setChoiceMode(ItemSelectionSupport.ChoiceMode.NONE);
             mFab.setVisibility(View.VISIBLE);
-        }
-
-    }
-
-    private Uri getCurrentGroupsUri() {
-        switch (mCurrentGroupType) {
-            case gt_None:
-                return DatabaseDescription.GroupsDescription.GROUP_NONE_URI;
-            case gt_Day:
-                return DatabaseDescription.GroupsDescription.GROUP_DAY_URI;
-            case gt_Week:
-                return DatabaseDescription.GroupsDescription.GROUP_WEEK_URI;
-            case gt_Month:
-                return DatabaseDescription.GroupsDescription.GROUP_MONTH_URI;
-            case gt_Year:
-                return DatabaseDescription.GroupsDescription.GROUP_YEAR_URI;
-        }
-
-        return null;
-    }
-
-    private void deleteSelectedGroups() {
-        long[] ids = mSelectionSupport.getCheckedItemIds();
-        ArrayList<ContentProviderOperation> operations = new ArrayList<>();
-        for (long id : ids) {
-            ContentProviderOperation op = ContentProviderOperation.newDelete(
-                    Uri.withAppendedPath(getCurrentGroupsUri(), Long.toString(id))).build();
-            operations.add(op);
-        }
-
-        try {
-            getContentResolver().applyBatch(DatabaseDescription.AUTHORITY, operations);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (OperationApplicationException e) {
-            e.printStackTrace();
         }
 
     }
@@ -428,6 +435,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
             swapCursor(loader.getId(), data);
+            updateTimeText();
         }
 
         @Override
@@ -464,6 +472,25 @@ public class MainActivity extends AppCompatActivity
         private void swapWeekCursor(Cursor cursor) {
             mWeekGroup.swapCursor(cursor);
             updateTimeText();
+        }
+    }
+
+    private class SessionClickListener implements ItemClickSupport.OnItemClickListener,
+            ItemClickSupport.OnItemLongClickListener {
+        @Override
+        public void onItemClick(RecyclerView parent, View view, int position, long id) {
+            updateActionModeTitle();
+        }
+
+        @Override
+        public boolean onItemLongClick(RecyclerView parent, View view, int position, long id) {
+            if (mActionMode != null)
+                return false;
+
+            startSupportActionMode(mActionModeCallbacks);
+            mSelectionSupport.setItemChecked(position, true);
+            updateActionModeTitle();
+            return true;
         }
     }
 }

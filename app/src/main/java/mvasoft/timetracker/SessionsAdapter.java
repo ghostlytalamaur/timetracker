@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.Checkable;
 import android.widget.TextView;
 
@@ -13,6 +14,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
+import org.lucasr.twowayview.ItemSelectionSupport;
 
 import java.text.SimpleDateFormat;
 
@@ -20,9 +22,8 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
     private PeriodFormatter mPeriodFormatter;
     private DateTimeFormatter mDateTimeFormatter;
-    private SimpleDateFormat mDateFormat;
     private GroupsList mGroups;
-    private GroupsList.IGroupsChangesListener mGruopsListener = new GroupsList.IGroupsChangesListener() {
+    private GroupsList.IGroupsChangesListener mGroupsListener = new GroupsList.IGroupsChangesListener() {
         @Override
         public void onDataChanged() {
             notifyDataSetChanged();
@@ -48,6 +49,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             notifyItemInserted(index);
         }
     };
+    private ItemSelectionSupport mItemSelection;
 
 
     SessionsAdapter() {
@@ -97,7 +99,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.setSession(mGroups.get(position));
-        holder.updateView();
+        holder.updateView(position);
     }
 
     @Override
@@ -110,7 +112,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             mGroups.setChangesListener(null);
         mGroups = groups;
         if (mGroups != null)
-            mGroups.setChangesListener(mGruopsListener);
+            mGroups.setChangesListener(mGroupsListener);
     }
 
     @Override
@@ -118,14 +120,17 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
         return mGroups.get(position).getID();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements Checkable {
+    public void setItemSelection(ItemSelectionSupport itemSelection) {
+        mItemSelection = itemSelection;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private GroupsList.SessionGroup mGroup;
         private View mLayout;
         private TextView mStartView;
         private TextView mEndView;
         private TextView mElapsedView;
-        private boolean mChecked;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -140,7 +145,11 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             mGroup = s;
         }
 
-        public void updateView() {
+        public void updateView(int pos) {
+            boolean isChecked = (mItemSelection != null) && (mGroup != null) &&
+                    (mItemSelection.isItemChecked(pos));
+            mLayout.setActivated(isChecked);
+
             if (mGroup == null) {
                 mStartView.setText("");
                 mEndView.setText("");
@@ -156,21 +165,6 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             }
         }
 
-        @Override
-        public void setChecked(boolean b) {
-            mChecked = b;
-            mLayout.setActivated(mChecked);
-        }
-
-        @Override
-        public boolean isChecked() {
-            return mChecked;
-        }
-
-        @Override
-        public void toggle() {
-            setChecked(!mChecked);
-        }
     }
 
 }

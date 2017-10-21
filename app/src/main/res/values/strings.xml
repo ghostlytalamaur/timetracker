@@ -10,12 +10,14 @@
     <string name="update_invalid_uri">Invalid update uri.</string>
     <string name="delete_invalid_uri">Invalid delete uri.</string>
     <string name="text_today">Today: %s</string>
-    <string name="text_today_empty">Today:</string>
+    <string name="text_today_empty">Today: --:--:--</string>
     <string name="query_invalid_uri">Invalid query uri.</string>
     <string name="text_week">Week: %s</string>
-    <string name="text_week_empty">Week:</string>
+    <string name="text_week_empty">Week: --:--:--</string>
     <string name="group_by">Group by...</string>
     <string name="menu_delete_selected">Delete selected</string>
+    <string name="action_fill_fake_sessions">Fill with fake sessions</string>
+    <string name="title_session_selected">%d sessions selected</string>
 
     <string-array name="group_types">
         <item>None</item>

@@ -23,6 +23,7 @@ class GroupsList {
         boolean wasCursor = mCursor != null;
         if (wasCursor)
             mCursor.close();
+
         mCursor = cursor;
         if (wasCursor)
             updateData();
@@ -65,7 +66,9 @@ class GroupsList {
             notifyDataChanged();
             return;
         }
+        boolean useOneNotification = true;
 
+//        long milis = System.currentTimeMillis();
         HashSet<Long> processedIds = new HashSet<>();
         for (int i = 0; i < mCursor.getCount(); i++) {
             mCursor.moveToPosition(i);
@@ -79,18 +82,25 @@ class GroupsList {
 
             if (idx < 0) {
                 mList.add(i, new SessionGroup(id, start, end, duration, cnt));
-                notifyItemInserted(i);
+                if (!useOneNotification)
+                    notifyItemInserted(i);
             }
             else if (!get(idx).sameData(start, end, duration, cnt)) {
                 get(idx).updateData(start, end, duration, cnt);
-                notifyItemChanged(idx);
+                if (!useOneNotification)
+                    notifyItemChanged(idx);
                 if (idx != i) {
                     mList.add(i, mList.remove(idx));
-                    notifyItemMoved(idx, i);
+                    if (!useOneNotification)
+                        notifyItemMoved(idx, i);
                 }
             }
             processedIds.add(id);
         }
+
+//        milis = System.currentTimeMillis() - milis;
+//        milis = 0;
+//        milis = System.currentTimeMillis();
 
         // todo: rewrite removing items.
         // 1. backward cycle.
@@ -98,15 +108,22 @@ class GroupsList {
         for (int i = count() - 1; i >= 0; i--)
             if (!processedIds.contains(get(i).getID())) {
                 mList.remove(i);
-                notifyItemRemoved(i);
+                if (!useOneNotification)
+                    notifyItemRemoved(i);
             }
+        if (useOneNotification)
+            notifyDataChanged();
+//        milis = System.currentTimeMillis() - milis;
+//        milis = 0;
     }
 
 
     private void fillList() {
         mList.clear();
-        if (mCursor == null)
+        if (mCursor == null) {
+            notifyDataChanged();
             return;
+        }
 
         for (int i = 0; i < mCursor.getCount(); i++) {
             mCursor.moveToPosition(i);
@@ -118,6 +135,7 @@ class GroupsList {
             int cnt = mCursor.getInt(mCursor.getColumnIndex(GroupsDescription.COLUMN_UNCOMPLETED_COUNT));
             mList.add(new SessionGroup(id, start, end, duration, cnt));
         }
+        notifyDataChanged();
     }
 
     private int indexByID(long id) {

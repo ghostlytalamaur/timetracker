@@ -26,11 +26,10 @@
         app:layout_constraintVertical_bias="0.0"
         android:layout_marginStart="16dp" />
 
-    <org.lucasr.twowayview.widget.TwoWayView
+    <android.support.v7.widget.RecyclerView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/items_view"
-        app:twowayview_layoutManager="ListLayoutManager"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="32dp"
