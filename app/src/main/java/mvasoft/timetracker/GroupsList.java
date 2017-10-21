@@ -1,25 +1,30 @@
 package mvasoft.timetracker;
 
 import android.database.Cursor;
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.HashSet;
 
 import mvasoft.timetracker.data.DatabaseDescription;
 import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
+import mvasoft.utils.Announcer;
 
 class GroupsList {
 
     private IGroupsChangesListener mListener;
     private ArrayList<SessionGroup> mList;
     private Cursor mCursor;
+    private Announcer<IGroupsChangesListener> mAnnouncer;
 
     GroupsList() {
         mList = new ArrayList<>();
+        mAnnouncer = new Announcer<>(IGroupsChangesListener.class);
     }
 
 
-    // TODO: Refactoring for update changed groups and notification with modified/added/deleted/moved
-    public void swapCursor(Cursor cursor) {
+    void swapCursor(Cursor cursor) {
         boolean wasCursor = mCursor != null;
         if (wasCursor)
             mCursor.close();
@@ -32,33 +37,31 @@ class GroupsList {
     }
 
     private void notifyDataChanged() {
-        if (mListener != null)
-            mListener.onDataChanged();
+        mAnnouncer.announce().onDataChanged();
     }
 
-    private void notifyItemRemoved(int i) {
-        if (mListener != null)
-            mListener.onItemRemoved(i);
+    private void notifyItemRemoved(int index) {
+        mAnnouncer.announce().onItemRemoved(index);
     }
 
     private void notifyItemChanged(int idx) {
-        if (mListener != null)
-            mListener.onItemChanged(idx);
+        mAnnouncer.announce().onItemChanged(idx);
     }
 
     private void notifyItemMoved(int idx, int i) {
-        if (mListener != null)
-            mListener.onItemMoved(idx, i);
+        mAnnouncer.announce().onItemMoved(idx, i);
     }
 
     private void notifyItemInserted(int index) {
-        if (mListener != null)
-            mListener.onItemInserted(index);
+        mAnnouncer.announce().onItemInserted(index);
     }
 
-    public void setChangesListener(IGroupsChangesListener listener) {
-        if (mListener != listener)
-            mListener = listener;
+    void setChangesListener(IGroupsChangesListener listener) {
+        addChangesListener(listener);
+    }
+
+    void addChangesListener(@NonNull IGroupsChangesListener listener) {
+        mAnnouncer.addListener(listener);
     }
 
     private void updateData() {
@@ -68,7 +71,6 @@ class GroupsList {
         }
         boolean useOneNotification = true;
 
-//        long milis = System.currentTimeMillis();
         HashSet<Long> processedIds = new HashSet<>();
         for (int i = 0; i < mCursor.getCount(); i++) {
             mCursor.moveToPosition(i);
@@ -98,13 +100,6 @@ class GroupsList {
             processedIds.add(id);
         }
 
-//        milis = System.currentTimeMillis() - milis;
-//        milis = 0;
-//        milis = System.currentTimeMillis();
-
-        // todo: rewrite removing items.
-        // 1. backward cycle.
-        // 2. indices in processedIds set may be invalid after insertion.
         for (int i = count() - 1; i >= 0; i--)
             if (!processedIds.contains(get(i).getID())) {
                 mList.remove(i);
@@ -113,8 +108,6 @@ class GroupsList {
             }
         if (useOneNotification)
             notifyDataChanged();
-//        milis = System.currentTimeMillis() - milis;
-//        milis = 0;
     }
 
 
@@ -231,19 +224,12 @@ class GroupsList {
         }
     }
 
-    public enum GroupType {
-        gt_None,
-        gt_Day,
-        gt_Week,
-        gt_Month,
-        gt_Year
-    }
-
-    public interface IGroupsChangesListener {
+    public interface IGroupsChangesListener extends EventListener {
         void onDataChanged();
         void onItemRemoved(int index);
         void onItemChanged(int index);
         void onItemMoved(int oldIndex, int newIndex);
         void onItemInserted(int index);
     }
+
 }
