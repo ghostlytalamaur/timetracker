@@ -64,6 +64,10 @@ class GroupsList {
         mAnnouncer.addListener(listener);
     }
 
+    void removeChangesListener(@NonNull IGroupsChangesListener listener) {
+        mAnnouncer.removeListener(listener);
+    }
+
     private void updateData() {
         if (mCursor == null) {
             notifyDataChanged();

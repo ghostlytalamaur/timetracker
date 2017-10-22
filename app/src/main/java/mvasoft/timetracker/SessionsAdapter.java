@@ -4,8 +4,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.Checkable;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
@@ -16,7 +14,6 @@ import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.lucasr.twowayview.ItemSelectionSupport;
 
-import java.text.SimpleDateFormat;
 
 class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
@@ -81,14 +78,6 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
         setHasStableIds(true);
     }
 
-    public void updateNotClosedView() {
-        for (int pos = 0; pos < mGroups.count(); pos++) {
-            if (mGroups.get(pos).isRunning())
-                notifyItemChanged(pos);
-        }
-
-    }
-
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(
@@ -100,6 +89,11 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.setSession(mGroups.get(position));
         holder.updateView(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return mGroups.get(position).getID();
     }
 
     @Override
@@ -115,16 +109,19 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             mGroups.setChangesListener(mGroupsListener);
     }
 
-    @Override
-    public long getItemId(int position) {
-        return mGroups.get(position).getID();
+    void updateNotClosedView() {
+        for (int pos = 0; pos < mGroups.count(); pos++) {
+            if (mGroups.get(pos).isRunning())
+                notifyItemChanged(pos);
+        }
+
     }
 
-    public void setItemSelection(ItemSelectionSupport itemSelection) {
+    void setItemSelection(ItemSelectionSupport itemSelection) {
         mItemSelection = itemSelection;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
 
         private GroupsList.SessionGroup mGroup;
         private View mLayout;
@@ -132,7 +129,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
         private TextView mEndView;
         private TextView mElapsedView;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
 
             mLayout = itemView.findViewById(R.id.item_ex_layout);
@@ -141,11 +138,11 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             mElapsedView = itemView.findViewById(R.id.tvElapsed);
         }
 
-        public void setSession(GroupsList.SessionGroup s) {
+        void setSession(GroupsList.SessionGroup s) {
             mGroup = s;
         }
 
-        public void updateView(int pos) {
+        void updateView(int pos) {
             boolean isChecked = (mItemSelection != null) && (mGroup != null) &&
                     (mItemSelection.isItemChecked(pos));
             mLayout.setActivated(isChecked);

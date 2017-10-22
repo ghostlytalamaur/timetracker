@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -38,7 +39,7 @@ import java.util.TimerTask;
 import static android.content.Context.MODE_PRIVATE;
 
 
-public class SessionListFragment extends FabFragment {
+public class SessionListFragment extends Fragment {
 
     private SessionsAdapter mAdapter;
     private TextView mTodayTv;
@@ -60,6 +61,7 @@ public class SessionListFragment extends FabFragment {
     private ActionMode mActionMode;
     private SessionHelper mSessionHelper;
     private FloatingActionButton mFab;
+    private GroupsChangesListener mGroupListener;
 
     public static SessionListFragment newInstance() {
         return new SessionListFragment();
@@ -90,11 +92,12 @@ public class SessionListFragment extends FabFragment {
         );
 
         mSessionHelper = new SessionHelper(getActivity());
+        // TODO: close cursors when fragment destroyed
         mTodayGroup = new GroupsList();
         mWeekGroup = new GroupsList();
         mCurrentGroups = new GroupsList();
-        GroupsList.IGroupsChangesListener groupListener = new GroupsChangesListener();
-        mCurrentGroups.addChangesListener(groupListener);
+
+        mGroupListener = new GroupsChangesListener();
 
         mAdapter = new SessionsAdapter();
         mAdapter.setList(mCurrentGroups);
@@ -132,7 +135,6 @@ public class SessionListFragment extends FabFragment {
         mWeekTv = fragmentView.findViewById(R.id.tvWeek);
         mFab = fragmentView.findViewById(R.id.fab);
         mFab.setOnClickListener(new FabClickListener());
-        updateFabIcon();
 
         final RecyclerView itemsView = fragmentView.findViewById(R.id.items_view);
         itemsView.setAdapter(mAdapter);
@@ -159,6 +161,9 @@ public class SessionListFragment extends FabFragment {
                 mHandler.post(mUpdateViewRunnable);
             }
         }, 1000, 1000);
+
+        mCurrentGroups.addChangesListener(mGroupListener);
+        updateUI();
     }
 
     @Override
@@ -167,6 +172,15 @@ public class SessionListFragment extends FabFragment {
         mUpdateTimer.cancel();
         mUpdateTimer.purge();
 
+        mCurrentGroups.removeChangesListener(mGroupListener);
+    }
+
+    @Override
+    public void onDestroy() {
+        mTodayGroup.swapCursor(null);
+        mWeekGroup.swapCursor(null);
+        mCurrentGroups.swapCursor(null);
+        super.onDestroy();
     }
 
     @Override
@@ -181,6 +195,7 @@ public class SessionListFragment extends FabFragment {
                 R.array.group_types, R.layout.spinner_item);
         spAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spGroups.setAdapter(spAdapter);
+        spGroups.setSelection(mGroupInfoProvider.getCurrentGroupType().ordinal());
         spGroups.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -192,7 +207,6 @@ public class SessionListFragment extends FabFragment {
                 setCurrentGroupType(GroupType.gt_None);
             }
         });
-        spGroups.setSelection(mGroupInfoProvider.getCurrentGroupType().ordinal());
     }
 
     @Override
@@ -213,6 +227,9 @@ public class SessionListFragment extends FabFragment {
     }
 
     private void setCurrentGroupType(GroupType type) {
+        if (type == mGroupInfoProvider.getCurrentGroupType())
+            return;
+
         mGroupInfoProvider.setCurrentGroupType(type);
         getActivity().getPreferences(MODE_PRIVATE).edit().
                 putInt(PreferencesConst.GROUP_TYPE, type.ordinal()).apply();
@@ -236,37 +253,39 @@ public class SessionListFragment extends FabFragment {
             v.setText(getString(emptyTextId));
     }
 
-    private void updateActionModeTitle() {
+    private void updateActionMode() {
         if (mActionMode == null)
             return;
 
-        mActionMode.setTitle(String.format(getString(R.string.title_session_selected),
-                mSelectionSupport.getCheckedItemCount()));
-
+        int cnt = mSelectionSupport.getCheckedItemCount();
+        if (cnt > 0)
+            mActionMode.setTitle(String.format(getString(R.string.title_session_selected), cnt));
+        else
+            mActionMode.finish();
     }
 
-    private void updateFabIcon() {
+    private void updateUI() {
         if (mCurrentGroups.hasOpenedSessions())
             mFab.setImageResource(android.R.drawable.ic_media_pause);
         else
             mFab.setImageResource(android.R.drawable.ic_media_play);
+        updateTimeText();
     }
 
     private class SessionClickListener implements ItemClickSupport.OnItemClickListener,
             ItemClickSupport.OnItemLongClickListener {
         @Override
         public void onItemClick(RecyclerView parent, View view, int position, long id) {
-            updateActionModeTitle();
+            updateActionMode();
         }
 
         @Override
         public boolean onItemLongClick(RecyclerView parent, View view, int position, long id) {
-            if (mActionMode != null)
-                return false;
+            if (mActionMode == null)
+                ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
 
-            ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
             mSelectionSupport.setItemChecked(position, true);
-            updateActionModeTitle();
+            updateActionMode();
             return true;
         }
     }
@@ -330,8 +349,7 @@ public class SessionListFragment extends FabFragment {
     private class GroupsChangesListener implements GroupsList.IGroupsChangesListener {
         @Override
         public void onDataChanged() {
-            updateFabIcon();
-            updateTimeText();
+            updateUI();
         }
 
         @Override
