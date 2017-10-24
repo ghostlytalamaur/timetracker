@@ -327,10 +327,10 @@ public class SessionsContentProvider extends ContentProvider {
             case ONE_GROUP_YEAR:
                 rowsCount = deleteSessionsFromGroups(uriId, uri.getLastPathSegment());
                 break;
-            case GROUP_DAY:
-            case GROUP_WEEK:
-            case GROUP_MONTH:
-            case GROUP_YEAR:
+            case SESSIONS:
+                rowsCount = mDBHelper.getWritableDatabase().delete(SessionDescription.TABLE_NAME,
+                        null, null);
+                break;
 
             default:
                 throw new UnsupportedOperationException(

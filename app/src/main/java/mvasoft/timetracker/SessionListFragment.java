@@ -1,6 +1,7 @@
 package mvasoft.timetracker;
 
 import android.database.Cursor;
+import android.graphics.drawable.Animatable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -37,6 +38,9 @@ import java.util.TimerTask;
 
 
 import static android.content.Context.MODE_PRIVATE;
+import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_CURRENT;
+import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_TODAY;
+import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_WEEK;
 
 
 public class SessionListFragment extends Fragment {
@@ -62,6 +66,7 @@ public class SessionListFragment extends Fragment {
     private SessionHelper mSessionHelper;
     private FloatingActionButton mFab;
     private GroupsChangesListener mGroupListener;
+    private ISessionListCallbacks mCallbacks;
 
     public static SessionListFragment newInstance() {
         return new SessionListFragment();
@@ -111,17 +116,19 @@ public class SessionListFragment extends Fragment {
             }
         };
         mHandler = new Handler();
-        mUpdateTimer = new Timer();
 
         mLoaderCallbacks = new GroupsLoaderCallbacks(getContext(), mGroupInfoProvider,
                 mCurrentGroups, mTodayGroup, mWeekGroup);
 
         LoaderManager lm = getActivity().getSupportLoaderManager();
-        lm.initLoader(GroupsLoaderCallbacks.WEEK_LOADER_ID, null, mLoaderCallbacks);
-        lm.initLoader(GroupsLoaderCallbacks.GROUPS_LOADER_ID, null, mLoaderCallbacks);
-        lm.initLoader(GroupsLoaderCallbacks.TODAY_LOADER_ID,null, mLoaderCallbacks);
+        lm.restartLoader(LOADER_ID_GROUPS_WEEK, null, mLoaderCallbacks);
+        lm.restartLoader(LOADER_ID_GROUPS_CURRENT, null, mLoaderCallbacks);
+        lm.restartLoader(LOADER_ID_GROUPS_TODAY,null, mLoaderCallbacks);
 
         setHasOptionsMenu(true);
+
+        if (getActivity() instanceof ISessionListCallbacks)
+            mCallbacks = (ISessionListCallbacks) getActivity();
     }
 
     @Nullable
@@ -155,6 +162,7 @@ public class SessionListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        mUpdateTimer = new Timer();
         mUpdateTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -171,6 +179,7 @@ public class SessionListFragment extends Fragment {
         super.onPause();
         mUpdateTimer.cancel();
         mUpdateTimer.purge();
+        mUpdateTimer = null;
 
         mCurrentGroups.removeChangesListener(mGroupListener);
     }
@@ -221,6 +230,10 @@ public class SessionListFragment extends Fragment {
                 FakeSessionFiller.fill(getContext());
                 return true;
             }
+            case R.id.action_import_db: {
+                BackupAssistant.importDb(getActivity());
+                return true;
+            }
         }
 
         return super.onOptionsItemSelected(item);
@@ -234,10 +247,13 @@ public class SessionListFragment extends Fragment {
         getActivity().getPreferences(MODE_PRIVATE).edit().
                 putInt(PreferencesConst.GROUP_TYPE, type.ordinal()).apply();
         getActivity().getSupportLoaderManager().restartLoader(
-                GroupsLoaderCallbacks.GROUPS_LOADER_ID, null, mLoaderCallbacks);
+                LOADER_ID_GROUPS_CURRENT, null, mLoaderCallbacks);
     }
 
     private void updateTimeText() {
+        if (!isAdded())
+            return;
+
         mAdapter.updateNotClosedView();
         updateCurrentDayText(mTodayTv, mTodayGroup, R.string.text_today, R.string.text_today_empty);
         updateCurrentDayText(mWeekTv, mWeekGroup, R.string.text_week, R.string.text_week_empty);
@@ -265,17 +281,29 @@ public class SessionListFragment extends Fragment {
     }
 
     private void updateUI() {
+        if (!isAdded())
+            return;
+
         if (mCurrentGroups.hasOpenedSessions())
-            mFab.setImageResource(android.R.drawable.ic_media_pause);
+            mFab.setImageResource(R.drawable.animated_minus);
+//            mFab.setImageResource(android.R.drawable.ic_media_pause);
         else
-            mFab.setImageResource(android.R.drawable.ic_media_play);
+            mFab.setImageResource(R.drawable.animated_plus);
+        if (mFab.getDrawable() instanceof Animatable)
+            ((Animatable) mFab.getDrawable()).start();
+//            mFab.setImageResource(android.R.drawable.ic_media_play);
         updateTimeText();
     }
+
 
     private class SessionClickListener implements ItemClickSupport.OnItemClickListener,
             ItemClickSupport.OnItemLongClickListener {
         @Override
         public void onItemClick(RecyclerView parent, View view, int position, long id) {
+            if ((mActionMode == null) && (mCallbacks != null) &&
+                    (mGroupInfoProvider.getCurrentGroupType() == GroupType.gt_None)) {
+                mCallbacks.editSession(id);
+            }
             updateActionMode();
         }
 
@@ -336,11 +364,11 @@ public class SessionListFragment extends Fragment {
             SessionHelper.ToggleSessionResult toggleResult = mSessionHelper.toggleSession();
             switch (toggleResult) {
                 case tgs_Started:
-                    Snackbar.make(mFab, "SessionDescription stopped.", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(mFab, R.string.session_started, Snackbar.LENGTH_LONG).show();
                     break;
 
                 case tgs_Stopped:
-                    Snackbar.make(mFab, "SessionDescription started.", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(mFab, R.string.session_stopped, Snackbar.LENGTH_LONG).show();
                     break;
             }
         }
@@ -363,5 +391,9 @@ public class SessionListFragment extends Fragment {
 
         @Override
         public void onItemInserted(int index) {}
+    }
+
+    interface ISessionListCallbacks {
+        void editSession(long sessionId);
     }
 }

@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/app/libs" />
             <option value="$PROJECT_DIR$/app/libs/twoway-view_core" />
             <option value="$PROJECT_DIR$/app/libs/twoway-view_layouts" />
+            <option value="$PROJECT_DIR$/datetimepicker" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 
 import mvasoft.timetracker.data.DatabaseDescription;
+import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
 
 class SessionHelper {
@@ -58,28 +59,36 @@ class SessionHelper {
             return false;
 
         ContentValues values = new ContentValues();
-        values.put(DatabaseDescription.SessionDescription.COLUMN_END, System.currentTimeMillis() / 1000L);
+        values.put(SessionDescription.COLUMN_END, System.currentTimeMillis() / 1000L);
 
-        return mContext.getContentResolver().update(DatabaseDescription.SessionDescription.buildSessionUri(id),
+        return mContext.getContentResolver().update(SessionDescription.buildSessionUri(id),
                 values, null, null) > 0;
     }
 
     private boolean startNewSession() {
         ContentValues values = new ContentValues();
-        values.put(DatabaseDescription.SessionDescription.COLUMN_START,
+        values.put(SessionDescription.COLUMN_START,
                 System.currentTimeMillis() / 1000L);
-        return mContext.getContentResolver().insert(DatabaseDescription.SessionDescription.CONTENT_URI, values) != null;
+        return mContext.getContentResolver().insert(SessionDescription.CONTENT_URI, values) != null;
+    }
+
+    boolean updateSession(long id, long start, long end) {
+        ContentValues values = new ContentValues();
+        values.put(SessionDescription.COLUMN_START, start);
+        values.put(SessionDescription.COLUMN_END, end);
+        return mContext.getContentResolver().update(SessionDescription.buildSessionUri(id),
+                values, null, null) > 0;
     }
 
     private long getOpenedSessionID() {
         Cursor cursor = mContext.getContentResolver().query(
-                DatabaseDescription.SessionDescription.CONTENT_URI, null,
-                DatabaseDescription.SessionDescription.COLUMN_END + " is null", null, null);
+                SessionDescription.CONTENT_URI, null,
+                SessionDescription.COLUMN_END + " is null", null, null);
         if ((cursor == null) || (cursor.getCount() <= 0))
             return EMPTY_ID;
 
         cursor.moveToFirst();
-        long id = cursor.getLong(cursor.getColumnIndex(DatabaseDescription.SessionDescription._ID));
+        long id = cursor.getLong(cursor.getColumnIndex(SessionDescription._ID));
         cursor.close();
         return id;
     }

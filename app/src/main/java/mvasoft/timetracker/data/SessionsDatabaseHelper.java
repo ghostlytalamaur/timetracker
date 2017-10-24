@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
+import static mvasoft.timetracker.data.DatabaseDescription.DATABASE_NAME;
+
 /**
  * Created by mihal on 13.10.2017.
  */
@@ -13,7 +15,6 @@ import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 public class SessionsDatabaseHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "timetracker.db";
 
     public SessionsDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -22,7 +23,7 @@ public class SessionsDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_SESSIONS_TABLE =
-                "CREATE TABLE " + SessionDescription.TABLE_NAME + " (" +
+                "CREATE TABLE IF NOT EXISTS " + SessionDescription.TABLE_NAME + " (" +
                 SessionDescription._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 SessionDescription.COLUMN_START + " INTEGER NOT NULL, " +
                 SessionDescription.COLUMN_END + " INTEGER);";

@@ -73,6 +73,10 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
                 appendMonthOfYearText().
                 appendLiteral(" ").
                 appendYear(4, 4).
+                appendLiteral("   ").
+                appendHourOfDay(2).
+                appendLiteral(":").
+                appendMinuteOfHour(2).
                 toFormatter();
 
         setHasStableIds(true);

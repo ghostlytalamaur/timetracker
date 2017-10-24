@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/TimeTracker2.iml" filepath="$PROJECT_DIR$/TimeTracker2.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/datetimepicker/datetimepicker.iml" filepath="$PROJECT_DIR$/datetimepicker/datetimepicker.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/libs/libs.iml" filepath="$PROJECT_DIR$/app/libs/libs.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/libs/twoway-view_core/twoway-view_core.iml" filepath="$PROJECT_DIR$/app/libs/twoway-view_core/twoway-view_core.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/libs/twoway-view_layouts/twoway-view_layouts.iml" filepath="$PROJECT_DIR$/app/libs/twoway-view_layouts/twoway-view_layouts.iml" />

@@ -8,6 +8,7 @@ import android.net.Uri;
  */
 
 public class DatabaseDescription {
+    public static final String DATABASE_NAME = "timetracker.db";
     public static final String AUTHORITY = "com.mvasoft.timetracker.data.provider";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
 

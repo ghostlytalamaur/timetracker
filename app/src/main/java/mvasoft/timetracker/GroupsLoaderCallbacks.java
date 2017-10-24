@@ -10,12 +10,12 @@ import android.support.v4.content.Loader;
 
 import mvasoft.timetracker.data.DatabaseDescription;
 
+import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_CURRENT;
+import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_TODAY;
+import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_WEEK;
+
 
 class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
-
-    static final int GROUPS_LOADER_ID   = 1;
-    static final int TODAY_LOADER_ID    = 2;
-    static final int WEEK_LOADER_ID     = 3;
 
     private final Context mContext;
     private final GroupInfoProvider mGroupInfoProvider;
@@ -37,12 +37,12 @@ class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
-            case GROUPS_LOADER_ID:
+            case LOADER_ID_GROUPS_CURRENT:
                 return new CursorLoader(mContext,
                         mGroupInfoProvider.getCurrentGroupsUri(),
                         null, null, null,
                         DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
-            case TODAY_LOADER_ID:
+            case LOADER_ID_GROUPS_TODAY:
                 return new CursorLoader(mContext,
                         DatabaseDescription.GroupsDescription.GROUP_DAY_URI,
                         null,
@@ -50,7 +50,7 @@ class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
                                 DatabaseDescription.SessionDescription.COLUMN_START),
                         null,
                         DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
-            case WEEK_LOADER_ID:
+            case LOADER_ID_GROUPS_WEEK:
                 return new CursorLoader(mContext,
                         DatabaseDescription.GroupsDescription.GROUP_WEEK_URI,
                         null,
@@ -77,15 +77,15 @@ class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private void swapCursor(int id, Cursor cursor) {
         switch (id) {
-            case GROUPS_LOADER_ID: {
+            case LOADER_ID_GROUPS_CURRENT: {
                 swapCurrentGroupCursor(cursor);
                 break;
             }
-            case TODAY_LOADER_ID: {
+            case LOADER_ID_GROUPS_TODAY: {
                 swapTodayCursor(cursor);
                 break;
             }
-            case WEEK_LOADER_ID: {
+            case LOADER_ID_GROUPS_WEEK: {
                 swapWeekCursor(cursor);
                 break;
             }
