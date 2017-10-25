@@ -3,7 +3,7 @@
     android:drawable="@drawable/minus">
 
     <target
-        android:animation="@animator/rotate_counterclockwise"
+        android:animation="@animator/rotate_clockwise"
         android:name="plus_group" />
 
     <target

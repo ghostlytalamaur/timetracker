@@ -91,13 +91,17 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.setSession(mGroups.get(position));
+        if (mGroups != null)
+            holder.setSession(mGroups.get(position));
         holder.updateView(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return mGroups.get(position).getID();
+        if (mGroups != null)
+            return mGroups.get(position).getID();
+        else
+            return -1;
     }
 
     @Override
@@ -105,7 +109,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
         return mGroups.count();
     }
 
-    public void setList(GroupsList groups) {
+    void setList(GroupsList groups) {
         if (mGroups != null)
             mGroups.setChangesListener(null);
         mGroups = groups;
@@ -114,6 +118,8 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
     }
 
     void updateNotClosedView() {
+        if (mGroups == null)
+            return;
         for (int pos = 0; pos < mGroups.count(); pos++) {
             if (mGroups.get(pos).isRunning())
                 notifyItemChanged(pos);
