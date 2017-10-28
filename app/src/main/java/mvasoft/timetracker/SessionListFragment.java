@@ -1,5 +1,8 @@
 package mvasoft.timetracker;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.Animatable;
 import android.os.Bundle;
@@ -97,7 +100,7 @@ public class SessionListFragment extends Fragment {
         );
 
         mSessionHelper = new SessionHelper(getActivity());
-        // TODO: close cursors when fragment destroyed
+
         mTodayGroup = new GroupsList();
         mWeekGroup = new GroupsList();
         mCurrentGroups = new GroupsList();
@@ -286,12 +289,10 @@ public class SessionListFragment extends Fragment {
 
         if (mCurrentGroups.hasOpenedSessions())
             mFab.setImageResource(R.drawable.animated_minus);
-//            mFab.setImageResource(android.R.drawable.ic_media_pause);
         else
             mFab.setImageResource(R.drawable.animated_plus);
         if (mFab.getDrawable() instanceof Animatable)
             ((Animatable) mFab.getDrawable()).start();
-//            mFab.setImageResource(android.R.drawable.ic_media_play);
         updateTimeText();
     }
 
@@ -361,16 +362,18 @@ public class SessionListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            SessionHelper.ToggleSessionResult toggleResult = mSessionHelper.toggleSession();
-            switch (toggleResult) {
-                case tgs_Started:
-                    Snackbar.make(mFab, R.string.session_started, Snackbar.LENGTH_LONG).show();
-                    break;
+            SessionsService.startActionToggleSession(getContext());
 
-                case tgs_Stopped:
-                    Snackbar.make(mFab, R.string.session_stopped, Snackbar.LENGTH_LONG).show();
-                    break;
-            }
+//            SessionHelper.ToggleSessionResult toggleResult = mSessionHelper.toggleSession();
+//            switch (toggleResult) {
+//                case tgs_Started:
+//                    Snackbar.make(mFab, R.string.session_started, Snackbar.LENGTH_LONG).show();
+//                    break;
+//
+//                case tgs_Stopped:
+//                    Snackbar.make(mFab, R.string.session_stopped, Snackbar.LENGTH_LONG).show();
+//                    break;
+//            }
         }
     }
 

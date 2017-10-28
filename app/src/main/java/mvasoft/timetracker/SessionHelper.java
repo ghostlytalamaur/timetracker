@@ -12,12 +12,14 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 
 import mvasoft.timetracker.data.DatabaseDescription;
+import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
 import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
 
 class SessionHelper {
 
     private static final long EMPTY_ID = -1;
+    static final long EMPTY_DURATION = -1;
     private Context mContext;
 
     SessionHelper(@NonNull Context context) {
@@ -50,6 +52,72 @@ class SessionHelper {
         }
 
         return false;
+    }
+
+    boolean hasOpenedSessions() {
+        return getOpenedSessionID() != EMPTY_ID;
+    }
+
+
+    /**
+     * Query total duration for today
+     * @return long, count of seconds
+     */
+    long getTodayDuration() {
+        final String SQL_WHERE = String.format(
+                "date(%1$s, 'unixepoch') = date('now')",
+                SessionDescription.COLUMN_START);
+
+        Cursor cursor = mContext.getContentResolver().query(GroupsDescription.GROUP_DAY_URI,
+                new String[] {GroupsDescription.COLUMN_DURATION},
+                SQL_WHERE, null, DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
+        try {
+            if ((cursor == null) || (cursor.getCount() <= 0))
+                return EMPTY_DURATION;
+
+            cursor.moveToFirst();
+            int colIdx = cursor.getColumnIndex(GroupsDescription.COLUMN_DURATION);
+            if (colIdx < 0 || colIdx >= cursor.getColumnCount())
+                return EMPTY_DURATION;
+
+            return cursor.getLong(colIdx);
+        }
+        finally {
+            if (cursor != null)
+                cursor.close();
+        }
+    }
+
+    long getCurrentDuration() {
+        final String SQL_WHERE = String.format(
+                "((date(%1$s, 'unixepoch') = date('now')) AND (%2$s is NULL))",
+                SessionDescription.COLUMN_START,
+                SessionDescription.COLUMN_END);
+
+        final String SQL_PROJ = String.format(
+                "CASE WHEN %2$s is NULL THEN strftime('%%s', 'now') - %1$s ELSE %2$s - %1$s END as Duration",
+                SessionDescription.COLUMN_START,
+                SessionDescription.COLUMN_END
+        );
+
+        Cursor cursor = mContext.getContentResolver().query(SessionDescription.CONTENT_URI,
+                new String[] {SQL_PROJ},
+                SQL_WHERE, null, DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
+        try {
+            if ((cursor == null) || (cursor.getCount() <= 0))
+                return EMPTY_DURATION;
+
+            cursor.moveToFirst();
+            int colIdx = cursor.getColumnIndex("Duration");
+            if (colIdx < 0 || colIdx >= cursor.getColumnCount())
+                return EMPTY_DURATION;
+
+            return cursor.getLong(colIdx);
+        }
+        finally {
+            if (cursor != null)
+                cursor.close();
+        }
     }
 
     private boolean stopSession() {

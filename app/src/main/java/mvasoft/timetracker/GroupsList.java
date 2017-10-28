@@ -124,7 +124,6 @@ class GroupsList {
 
         for (int i = 0; i < mCursor.getCount(); i++) {
             mCursor.moveToPosition(i);
-            // TODO: return minimal ID of session in group in content provider
             long id = mCursor.getLong(mCursor.getColumnIndex(DatabaseDescription.SessionDescription._ID));
             long start = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_START));
             long end = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_END));

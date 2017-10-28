@@ -3,6 +3,7 @@
     package="mvasoft.timetracker">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -25,7 +26,21 @@
             android:name=".data.SessionsContentProvider"
             android:authorities="com.mvasoft.timetracker.data.provider"
             android:enabled="true"
-            android:exported="true"></provider>
+            android:exported="true" />
+
+        <receiver android:name=".SessionsWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/sessions_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".SessionsService"
+            android:exported="false"></service>
     </application>
 
 </manifest>
