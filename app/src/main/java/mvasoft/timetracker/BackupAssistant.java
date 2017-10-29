@@ -70,7 +70,7 @@ class BackupAssistant {
         return mContext.getDatabasePath(DatabaseDescription.DATABASE_NAME).getPath();
     }
 
-    public static void importDb(Context context) {
+    static void importDb(Context context) {
         BackupAssistant assist = new BackupAssistant(context);
         assist.RestoreDB();
     }
@@ -79,12 +79,5 @@ class BackupAssistant {
         backupRestore(false);
         mContext.getContentResolver().notifyChange(DatabaseDescription.GroupsDescription.GROUP_NONE_URI, null);
         return true;
-//        SQLiteDatabase db = new SQLiteDatabase.
-//
-//        mContext.getContentResolver().delete(DatabaseDescription.SessionDescription.CONTENT_URI,
-//                null, null);
-
-
-//        return true;
     }
 }

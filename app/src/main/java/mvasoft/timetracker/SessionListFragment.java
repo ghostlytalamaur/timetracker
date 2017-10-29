@@ -1,5 +1,9 @@
 package mvasoft.timetracker;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.drawable.Animatable;
 import android.os.Bundle;
@@ -11,11 +15,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,7 +33,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import org.joda.time.DateTime;
 import org.joda.time.Period;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.lucasr.twowayview.ItemClickSupport;
@@ -45,6 +54,7 @@ import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_WEEK;
 
 public class SessionListFragment extends Fragment {
 
+    private static final String LOGT = "mvasoft.timetracker";
     private SessionsAdapter mAdapter;
     private TextView mTodayTv;
     private TextView mWeekTv;
@@ -227,16 +237,111 @@ public class SessionListFragment extends Fragment {
             case R.id.action_settings:
                 return true;
             case R.id.action_fill_fake_sessions: {
-                FakeSessionFiller.fill(getContext());
+                fillFakeSession();
                 return true;
             }
             case R.id.action_import_db: {
-                BackupAssistant.importDb(getActivity());
+                importDB();
+                return true;
+            }
+            case R.id.action_export_db: {
+                exportDB();
                 return true;
             }
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void exportDB() {
+        BackupAssistant.backupDb(getActivity());
+    }
+
+    private void importDB() {
+        showDialog(R.string.msg_all_data_will_removed, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                BackupAssistant.importDb(getActivity());
+            }
+        });
+    }
+
+    private void fillFakeSession() {
+        showDialog(R.string.msg_all_data_will_removed, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                FakeSessionFiller.fill(getContext());
+            }
+        });
+    }
+
+    private void deleteSelected() {
+        showDialog(R.string.msg_selected_session_will_removed, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if ((mSessionHelper.deleteGroups(mGroupInfoProvider.getCurrentGroupsUri(),
+                        mSelectionSupport.getCheckedItemIds())) && (mActionMode != null))
+                    mActionMode.finish();
+            }
+        });
+    }
+
+    private void showDialog(@StringRes int msgId, DialogInterface.OnClickListener onOkListener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(msgId);
+        builder.setPositiveButton(R.string.button_ok, onOkListener);
+        builder.setNegativeButton(R.string.button_cancel, null);
+        builder.show();
+    }
+
+    private void copySelectedToClipboard() {
+
+        final ClipboardManager clpbrd = (ClipboardManager)
+                getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clpbrd == null)
+            return;
+
+        final PeriodFormatter periodFormatter = new PeriodFormatterBuilder().
+                printZeroAlways().
+                minimumPrintedDigits(2).
+                appendHours().
+                appendSeparator(":").
+                printZeroAlways().
+                minimumPrintedDigits(2).
+                appendMinutes().
+                toFormatter();
+
+        final DateTimeFormatter dateFormatter = new DateTimeFormatterBuilder().
+                appendDayOfWeekText().
+                appendLiteral(", ").
+                appendDayOfMonth(2).
+                appendLiteral(" ").
+                appendMonthOfYearText().
+                toFormatter();
+
+
+        long ids[] = mSelectionSupport.getCheckedItemIds();
+        String text = "";
+        for (long id : ids) {
+            GroupsList.SessionGroup group = mCurrentGroups.getByID(id);
+            switch (mGroupInfoProvider.getCurrentGroupType()) {
+                case gt_Day: {
+                    text = text + String.format("%s: %s\n",
+                            dateFormatter.print(new DateTime(group.getStart() * 1000L)),
+                            periodFormatter.print(new Period(group.getDuration() * 1000L)));
+                    break;
+                }
+                default: {
+                    text = text + String.format("%s - %s: %s\n",
+                            dateFormatter.print(new DateTime(group.getStart() * 1000L)),
+                            dateFormatter.print(new DateTime(group.getEnd() * 1000L)),
+                            periodFormatter.print(new Period(group.getDuration() * 1000L)));
+                    break;
+                }
+            }
+        }
+
+        clpbrd.setPrimaryClip(ClipData.newPlainText("Sessions", text));
     }
 
     private void setCurrentGroupType(GroupType type) {
@@ -253,8 +358,10 @@ public class SessionListFragment extends Fragment {
     private void updateUI() {
         if (!isAdded())
             return;
-
-        if (mCurrentGroups.hasOpenedSessions())
+        Log.d(LOGT, "SessionListFragment.updateUI()");
+        boolean hasOpened = mCurrentGroups.hasOpenedSessions();
+        Log.d(LOGT, "hasOpened = " + hasOpened);
+        if (hasOpened)
             mFab.setImageResource(R.drawable.animated_minus);
         else
             mFab.setImageResource(R.drawable.animated_plus);
@@ -338,14 +445,17 @@ public class SessionListFragment extends Fragment {
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            boolean res = false;
+            boolean res = true;
             switch (item.getItemId()) {
                 case R.id.action_delete_selected:
-                    res = mSessionHelper.deleteGroups(mGroupInfoProvider.getCurrentGroupsUri(),
-                            mSelectionSupport.getCheckedItemIds());
+                    deleteSelected();
+                    break;
+                case R.id.action_copy_selected:
+                    copySelectedToClipboard();
+                    break;
+                default:
+                    res = false;
             }
-            if (res)
-                mActionMode.finish();
             return res;
         }
 

@@ -66,14 +66,16 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
                 .toFormatter();
 
         mDateTimeFormatter = new DateTimeFormatterBuilder().
+//                appendDayOfWeekShortText().
                 appendDayOfWeekText().
                 appendLiteral(", ").
                 appendDayOfMonth(2).
                 appendLiteral(" ").
+//                        appendMonthOfYearShortText().
                 appendMonthOfYearText().
                 appendLiteral(" ").
                 appendYear(4, 4).
-                appendLiteral("   ").
+                appendLiteral(" ").
                 appendHourOfDay(2).
                 appendLiteral(":").
                 appendMinuteOfHour(2).
@@ -111,10 +113,10 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
     void setList(GroupsList groups) {
         if (mGroups != null)
-            mGroups.setChangesListener(null);
+            mGroups.removeChangesListener(mGroupsListener);
         mGroups = groups;
         if (mGroups != null)
-            mGroups.setChangesListener(mGroupsListener);
+            mGroups.addChangesListener(mGroupsListener);
     }
 
     void updateNotClosedView() {

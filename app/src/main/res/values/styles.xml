@@ -10,6 +10,7 @@
         <item name="actionModeBackground">@color/colorPrimary</item>
         <item name="colorControlHighlight">@color/colorControlHighlight</item>
         <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormal</item>
+        <item name="actionButtonColor">@android:color/white</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

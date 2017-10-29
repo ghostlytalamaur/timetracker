@@ -29,7 +29,7 @@ class GroupsList {
         return res;
     }
 
-    private SessionGroup getByID(long id) {
+    public SessionGroup getByID(long id) {
         for (SessionGroup g : mList)
             if (g.mID == id)
                 return g;

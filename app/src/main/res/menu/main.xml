@@ -24,4 +24,9 @@
         android:id="@+id/action_import_db"
         android:title="Import database"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_export_db"
+        android:title="Export database"
+        app:showAsAction="never" />
 </menu>
