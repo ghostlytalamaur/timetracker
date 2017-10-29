@@ -18,9 +18,9 @@ import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
 class SessionHelper {
 
-    private static final long EMPTY_ID = -1;
     static final long EMPTY_DURATION = -1;
-    private Context mContext;
+    private static final long EMPTY_ID = -1;
+    private final Context mContext;
 
     SessionHelper(@NonNull Context context) {
         super();
@@ -29,11 +29,48 @@ class SessionHelper {
 
     ToggleSessionResult toggleSession() {
         if (stopSession())
-            return ToggleSessionResult.tgs_Started;
-        else if (startNewSession())
             return ToggleSessionResult.tgs_Stopped;
+        else if (startNewSession())
+            return ToggleSessionResult.tgs_Started;
 
         return ToggleSessionResult.tgs_Error;
+    }
+
+    private boolean stopSession() {
+
+        long id = getOpenedSessionID();
+        if (id == EMPTY_ID)
+            return false;
+
+        ContentValues values = new ContentValues();
+        values.put(SessionDescription.COLUMN_END, System.currentTimeMillis() / 1000L);
+
+        return mContext.getContentResolver().update(SessionDescription.buildSessionUri(id),
+                values, null, null) > 0;
+    }
+
+    private boolean startNewSession() {
+        ContentValues values = new ContentValues();
+        values.put(SessionDescription.COLUMN_START,
+                System.currentTimeMillis() / 1000L);
+        return mContext.getContentResolver().insert(SessionDescription.CONTENT_URI, values) != null;
+    }
+
+    private long getOpenedSessionID() {
+        Cursor cursor = mContext.getContentResolver().query(
+                SessionDescription.CONTENT_URI, null,
+                SessionDescription.COLUMN_END + " is null", null, null);
+        try {
+            if ((cursor == null) || (cursor.getCount() <= 0))
+                return EMPTY_ID;
+
+            cursor.moveToFirst();
+            return cursor.getLong(cursor.getColumnIndex(SessionDescription._ID));
+        }
+        finally {
+            if (cursor != null)
+                cursor.close();
+        }
     }
 
     boolean deleteGroups(Uri groupUri, long[] groupIds) {
@@ -57,7 +94,6 @@ class SessionHelper {
     boolean hasOpenedSessions() {
         return getOpenedSessionID() != EMPTY_ID;
     }
-
 
     /**
      * Query total duration for today
@@ -120,45 +156,12 @@ class SessionHelper {
         }
     }
 
-    private boolean stopSession() {
-
-        long id = getOpenedSessionID();
-        if (id == EMPTY_ID)
-            return false;
-
-        ContentValues values = new ContentValues();
-        values.put(SessionDescription.COLUMN_END, System.currentTimeMillis() / 1000L);
-
-        return mContext.getContentResolver().update(SessionDescription.buildSessionUri(id),
-                values, null, null) > 0;
-    }
-
-    private boolean startNewSession() {
-        ContentValues values = new ContentValues();
-        values.put(SessionDescription.COLUMN_START,
-                System.currentTimeMillis() / 1000L);
-        return mContext.getContentResolver().insert(SessionDescription.CONTENT_URI, values) != null;
-    }
-
     boolean updateSession(long id, long start, long end) {
         ContentValues values = new ContentValues();
         values.put(SessionDescription.COLUMN_START, start);
         values.put(SessionDescription.COLUMN_END, end);
         return mContext.getContentResolver().update(SessionDescription.buildSessionUri(id),
                 values, null, null) > 0;
-    }
-
-    private long getOpenedSessionID() {
-        Cursor cursor = mContext.getContentResolver().query(
-                SessionDescription.CONTENT_URI, null,
-                SessionDescription.COLUMN_END + " is null", null, null);
-        if ((cursor == null) || (cursor.getCount() <= 0))
-            return EMPTY_ID;
-
-        cursor.moveToFirst();
-        long id = cursor.getLong(cursor.getColumnIndex(SessionDescription._ID));
-        cursor.close();
-        return id;
     }
 
     enum ToggleSessionResult {

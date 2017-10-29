@@ -19,9 +19,9 @@ class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private final Context mContext;
     private final GroupInfoProvider mGroupInfoProvider;
-    private GroupsList mCurrentGroups;
-    private GroupsList mTodayGroup;
-    private GroupsList mWeekGroup;
+    private final GroupsList mCurrentGroups;
+    private final GroupsList mTodayGroup;
+    private final GroupsList mWeekGroup;
 
     GroupsLoaderCallbacks(@NonNull Context context, @NonNull GroupInfoProvider groupInfoProvider,
                           GroupsList currentGroups,

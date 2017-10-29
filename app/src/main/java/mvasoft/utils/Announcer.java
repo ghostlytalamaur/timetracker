@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Announcer<T extends EventListener> {
     private final T proxy;
-    private final List<T> listeners = new ArrayList<T>();
+    private final List<T> listeners = new ArrayList<>();
 
     public Announcer(Class<? extends T> listenerType) {
         proxy = listenerType.cast(Proxy.newProxyInstance(
@@ -25,18 +25,6 @@ public class Announcer<T extends EventListener> {
                         return null;
                     }
                 }));
-    }
-
-    public void addListener(T listener) {
-        listeners.add(listener);
-    }
-
-    public void removeListener(T listener) {
-        listeners.remove(listener);
-    }
-
-    public T announce() {
-        return proxy;
     }
 
     private void announce(Method m, Object[] args) {
@@ -64,6 +52,18 @@ public class Announcer<T extends EventListener> {
     }
 
     public static <T extends EventListener> Announcer<T> to(Class<? extends T> listenerType) {
-        return new Announcer<T>(listenerType);
+        return new Announcer<>(listenerType);
+    }
+
+    public void addListener(T listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(T listener) {
+        listeners.remove(listener);
+    }
+
+    public T announce() {
+        return proxy;
     }
 }

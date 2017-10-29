@@ -8,15 +8,11 @@ import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
 import static mvasoft.timetracker.data.DatabaseDescription.DATABASE_NAME;
 
-/**
- * Created by mihal on 13.10.2017.
- */
-
-public class SessionsDatabaseHelper extends SQLiteOpenHelper {
+class SessionsDatabaseHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
 
-    public SessionsDatabaseHelper(Context context) {
+    SessionsDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

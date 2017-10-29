@@ -47,7 +47,6 @@ public class SessionEditFragment extends Fragment {
     private PeriodFormatter mPeriodFormatter;
     private DateTimeFormatter mDateTimeFormatter;
     private TextView mTvDuration;
-    private SessionLoaderCallbacks mLoaderCallbacks;
     private Cursor mCursor;
     private FloatingActionButton mFab;
     private long mOriginalStartTime;
@@ -132,8 +131,8 @@ public class SessionEditFragment extends Fragment {
             mSessionId = args.getLong(ARGS_SESSION_ID);
         }
 
-        mLoaderCallbacks = new SessionLoaderCallbacks();
-        getActivity().getSupportLoaderManager().initLoader(LOADER_ID_SESSION, null, mLoaderCallbacks);
+        SessionLoaderCallbacks loaderCallbacks = new SessionLoaderCallbacks();
+        getActivity().getSupportLoaderManager().initLoader(LOADER_ID_SESSION, null, loaderCallbacks);
     }
 
     @Nullable
@@ -182,72 +181,11 @@ public class SessionEditFragment extends Fragment {
         outState.putLong(STATE_END_TIME, mEndTime);
     }
 
-
-    private void restoreState(Bundle state) {
-        mSessionId = state.getLong(STATE_ID);
-        mOriginalStartTime = state.getLong(STATE_ORIGINAL_START_TIME);
-        mOriginalEndTime = state.getLong(STATE_ORIGINAL_END_TIME);
-        mStartTime = state.getLong(STATE_START_TIME);
-        mEndTime = state.getLong(STATE_END_TIME);
-    }
-
-
-    private void saveSession() {
-        SessionHelper helper = new SessionHelper(getContext());
-        boolean isSaved = helper.updateSession(mSessionId, getDisplayStartTime(), getDisplayEndTime());
-        setFabVisibility(!isSaved);
-        if (isSaved)
-            Snackbar.make(mFab, R.string.session_saved, Snackbar.LENGTH_LONG);
-        else
-            Snackbar.make(mFab, R.string.session_unable_save, Snackbar.LENGTH_LONG);
-    }
-
-    private void setFabVisibility(boolean isVisible) {
-        if (isVisible)
-            mFab.setVisibility(View.VISIBLE);
-        else
-            mFab.setVisibility(View.GONE);
-    }
-
     @Override
     public void onDestroy() {
         swapCursor(null);
         getActivity().getSupportLoaderManager().destroyLoader(LOADER_ID_SESSION);
         super.onDestroy();
-    }
-
-    private void editDateTime(long dateTime, int requestCode) {
-        DatePickerFragment dlg = DatePickerFragment.newInstance(dateTime * 1000, "");
-        dlg.setTargetFragment(this, requestCode);
-        dlg.show(getFragmentManager(), "dialog_date");
-    }
-
-    private void updateUI() {
-        if (mTvStart != null)
-            mTvStart.setText(mDateTimeFormatter.print(new DateTime(getDisplayStartTime() * 1000L)));
-        if (mTvEnd != null)
-            mTvEnd.setText(mDateTimeFormatter.print(new DateTime(getDisplayEndTime() * 1000L)));
-        if (mTvDuration != null)
-            mTvDuration.setText(mPeriodFormatter.print(
-                    new Period((getDisplayEndTime() - getDisplayStartTime()) * 1000L )));
-
-        if (mFab != null)
-            setFabVisibility((mOriginalStartTime != getDisplayStartTime()) ||
-                    (mOriginalEndTime != getDisplayEndTime()));
-    }
-
-    private long getDisplayStartTime() {
-        if (mStartTime > 0)
-            return mStartTime;
-        else
-            return mOriginalStartTime;
-    }
-
-    private long getDisplayEndTime() {
-        if (mEndTime > 0)
-            return mEndTime;
-        else
-            return mOriginalEndTime;
     }
 
     private void swapCursor(Cursor cursor) {
@@ -267,6 +205,65 @@ public class SessionEditFragment extends Fragment {
         mOriginalEndTime = mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_END));
 
         updateUI();
+    }
+
+    private void saveSession() {
+        SessionHelper helper = new SessionHelper(getContext());
+        boolean isSaved = helper.updateSession(mSessionId, getDisplayStartTime(), getDisplayEndTime());
+        setFabVisibility(!isSaved);
+        if (isSaved)
+            Snackbar.make(mFab, R.string.session_saved, Snackbar.LENGTH_LONG);
+        else
+            Snackbar.make(mFab, R.string.session_unable_save, Snackbar.LENGTH_LONG);
+    }
+
+    private void editDateTime(long dateTime, int requestCode) {
+        DatePickerFragment dlg = DatePickerFragment.newInstance(dateTime * 1000, "");
+        dlg.setTargetFragment(this, requestCode);
+        dlg.show(getFragmentManager(), "dialog_date");
+    }
+
+    private void restoreState(Bundle state) {
+        mSessionId = state.getLong(STATE_ID);
+        mOriginalStartTime = state.getLong(STATE_ORIGINAL_START_TIME);
+        mOriginalEndTime = state.getLong(STATE_ORIGINAL_END_TIME);
+        mStartTime = state.getLong(STATE_START_TIME);
+        mEndTime = state.getLong(STATE_END_TIME);
+    }
+
+    private long getDisplayStartTime() {
+        if (mStartTime > 0)
+            return mStartTime;
+        else
+            return mOriginalStartTime;
+    }
+
+    private void setFabVisibility(boolean isVisible) {
+        if (isVisible)
+            mFab.setVisibility(View.VISIBLE);
+        else
+            mFab.setVisibility(View.GONE);
+    }
+
+    private long getDisplayEndTime() {
+        if (mEndTime > 0)
+            return mEndTime;
+        else
+            return mOriginalEndTime;
+    }
+
+    private void updateUI() {
+        if (mTvStart != null)
+            mTvStart.setText(mDateTimeFormatter.print(new DateTime(getDisplayStartTime() * 1000L)));
+        if (mTvEnd != null)
+            mTvEnd.setText(mDateTimeFormatter.print(new DateTime(getDisplayEndTime() * 1000L)));
+        if (mTvDuration != null)
+            mTvDuration.setText(mPeriodFormatter.print(
+                    new Period((getDisplayEndTime() - getDisplayStartTime()) * 1000L )));
+
+        if (mFab != null)
+            setFabVisibility((mOriginalStartTime != getDisplayStartTime()) ||
+                    (mOriginalEndTime != getDisplayEndTime()));
     }
 
     private class SessionLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {

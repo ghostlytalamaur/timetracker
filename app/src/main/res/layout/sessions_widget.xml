@@ -12,8 +12,8 @@
         android:layout_width="64dp"
         android:layout_height="match_parent"
         android:background="@android:color/transparent"
-        app:srcCompat="@drawable/plus"
-        android:contentDescription="Toggle" />
+        android:contentDescription="Toggle"
+        app:srcCompat="@drawable/plus" />
 
     <LinearLayout
         android:id="@+id/appwidget_text_layout"
@@ -34,8 +34,8 @@
             android:id="@+id/appwidget_text_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/appwidget_text"
-            android:text="@string/appwidget_text"
+            android:contentDescription="@string/appwidget_text_state_opened"
+            android:text="@string/appwidget_text_state_opened"
             android:textColor="#ffffff"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -44,7 +44,7 @@
             android:id="@+id/appwidget_text_current"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Duration:"
+            android:text="@string/appwidget_text_current_empty"
             android:textColor="#ffffff"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -53,7 +53,7 @@
             android:id="@+id/appwidget_text_today"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Today:"
+            android:text="@string/appwidget_text_today_empty"
             android:textColor="#ffffff"
             android:textSize="12sp"
             android:textStyle="bold" />

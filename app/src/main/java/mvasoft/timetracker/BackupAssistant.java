@@ -1,9 +1,7 @@
 package mvasoft.timetracker;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
-import android.support.v4.app.FragmentActivity;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,13 +10,10 @@ import java.nio.channels.FileChannel;
 
 import mvasoft.timetracker.data.DatabaseDescription;
 
-/**
- * Created by mihal on 09.08.2015.
- */
 class BackupAssistant {
 
     private static final String BACKUP_FOLDER_NAME = "TimeTrackerBackups";
-    private Context mContext;
+    private final Context mContext;
 
     private BackupAssistant(Context context) {
         super();
@@ -28,11 +23,6 @@ class BackupAssistant {
     static void backupDb(Context context) {
         BackupAssistant assist = new BackupAssistant(context);
         assist.BackupDB();
-    }
-
-    public static void importDb(Context context) {
-        BackupAssistant assist = new BackupAssistant(context);
-        assist.RestoreDB();
     }
 
     private boolean BackupDB() {
@@ -80,7 +70,12 @@ class BackupAssistant {
         return mContext.getDatabasePath(DatabaseDescription.DATABASE_NAME).getPath();
     }
 
-    public boolean RestoreDB() {
+    public static void importDb(Context context) {
+        BackupAssistant assist = new BackupAssistant(context);
+        assist.RestoreDB();
+    }
+
+    private boolean RestoreDB() {
         backupRestore(false);
         mContext.getContentResolver().notifyChange(DatabaseDescription.GroupsDescription.GROUP_NONE_URI, null);
         return true;

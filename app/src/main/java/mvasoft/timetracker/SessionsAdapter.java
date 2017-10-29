@@ -17,10 +17,9 @@ import org.lucasr.twowayview.ItemSelectionSupport;
 
 class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
-    private PeriodFormatter mPeriodFormatter;
-    private DateTimeFormatter mDateTimeFormatter;
-    private GroupsList mGroups;
-    private GroupsList.IGroupsChangesListener mGroupsListener = new GroupsList.IGroupsChangesListener() {
+    private final PeriodFormatter mPeriodFormatter;
+    private final DateTimeFormatter mDateTimeFormatter;
+    private final GroupsList.IGroupsChangesListener mGroupsListener = new GroupsList.IGroupsChangesListener() {
         @Override
         public void onDataChanged() {
             notifyDataSetChanged();
@@ -46,6 +45,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             notifyItemInserted(index);
         }
     };
+    private GroupsList mGroups;
     private ItemSelectionSupport mItemSelection;
 
 
@@ -133,11 +133,11 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
+        private final View mLayout;
+        private final TextView mStartView;
+        private final TextView mEndView;
+        private final TextView mElapsedView;
         private GroupsList.SessionGroup mGroup;
-        private View mLayout;
-        private TextView mStartView;
-        private TextView mEndView;
-        private TextView mElapsedView;
 
         ViewHolder(View itemView) {
             super(itemView);

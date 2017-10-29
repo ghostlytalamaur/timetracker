@@ -1,8 +1,5 @@
 package mvasoft.timetracker;
 
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
-import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.Animatable;
 import android.os.Bundle;
@@ -253,6 +250,19 @@ public class SessionListFragment extends Fragment {
                 LOADER_ID_GROUPS_CURRENT, null, mLoaderCallbacks);
     }
 
+    private void updateUI() {
+        if (!isAdded())
+            return;
+
+        if (mCurrentGroups.hasOpenedSessions())
+            mFab.setImageResource(R.drawable.animated_minus);
+        else
+            mFab.setImageResource(R.drawable.animated_plus);
+        if (mFab.getDrawable() instanceof Animatable)
+            ((Animatable) mFab.getDrawable()).start();
+        updateTimeText();
+    }
+
     private void updateTimeText() {
         if (!isAdded())
             return;
@@ -283,19 +293,10 @@ public class SessionListFragment extends Fragment {
             mActionMode.finish();
     }
 
-    private void updateUI() {
-        if (!isAdded())
-            return;
 
-        if (mCurrentGroups.hasOpenedSessions())
-            mFab.setImageResource(R.drawable.animated_minus);
-        else
-            mFab.setImageResource(R.drawable.animated_plus);
-        if (mFab.getDrawable() instanceof Animatable)
-            ((Animatable) mFab.getDrawable()).start();
-        updateTimeText();
+    interface ISessionListCallbacks {
+        void editSession(long sessionId);
     }
-
 
     private class SessionClickListener implements ItemClickSupport.OnItemClickListener,
             ItemClickSupport.OnItemLongClickListener {
@@ -362,18 +363,16 @@ public class SessionListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            SessionsService.startActionToggleSession(getContext());
+            SessionHelper.ToggleSessionResult toggleResult = mSessionHelper.toggleSession();
+            switch (toggleResult) {
+                case tgs_Started:
+                    Snackbar.make(mFab, R.string.session_started, Snackbar.LENGTH_LONG).show();
+                    break;
 
-//            SessionHelper.ToggleSessionResult toggleResult = mSessionHelper.toggleSession();
-//            switch (toggleResult) {
-//                case tgs_Started:
-//                    Snackbar.make(mFab, R.string.session_started, Snackbar.LENGTH_LONG).show();
-//                    break;
-//
-//                case tgs_Stopped:
-//                    Snackbar.make(mFab, R.string.session_stopped, Snackbar.LENGTH_LONG).show();
-//                    break;
-//            }
+                case tgs_Stopped:
+                    Snackbar.make(mFab, R.string.session_stopped, Snackbar.LENGTH_LONG).show();
+                    break;
+            }
         }
     }
 
@@ -394,9 +393,5 @@ public class SessionListFragment extends Fragment {
 
         @Override
         public void onItemInserted(int index) {}
-    }
-
-    interface ISessionListCallbacks {
-        void editSession(long sessionId);
     }
 }

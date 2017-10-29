@@ -5,10 +5,6 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-    <string name="insert_failed">Insert new session failed.</string>
-    <string name="insert_invalid_uri">Invalid insert uri.</string>
-    <string name="update_invalid_uri">Invalid update uri.</string>
-    <string name="delete_invalid_uri">Invalid delete uri.</string>
     <string name="text_today">Today: %s</string>
     <string name="text_today_empty">Today: --:--:--</string>
     <string name="query_invalid_uri">Invalid query uri.</string>
