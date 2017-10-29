@@ -18,7 +18,9 @@ import org.lucasr.twowayview.ItemSelectionSupport;
 class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
     private final PeriodFormatter mPeriodFormatter;
-    private final DateTimeFormatter mDateTimeFormatter;
+    private final DateTimeFormatter mDateFormatter;
+    private final DateTimeFormatter mTimeFormatter;
+
     private final GroupsList.IGroupsChangesListener mGroupsListener = new GroupsList.IGroupsChangesListener() {
         @Override
         public void onDataChanged() {
@@ -65,7 +67,7 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
                 .appendSeconds()
                 .toFormatter();
 
-        mDateTimeFormatter = new DateTimeFormatterBuilder().
+        mDateFormatter = new DateTimeFormatterBuilder().
 //                appendDayOfWeekShortText().
                 appendDayOfWeekText().
                 appendLiteral(", ").
@@ -75,11 +77,13 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
                 appendMonthOfYearText().
                 appendLiteral(" ").
                 appendYear(4, 4).
-                appendLiteral(" ").
-                appendHourOfDay(2).
-                appendLiteral(":").
-                appendMinuteOfHour(2).
                 toFormatter();
+
+        mTimeFormatter = new DateTimeFormatterBuilder().
+                        appendHourOfDay(2).
+                        appendLiteral(":").
+                        appendMinuteOfHour(2).
+                        toFormatter();
 
         setHasStableIds(true);
     }
@@ -138,6 +142,8 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
         private final View mLayout;
         private final TextView mStartView;
         private final TextView mEndView;
+        private final TextView mStartTimeView;
+        private final TextView mEndTimeView;
         private final TextView mElapsedView;
         private GroupsList.SessionGroup mGroup;
 
@@ -147,6 +153,8 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             mLayout = itemView.findViewById(R.id.item_ex_layout);
             mStartView = itemView.findViewById(R.id.tvStart);
             mEndView = itemView.findViewById(R.id.tvEnd);
+            mStartTimeView = itemView.findViewById(R.id.tvStartTime);
+            mEndTimeView = itemView.findViewById(R.id.tvEndTime);
             mElapsedView = itemView.findViewById(R.id.tvElapsed);
         }
 
@@ -159,19 +167,32 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
                     (mItemSelection.isItemChecked(pos));
             mLayout.setActivated(isChecked);
 
-            if (mGroup == null) {
-                mStartView.setText("");
-                mEndView.setText("");
-                mElapsedView.setText("");
+            String startDateText = "";
+            String endDateText = "";
+            String startTimeText = "";
+            String endTimeText = "";
+            String durationText = "";
+            
+            if (mGroup != null) {
+                if (mGroup.getStart() > 0) {
+                    DateTime dt = new DateTime(mGroup.getStart() * 1000L);
+                    startDateText = mDateFormatter.print(dt);
+                    startTimeText = mTimeFormatter.print(dt);
+                }
+                if (!mGroup.isRunning()) {
+                    DateTime dt = new DateTime(mGroup.getEnd() * 1000L);
+                    endDateText = mDateFormatter.print(dt);
+                    endTimeText = mTimeFormatter.print(dt);
+                }
+                durationText = mPeriodFormatter.print(
+                        new Period(mGroup.getDuration() * 1000L));
             }
-            else {
-                mStartView.setText((mGroup.getStart() > 0) ?
-                        mDateTimeFormatter.print(new DateTime(mGroup.getStart() * 1000L)) : "");
-                mEndView.setText((!mGroup.isRunning()) ?
-                        mDateTimeFormatter.print(new DateTime(mGroup.getEnd() * 1000L)) : "");
-                mElapsedView.setText(
-                        mPeriodFormatter.print(new Period(mGroup.getDuration() * 1000L)));
-            }
+
+            mStartView.setText(startDateText);
+            mEndView.setText(endDateText);
+            mElapsedView.setText(durationText);
+            mStartTimeView.setText(startTimeText);
+            mEndTimeView.setText(endTimeText);
         }
 
     }

@@ -54,5 +54,26 @@
         tools:layout_constraintRight_creator="1"
         tools:layout_constraintTop_creator="1" />
 
+    <TextView
+        android:id="@+id/tvStartTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="64dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        app:layout_constraintEnd_toStartOf="@+id/tvElapsed"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvEndTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="64dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/tvElapsed"
+        />
+
 
 </android.support.constraint.ConstraintLayout>
