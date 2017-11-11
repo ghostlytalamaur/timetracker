@@ -19,6 +19,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+    dexOptions {
+    }
 }
 
 dependencies {
@@ -26,13 +32,18 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
-    compile 'com.android.support:support-v4:26.0.0-alpha1'
-    compile 'com.android.support:design:26.0.0-alpha1'
+    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile 'com.android.support:support-v4:26.1.0'
+    compile 'com.android.support:design:26.1.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'joda-time:joda-time:2.9.9'
     compile project(path: ':datetimepicker')
     compile project(':app:libs:twoway-view_core')
     compile project(':app:libs:twoway-view_layouts')
     testCompile 'junit:junit:4.12'
+    compile 'com.google.dagger:dagger:2.12'
+    compile 'com.google.dagger:dagger-android-support:2.12'
+    compile 'com.google.dagger:dagger-android-processor:2.12'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.12'
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.12'
 }

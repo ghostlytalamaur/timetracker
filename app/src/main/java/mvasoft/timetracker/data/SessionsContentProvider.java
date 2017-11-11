@@ -11,7 +11,11 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
+import javax.inject.Inject;
+
+import dagger.Lazy;
 import mvasoft.timetracker.SessionsWidgetService;
+import mvasoft.timetracker.core.WidgetHelper;
 import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
 import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
@@ -80,6 +84,8 @@ public class SessionsContentProvider extends ContentProvider {
 
     }
 
+    @Inject
+    Lazy<WidgetHelper> mWidgetHelper;
     private SessionsDatabaseHelper mDBHelper;
 
     public SessionsContentProvider() {
@@ -154,13 +160,21 @@ public class SessionsContentProvider extends ContentProvider {
         return newUri;
     }
 
+    public void resetDatabase() {
+        mDBHelper.close();
+        notifyChange(null);
+    }
+
     private void notifyChange(Uri uri) {
         if (getContext() == null)
             return;
 
         ContentResolver contentResolver = getContext().getContentResolver();
         if (contentResolver != null) {
-            contentResolver.notifyChange(uri, null);
+            if (uri != null)
+                contentResolver.notifyChange(uri, null);
+            else
+                contentResolver.notifyChange(SessionDescription.CONTENT_URI, null);
             contentResolver.notifyChange(GroupsDescription.GROUP_NONE_URI, null);
             contentResolver.notifyChange(GroupsDescription.GROUP_DAY_URI, null);
             contentResolver.notifyChange(GroupsDescription.GROUP_WEEK_URI, null);
@@ -168,9 +182,8 @@ public class SessionsContentProvider extends ContentProvider {
             contentResolver.notifyChange(GroupsDescription.GROUP_YEAR_URI, null);
         }
 
-        Intent serviceIntent = new Intent(getContext(), SessionsWidgetService.class);
-        serviceIntent.setAction(SessionsWidgetService.ACTION_UPDATE_WIDGET);
-        getContext().startService(serviceIntent);
+        if (mWidgetHelper != null)
+            mWidgetHelper.get().updateWidget();
     }
 
     @Override

@@ -1,5 +1,7 @@
 package mvasoft.timetracker;
 
+import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Environment;
 
@@ -9,23 +11,29 @@ import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 
 import mvasoft.timetracker.data.DatabaseDescription;
+import mvasoft.timetracker.data.SessionsContentProvider;
 
-class BackupAssistant {
+public class BackupAssistant {
 
     private static final String BACKUP_FOLDER_NAME = "TimeTrackerBackups";
     private final Context mContext;
 
-    private BackupAssistant(Context context) {
+    public BackupAssistant(Context context) {
         super();
         mContext = context;
     }
 
-    static void backupDb(Context context) {
+    static boolean backupDb(Context context) {
         BackupAssistant assist = new BackupAssistant(context);
-        assist.BackupDB();
+        return assist.doBackup();
     }
 
-    private boolean BackupDB() {
+    static boolean restoreDb(Context context) {
+        BackupAssistant assist = new BackupAssistant(context);
+        return assist.doRestore();
+    }
+
+    private boolean doBackup() {
         return backupRestore(true);
     }
 
@@ -70,14 +78,21 @@ class BackupAssistant {
         return mContext.getDatabasePath(DatabaseDescription.DATABASE_NAME).getPath();
     }
 
-    static void importDb(Context context) {
-        BackupAssistant assist = new BackupAssistant(context);
-        assist.RestoreDB();
-    }
+    private boolean doRestore() {
+        boolean res = backupRestore(false);
+        ContentResolver resolver = mContext.getContentResolver();
+        ContentProviderClient client = resolver.acquireContentProviderClient(DatabaseDescription.AUTHORITY);
+        try {
+            if (client == null)
+                return res;
 
-    private boolean RestoreDB() {
-        backupRestore(false);
-        mContext.getContentResolver().notifyChange(DatabaseDescription.GroupsDescription.GROUP_NONE_URI, null);
-        return true;
+            SessionsContentProvider provider = (SessionsContentProvider) client.getLocalContentProvider();
+            if (provider != null)
+                provider.resetDatabase();
+        } finally {
+            if (client != null)
+                client.release();
+        }
+        return res;
     }
 }

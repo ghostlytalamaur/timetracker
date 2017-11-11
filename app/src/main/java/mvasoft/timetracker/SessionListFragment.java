@@ -32,6 +32,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -254,14 +255,20 @@ public class SessionListFragment extends Fragment {
     }
 
     private void exportDB() {
-        BackupAssistant.backupDb(getActivity());
+        if (BackupAssistant.backupDb(getActivity()))
+            Toast.makeText(getContext(), R.string.backup_succeeded, Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(getContext(), R.string.backup_failed, Toast.LENGTH_SHORT).show();
     }
 
     private void importDB() {
         showDialog(R.string.msg_all_data_will_removed, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                BackupAssistant.importDb(getActivity());
+                if (BackupAssistant.restoreDb(getActivity()))
+                    Toast.makeText(getContext(), R.string.import_succeeded, Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(getContext(), R.string.import_failed, Toast.LENGTH_SHORT).show();
             }
         });
     }

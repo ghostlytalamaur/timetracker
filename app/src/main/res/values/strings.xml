@@ -40,4 +40,8 @@
     <string name="button_cancel">Cancel</string>
     <string name="msg_selected_session_will_removed">Selected sessions will be removed.</string>
     <string name="menu_copy_to_clipboard">Copy to clipboard</string>
+    <string name="backup_succeeded">Backing up completed</string>
+    <string name="backup_failed">Cannot backup database</string>
+    <string name="import_succeeded">Import completed</string>
+    <string name="import_failed">Cannot import database</string>
 </resources>
