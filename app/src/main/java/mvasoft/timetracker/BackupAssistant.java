@@ -16,6 +16,7 @@ import mvasoft.timetracker.data.SessionsContentProvider;
 public class BackupAssistant {
 
     private static final String BACKUP_FOLDER_NAME = "TimeTrackerBackups";
+
     private final Context mContext;
 
     public BackupAssistant(Context context) {

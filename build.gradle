@@ -22,6 +22,10 @@ allprojects {
     }
 }
 
+ext {
+    dagger = '2.13'
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

@@ -3,7 +3,7 @@ package mvasoft.timetracker.data;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Intent;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -14,12 +14,12 @@ import android.support.annotation.NonNull;
 import javax.inject.Inject;
 
 import dagger.Lazy;
-import mvasoft.timetracker.SessionsWidgetService;
-import mvasoft.timetracker.core.WidgetHelper;
+import dagger.android.DaggerContentProvider;
 import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
 import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
+import mvasoft.timetracker.widget.IWidgetHelper;
 
-public class SessionsContentProvider extends ContentProvider {
+public class SessionsContentProvider extends DaggerContentProvider {
 
     private static final UriMatcher mMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     private static final int ONE_SESSION        = 1;
@@ -85,14 +85,16 @@ public class SessionsContentProvider extends ContentProvider {
     }
 
     @Inject
-    Lazy<WidgetHelper> mWidgetHelper;
+    Lazy<IWidgetHelper> mWidgetHelper;
     private SessionsDatabaseHelper mDBHelper;
 
     public SessionsContentProvider() {
+        super();
     }
 
     @Override
     public boolean onCreate() {
+        super.onCreate();
         mDBHelper = new SessionsDatabaseHelper(getContext());
         return true;
     }
