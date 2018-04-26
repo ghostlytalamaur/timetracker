@@ -61,7 +61,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
                     }
                     break;
             }
-            updateUI();
+
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -107,7 +107,6 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
             }
         });
 
-        updateUI();
         return v;
     }
 
@@ -123,7 +122,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
 
     @Override
     protected int getModelVariableId() {
-        return BR.edit_session_view_model;
+        return BR.view_model;
     }
 
     @Override
@@ -156,13 +155,12 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
                 mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_START)));
         mData.setOriginalEndTime(
                 mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_END)));
-
-        updateUI();
     }
 
     private void saveSession() {
         SessionHelper helper = new SessionHelper(getContext());
-        boolean isSaved = helper.updateSession(mData.getId(), mData.getStartTime(), mData.getEndTime());
+        boolean isSaved = helper.updateSession(mData.getId(), mData.getStartTime(),
+                mData.isClosed() ? mData.getEndTime() : 0);
         if (isSaved)
             Snackbar.make(getBinding().fab, R.string.session_saved, Snackbar.LENGTH_LONG);
         else
@@ -175,13 +173,6 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         DatePickerFragment dlg = DatePickerFragment.newInstance(dateTime * 1000, "");
         dlg.setTargetFragment(this, requestCode);
         dlg.show(getFragmentManager(), "dialog_date");
-    }
-
-    private void updateUI() {
-        if (getBinding() == null)
-            return;
-
-        getBinding().invalidateAll();
     }
 
     private class SessionLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {

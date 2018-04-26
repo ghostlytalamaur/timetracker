@@ -1,4 +1,7 @@
 package mvasoft.timetracker.ui.base;
 
-public class BaseViewModel {
+import android.databinding.BaseObservable;
+
+public class BaseViewModel extends BaseObservable {
+
 }

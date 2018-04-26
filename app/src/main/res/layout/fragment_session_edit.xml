@@ -6,7 +6,7 @@
 
     <data>
         <variable
-            name="edit_session_view_model"
+            name="view_model"
             type="mvasoft.timetracker.ui.SessionEditViewModel"
             />
         <import
@@ -29,7 +29,7 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
             android:layout_marginBottom="16dp"
-            android:visibility="@{edit_session_view_model.shouldSave() ? v.VISIBLE : v.GONE}"
+            android:visibility="@{view_model.isChanged ? v.VISIBLE : v.GONE}"
             app:backgroundTint="@color/colorPrimaryDark"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -42,7 +42,9 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:text="Start time"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
@@ -51,8 +53,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
+            android:enabled="@{view_model.isClosed}"
             android:text="End time"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
         <TextView
@@ -60,9 +65,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:text="@{edit_session_view_model.getDurationText()}"
+            android:enabled="@{view_model.isClosed}"
+            android:text="@{view_model.isClosed ? view_model.duration : null}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView6"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/textView6" />
+            tools:text="--:--:--:--:--:--:--" />
 
         <TextView
             android:id="@+id/textView6"
@@ -70,8 +79,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
+            android:enabled="@{view_model.isClosed}"
             android:text="Duration"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
         <TextView
@@ -79,18 +91,39 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:text="@{edit_session_view_model.getStartText()}"
+            android:text="@{view_model.startTime}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView3"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/textView3" />
+            tools:text="--:--:--:--:--:--:--" />
 
         <TextView
             android:id="@+id/tvEnd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:text="@{edit_session_view_model.getEndText()}"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/textView4" />
+            android:enabled="@{view_model.isClosed}"
+            android:text="@{view_model.isClosed ? view_model.endTime : null}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintBaseline_toBaselineOf="@+id/textView4"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="--:--:--:--:--:--:--" />
+
+        <Switch
+            android:id="@+id/swIsClosed"
+            android:layout_width="395dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:checked="@={view_model.isClosed}"
+
+            android:text="Closed"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
     </android.support.constraint.ConstraintLayout>
 </layout>

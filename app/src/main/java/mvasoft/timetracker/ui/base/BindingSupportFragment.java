@@ -22,22 +22,25 @@ public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
         super.onCreate(savedInstanceState);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, getLayoutId(), container, false);
 
-        if (mViewModel == null)
+        if (mViewModel == null) {
             mViewModel = onCreateViewModel();
+        }
 
         mBinding.setVariable(getModelVariableId(), mViewModel);
         mBinding.executePendingBindings();
         return mBinding.getRoot();
     }
 
-    protected void setViewModel(ViewModel model) {
-        mViewModel = model;
-    }
     protected abstract ViewModel onCreateViewModel();
 
     protected Binding getBinding() {

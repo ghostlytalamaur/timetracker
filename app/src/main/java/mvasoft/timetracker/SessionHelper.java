@@ -161,6 +161,8 @@ class SessionHelper {
         values.put(SessionDescription.COLUMN_START, start);
         if (end > 0)
             values.put(SessionDescription.COLUMN_END, end);
+        else
+            values.putNull(SessionDescription.COLUMN_END);
 
         return mContext.getContentResolver().update(SessionDescription.buildSessionUri(id),
                 values, null, null) > 0;
