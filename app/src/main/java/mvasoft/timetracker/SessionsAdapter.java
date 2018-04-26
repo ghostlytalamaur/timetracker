@@ -104,8 +104,12 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
     @Override
     public long getItemId(int position) {
+        GroupsList.SessionGroup group = null;
         if (mGroups != null)
-            return mGroups.get(position).getID();
+            group = mGroups.get(position);
+
+        if (group != null)
+            return group.getID();
         else
             return -1;
     }
@@ -127,7 +131,8 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
         if (mGroups == null)
             return;
         for (int pos = 0; pos < mGroups.count(); pos++) {
-            if (mGroups.get(pos).isRunning())
+            GroupsList.SessionGroup group = mGroups.get(pos);
+            if ((group != null) && group.isRunning())
                 notifyItemChanged(pos);
         }
 

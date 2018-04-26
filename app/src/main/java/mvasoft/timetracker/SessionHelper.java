@@ -159,7 +159,9 @@ class SessionHelper {
     boolean updateSession(long id, long start, long end) {
         ContentValues values = new ContentValues();
         values.put(SessionDescription.COLUMN_START, start);
-        values.put(SessionDescription.COLUMN_END, end);
+        if (end > 0)
+            values.put(SessionDescription.COLUMN_END, end);
+
         return mContext.getContentResolver().update(SessionDescription.buildSessionUri(id),
                 values, null, null) > 0;
     }
