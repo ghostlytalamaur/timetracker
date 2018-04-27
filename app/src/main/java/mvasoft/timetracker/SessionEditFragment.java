@@ -20,7 +20,7 @@ import mvasoft.timetracker.ui.SessionEditViewModel;
 import mvasoft.timetracker.ui.base.BindingSupportFragment;
 
 import static mvasoft.timetracker.Consts.LOADER_ID_SESSION;
-
+import mvasoft.timetracker.BR;
 
 public class SessionEditFragment extends BindingSupportFragment<FragmentSessionEditBinding,
         SessionEditViewModel> {

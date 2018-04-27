@@ -6,20 +6,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeFormatterBuilder;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
 import org.lucasr.twowayview.ItemSelectionSupport;
+
+import mvasoft.timetracker.ui.DateTimeFormatters;
 
 
 class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
 
-    private final PeriodFormatter mPeriodFormatter;
-    private final DateTimeFormatter mDateFormatter;
-    private final DateTimeFormatter mTimeFormatter;
+    private final DateTimeFormatters mFormatter;
 
     private final GroupsList.IGroupsChangesListener mGroupsListener = new GroupsList.IGroupsChangesListener() {
         @Override
@@ -27,64 +21,15 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             notifyDataSetChanged();
         }
 
-        @Override
-        public void onItemRemoved(int index) {
-            notifyItemRemoved(index);
-        }
-
-        @Override
-        public void onItemChanged(int index) {
-            notifyItemChanged(index);
-        }
-
-        @Override
-        public void onItemMoved(int oldIndex, int newIndex) {
-            notifyItemMoved(oldIndex, newIndex);
-        }
-
-        @Override
-        public void onItemInserted(int index) {
-            notifyItemInserted(index);
-        }
     };
+
     private GroupsList mGroups;
     private ItemSelectionSupport mItemSelection;
 
-
     SessionsAdapter() {
         super();
-        mPeriodFormatter = new PeriodFormatterBuilder()
-                .printZeroAlways()
-                .minimumPrintedDigits(2)
-                .appendHours()
-                .appendSeparator(":")
-                .printZeroAlways()
-                .minimumPrintedDigits(2)
-                .appendMinutes()
-                .appendSeparator(":")
-                .printZeroAlways()
-                .minimumPrintedDigits(2)
-                .appendSeconds()
-                .toFormatter();
 
-        mDateFormatter = new DateTimeFormatterBuilder().
-//                appendDayOfWeekShortText().
-                appendDayOfWeekText().
-                appendLiteral(", ").
-                appendDayOfMonth(2).
-                appendLiteral(" ").
-//                        appendMonthOfYearShortText().
-                appendMonthOfYearText().
-                appendLiteral(" ").
-                appendYear(4, 4).
-                toFormatter();
-
-        mTimeFormatter = new DateTimeFormatterBuilder().
-                        appendHourOfDay(2).
-                        appendLiteral(":").
-                        appendMinuteOfHour(2).
-                        toFormatter();
-
+        mFormatter = new DateTimeFormatters();
         setHasStableIds(true);
     }
 
@@ -180,17 +125,14 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionsAdapter.ViewHolder> {
             
             if (mGroup != null) {
                 if (mGroup.getStart() > 0) {
-                    DateTime dt = new DateTime(mGroup.getStart() * 1000L);
-                    startDateText = mDateFormatter.print(dt);
-                    startTimeText = mTimeFormatter.print(dt);
+                    startDateText = mFormatter.formatDate(mGroup.getStart());
+                    startTimeText = mFormatter.formatTime(mGroup.getStart());
                 }
                 if (!mGroup.isRunning()) {
-                    DateTime dt = new DateTime(mGroup.getEnd() * 1000L);
-                    endDateText = mDateFormatter.print(dt);
-                    endTimeText = mTimeFormatter.print(dt);
+                    endDateText = mFormatter.formatDate(mGroup.getEnd());
+                    endTimeText = mFormatter.formatTime(mGroup.getEnd());
                 }
-                durationText = mPeriodFormatter.print(
-                        new Period(mGroup.getDuration() * 1000L));
+                durationText = mFormatter.formatPeriod(mGroup.getDuration());
             }
 
             mStartView.setText(startDateText);

@@ -1,51 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" >
 
-    <TextView
-        android:id="@+id/tvDay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/text_today"
-        android:textStyle="bold" />
+    <data>
+        <variable
+            name="session_list_view_model"
+            type="mvasoft.timetracker.viewmodel.SessionListViewModel"
+            />
+        <import
+            alias="v"
+            type="android.view.View" />
+    </data>
 
-    <TextView
-        android:id="@+id/tvWeek"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:text="@string/text_week"
-        android:textStyle="bold" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/items_view"
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="32dp"
-        android:scrollbars="vertical" />
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tvDay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|left"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:text="@{session_list_view_model.todayText != null ? String.format(@string/text_today, session_list_view_model.todayText) : @string/text_today_empty}"
+            android:textStyle="bold"
+            tools:text="@string/text_today" />
+
+        <TextView
+            android:id="@+id/tvWeek"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@{session_list_view_model.weekText != null ? String.format(@string/text_week, session_list_view_model.weekText) : @string/text_week_empty}"
+            android:textStyle="bold"
+            tools:text="@string/text_week" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/items_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="32dp"
+            android:scrollbars="vertical" />
 
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:layout_marginBottom="16dp"
-        android:layout_marginRight="16dp"
-        app:backgroundTint="@color/colorPrimaryDark"
-        app:layout_anchor="@id/items_view"
-        app:layout_anchorGravity="bottom|right|end"
-        app:srcCompat="@drawable/animated_plus" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/fab_margin"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="16dp"
+            app:backgroundTint="@color/colorPrimaryDark"
+            app:layout_anchor="@id/items_view"
+            app:layout_anchorGravity="bottom|right|end"
+            app:srcCompat="@{session_list_view_model.hasStartedSession ? @drawable/animated_minus : @drawable/animated_plus}"
+             />
 
-</android.support.design.widget.CoordinatorLayout>
+    </android.support.design.widget.CoordinatorLayout>
+</layout>

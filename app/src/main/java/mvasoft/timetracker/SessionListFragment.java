@@ -5,15 +5,11 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
-import android.graphics.drawable.Animatable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -21,7 +17,6 @@ import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,21 +26,15 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeFormatterBuilder;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
 import org.lucasr.twowayview.ItemClickSupport;
 import org.lucasr.twowayview.ItemSelectionSupport;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
+import mvasoft.timetracker.databinding.FragmentSessionListBinding;
+import mvasoft.timetracker.ui.DateTimeFormatters;
+import mvasoft.timetracker.ui.base.BindingSupportFragment;
+import mvasoft.timetracker.viewmodel.SessionListViewModel;
 
 import static android.content.Context.MODE_PRIVATE;
 import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_CURRENT;
@@ -53,21 +42,14 @@ import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_TODAY;
 import static mvasoft.timetracker.Consts.LOADER_ID_GROUPS_WEEK;
 
 
-public class SessionListFragment extends Fragment {
+public class SessionListFragment extends BindingSupportFragment<FragmentSessionListBinding, SessionListViewModel> {
 
-    private static final String LOGT = "mvasoft.timetracker";
     private SessionsAdapter mAdapter;
-    private TextView mTodayTv;
-    private TextView mWeekTv;
 
-    private PeriodFormatter mPeriodFormatter;
+    private DateTimeFormatters mFormatter;
     private GroupsList mCurrentGroups;
     private GroupsList mTodayGroup;
     private GroupsList mWeekGroup;
-
-    private Handler mHandler;
-    private Timer mUpdateTimer;
-    private Runnable mUpdateViewRunnable;
 
     private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks;
     private ItemSelectionSupport mSelectionSupport;
@@ -87,27 +69,15 @@ public class SessionListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mPeriodFormatter = new PeriodFormatterBuilder().
-                printZeroAlways().
-                minimumPrintedDigits(2).
-                appendHours().
-                appendSeparator(":").
-                printZeroAlways().
-                minimumPrintedDigits(2).
-                appendMinutes().
-                appendSeparator(":").
-                printZeroAlways().
-                minimumPrintedDigits(2).
-                appendSeconds().
-                toFormatter();
+        mFormatter = new DateTimeFormatters();
 
         mGroupInfoProvider = new GroupInfoProvider();
         mGroupInfoProvider.setCurrentGroupType(
-                GroupType.values()[getActivity().getPreferences(MODE_PRIVATE).
+                GroupType.values()[(getActivity() == null) ? 0 :  getActivity().getPreferences(MODE_PRIVATE).
                 getInt(PreferencesConst.GROUP_TYPE, GroupType.gt_None.ordinal())]
         );
 
-        mSessionHelper = new SessionHelper(getActivity());
+        mSessionHelper = new SessionHelper(getContext());
 
         mTodayGroup = new GroupsList();
         mWeekGroup = new GroupsList();
@@ -120,21 +90,15 @@ public class SessionListFragment extends Fragment {
 
         mActionModeCallbacks = new ActionModeCallbacks();
 
-        mUpdateViewRunnable = new Runnable() {
-            @Override
-            public void run() {
-                updateTimeText();
-            }
-        };
-        mHandler = new Handler();
-
         mLoaderCallbacks = new GroupsLoaderCallbacks(getContext(), mGroupInfoProvider,
                 mCurrentGroups, mTodayGroup, mWeekGroup);
 
-        LoaderManager lm = getActivity().getSupportLoaderManager();
-        lm.restartLoader(LOADER_ID_GROUPS_WEEK, null, mLoaderCallbacks);
-        lm.restartLoader(LOADER_ID_GROUPS_CURRENT, null, mLoaderCallbacks);
-        lm.restartLoader(LOADER_ID_GROUPS_TODAY,null, mLoaderCallbacks);
+        if (getActivity() != null) {
+            LoaderManager lm = getActivity().getSupportLoaderManager();
+            lm.restartLoader(LOADER_ID_GROUPS_WEEK, null, mLoaderCallbacks);
+            lm.restartLoader(LOADER_ID_GROUPS_CURRENT, null, mLoaderCallbacks);
+            lm.restartLoader(LOADER_ID_GROUPS_TODAY, null, mLoaderCallbacks);
+        }
 
         setHasOptionsMenu(true);
 
@@ -147,14 +111,12 @@ public class SessionListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View fragmentView = inflater.inflate(R.layout.fragment_session_list, container, false);
+        View fragmentView = super.onCreateView(inflater, container, savedInstanceState);
 
-        mTodayTv = fragmentView.findViewById(R.id.tvDay);
-        mWeekTv = fragmentView.findViewById(R.id.tvWeek);
-        mFab = fragmentView.findViewById(R.id.fab);
+        mFab = getBinding().fab;
         mFab.setOnClickListener(new FabClickListener());
 
-        final RecyclerView itemsView = fragmentView.findViewById(R.id.items_view);
+        final RecyclerView itemsView = getBinding().itemsView;
         itemsView.setAdapter(mAdapter);
         itemsView.setLayoutManager(new LinearLayoutManager(itemsView.getContext()));
         itemsView.addItemDecoration(new DividerItemDecoration(itemsView.getContext(),
@@ -171,15 +133,23 @@ public class SessionListFragment extends Fragment {
     }
 
     @Override
+    protected SessionListViewModel onCreateViewModel() {
+        return new SessionListViewModel(mTodayGroup, mWeekGroup);
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.fragment_session_list;
+    }
+
+    @Override
+    protected int getModelVariableId() {
+        return BR.session_list_view_model;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-        mUpdateTimer = new Timer();
-        mUpdateTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mHandler.post(mUpdateViewRunnable);
-            }
-        }, 1000, 1000);
 
         mCurrentGroups.addChangesListener(mGroupListener);
         updateUI();
@@ -188,17 +158,12 @@ public class SessionListFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        mUpdateTimer.cancel();
-        mUpdateTimer.purge();
-        mUpdateTimer = null;
 
         mCurrentGroups.removeChangesListener(mGroupListener);
     }
 
     @Override
     public void onDestroy() {
-        mTodayGroup.swapCursor(null);
-        mWeekGroup.swapCursor(null);
         mCurrentGroups.swapCursor(null);
         super.onDestroy();
     }
@@ -294,6 +259,9 @@ public class SessionListFragment extends Fragment {
     }
 
     private void showDialog(@StringRes int msgId, DialogInterface.OnClickListener onOkListener) {
+        if (getActivity() == null)
+            return;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(msgId);
         builder.setPositiveButton(R.string.button_ok, onOkListener);
@@ -302,57 +270,40 @@ public class SessionListFragment extends Fragment {
     }
 
     private void copySelectedToClipboard() {
-
-        final ClipboardManager clpbrd = (ClipboardManager)
-                getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clpbrd == null)
+        if (getActivity() == null)
             return;
 
-        final PeriodFormatter periodFormatter = new PeriodFormatterBuilder().
-                printZeroAlways().
-                minimumPrintedDigits(2).
-                appendHours().
-                appendSeparator(":").
-                printZeroAlways().
-                minimumPrintedDigits(2).
-                appendMinutes().
-                toFormatter();
-
-        final DateTimeFormatter dateFormatter = new DateTimeFormatterBuilder().
-                appendDayOfWeekText().
-                appendLiteral(", ").
-                appendDayOfMonth(2).
-                appendLiteral(" ").
-                appendMonthOfYearText().
-                toFormatter();
-
+        final ClipboardManager clipboard = (ClipboardManager)
+                getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard == null)
+            return;
 
         long ids[] = mSelectionSupport.getCheckedItemIds();
-        String text = "";
+        StringBuilder text = new StringBuilder();
         for (long id : ids) {
             GroupsList.SessionGroup group = mCurrentGroups.getByID(id);
             switch (mGroupInfoProvider.getCurrentGroupType()) {
                 case gt_Day: {
-                    text = text + String.format("%s: %s\n",
-                            dateFormatter.print(new DateTime(group.getStart() * 1000L)),
-                            periodFormatter.print(new Period(group.getDuration() * 1000L)));
+                    text.append(String.format("%s: %s\n",
+                            mFormatter.formatDate(group.getStart()),
+                            mFormatter.formatDate(group.getDuration())));
                     break;
                 }
                 default: {
-                    text = text + String.format("%s - %s: %s\n",
-                            dateFormatter.print(new DateTime(group.getStart() * 1000L)),
-                            dateFormatter.print(new DateTime(group.getEnd() * 1000L)),
-                            periodFormatter.print(new Period(group.getDuration() * 1000L)));
+                    text.append(String.format("%s - %s: %s\n",
+                            mFormatter.formatDate(group.getStart()),
+                            mFormatter.formatDate(group.getEnd()),
+                            mFormatter.formatPeriod(group.getDuration())));
                     break;
                 }
             }
         }
 
-        clpbrd.setPrimaryClip(ClipData.newPlainText("Sessions", text));
+        clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", text.toString()));
     }
 
     private void setCurrentGroupType(GroupType type) {
-        if (type == mGroupInfoProvider.getCurrentGroupType())
+        if ((getActivity() == null) || (type == mGroupInfoProvider.getCurrentGroupType()))
             return;
 
         mGroupInfoProvider.setCurrentGroupType(type);
@@ -365,35 +316,8 @@ public class SessionListFragment extends Fragment {
     private void updateUI() {
         if (!isAdded())
             return;
-        Log.d(LOGT, "SessionListFragment.updateUI()");
-        boolean hasOpened = mCurrentGroups.hasOpenedSessions();
-        Log.d(LOGT, "hasOpened = " + hasOpened);
-        if (hasOpened)
-            mFab.setImageResource(R.drawable.animated_minus);
-        else
-            mFab.setImageResource(R.drawable.animated_plus);
-        if (mFab.getDrawable() instanceof Animatable)
-            ((Animatable) mFab.getDrawable()).start();
-        updateTimeText();
-    }
-
-    private void updateTimeText() {
-        if (!isAdded())
-            return;
 
         mAdapter.updateNotClosedView();
-        updateCurrentDayText(mTodayTv, mTodayGroup, R.string.text_today, R.string.text_today_empty);
-        updateCurrentDayText(mWeekTv, mWeekGroup, R.string.text_week, R.string.text_week_empty);
-    }
-
-    private void updateCurrentDayText(@NonNull TextView v, GroupsList groups, @StringRes int textId,
-                                      @StringRes int emptyTextId) {
-        long elapsed = groups.getDuration();
-        if (elapsed > 0)
-            v.setText(String.format(getString(textId),
-                    mPeriodFormatter.print(new Period(elapsed * 1000L))));
-        else
-            v.setText(getString(emptyTextId));
     }
 
     private void updateActionMode() {
@@ -425,6 +349,9 @@ public class SessionListFragment extends Fragment {
 
         @Override
         public boolean onItemLongClick(RecyclerView parent, View view, int position, long id) {
+            if (getActivity() == null)
+                return false;
+
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
 
@@ -498,17 +425,6 @@ public class SessionListFragment extends Fragment {
         public void onDataChanged() {
             updateUI();
         }
-
-        @Override
-        public void onItemRemoved(int index) {}
-
-        @Override
-        public void onItemChanged(int index) {}
-
-        @Override
-        public void onItemMoved(int oldIndex, int newIndex) {}
-
-        @Override
-        public void onItemInserted(int index) {}
     }
+
 }

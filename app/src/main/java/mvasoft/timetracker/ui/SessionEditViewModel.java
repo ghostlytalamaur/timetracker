@@ -81,7 +81,7 @@ public class SessionEditViewModel extends BaseViewModel {
 
     public void setIsClosed(boolean isClosed) {
         mData.setIsClosed(isClosed);
-    }
+        }
 
     private class SessionDataChangedListener implements SessionEditData.ISessionDataChangedListener {
 

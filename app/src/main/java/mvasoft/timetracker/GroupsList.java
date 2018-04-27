@@ -11,13 +11,13 @@ import mvasoft.timetracker.data.DatabaseDescription;
 import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
 import mvasoft.utils.Announcer;
 
-class GroupsList {
+public class GroupsList {
 
     private final ArrayList<SessionGroup> mList;
     private final Announcer<IGroupsChangesListener> mAnnouncer;
     private Cursor mCursor;
 
-    GroupsList() {
+    public GroupsList() {
         mList = new ArrayList<>();
         mAnnouncer = new Announcer<>(IGroupsChangesListener.class);
     }
@@ -36,14 +36,14 @@ class GroupsList {
         return null;
     }
 
-    boolean hasOpenedSessions() {
+    public boolean hasOpenedSessions() {
         for (SessionGroup g : mList)
             if (g.isRunning())
                 return true;
         return false;
     }
 
-    void swapCursor(Cursor cursor) {
+    public void swapCursor(Cursor cursor) {
         boolean wasCursor = mCursor != null;
         if (wasCursor)
             mCursor.close();
@@ -61,7 +61,6 @@ class GroupsList {
             notifyDataChanged();
             return;
         }
-        boolean useOneNotification = true;
 
         HashSet<Long> processedIds = new HashSet<>();
         for (int i = 0; i < mCursor.getCount(); i++) {
@@ -74,32 +73,20 @@ class GroupsList {
             long duration = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_DURATION));
             int cnt = mCursor.getInt(mCursor.getColumnIndex(GroupsDescription.COLUMN_UNCOMPLETED_COUNT));
 
-            if (idx < 0) {
+            if (idx < 0)
                 mList.add(i, new SessionGroup(id, start, end, duration, cnt));
-                if (!useOneNotification)
-                    notifyItemInserted(i);
-            }
             else if (!get(idx).sameData(start, end, duration, cnt)) {
                 get(idx).updateData(start, end, duration, cnt);
-                if (!useOneNotification)
-                    notifyItemChanged(idx);
-                if (idx != i) {
+                if (idx != i)
                     mList.add(i, mList.remove(idx));
-                    if (!useOneNotification)
-                        notifyItemMoved(idx, i);
-                }
             }
             processedIds.add(id);
         }
 
         for (int i = count() - 1; i >= 0; i--)
-            if (!processedIds.contains(get(i).getID())) {
+            if (!processedIds.contains(get(i).getID()))
                 mList.remove(i);
-                if (!useOneNotification)
-                    notifyItemRemoved(i);
-            }
-        if (useOneNotification)
-            notifyDataChanged();
+        notifyDataChanged();
     }
 
     private void fillList() {
@@ -131,11 +118,6 @@ class GroupsList {
                 return i;
         return -1;
     }
-
-    private void notifyItemInserted(int index) {
-        mAnnouncer.announce().onItemInserted(index);
-    }
-
     SessionGroup get(int idx) {
         if ((idx >= 0) && (idx < mList.size()))
             return mList.get(idx);
@@ -143,36 +125,20 @@ class GroupsList {
             return null;
     }
 
-    private void notifyItemChanged(int idx) {
-        mAnnouncer.announce().onItemChanged(idx);
-    }
-
-    private void notifyItemMoved(int idx, int i) {
-        mAnnouncer.announce().onItemMoved(idx, i);
-    }
-
     int count() {
         return mList.size();
     }
 
-    private void notifyItemRemoved(int index) {
-        mAnnouncer.announce().onItemRemoved(index);
-    }
-
-    void addChangesListener(@NonNull IGroupsChangesListener listener) {
+    public void addChangesListener(@NonNull IGroupsChangesListener listener) {
         mAnnouncer.addListener(listener);
     }
 
-    void removeChangesListener(@NonNull IGroupsChangesListener listener) {
+    public void removeChangesListener(@NonNull IGroupsChangesListener listener) {
         mAnnouncer.removeListener(listener);
     }
 
     public interface IGroupsChangesListener extends EventListener {
         void onDataChanged();
-        void onItemRemoved(int index);
-        void onItemChanged(int index);
-        void onItemMoved(int oldIndex, int newIndex);
-        void onItemInserted(int index);
     }
 
     public class SessionGroup {

@@ -14,7 +14,7 @@ import mvasoft.timetracker.widget.WidgetModule;
         WidgetModule.class})
 public interface AppComponent extends AndroidInjector<TimeTrackerApp> {
 
-    void inject(BackupAssistant assistant);
+//    void inject(BackupAssistant assistant);
 
     @Component.Builder
     abstract class Builder extends AndroidInjector.Builder<TimeTrackerApp> {}

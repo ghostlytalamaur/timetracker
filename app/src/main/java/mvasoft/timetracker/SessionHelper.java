@@ -24,7 +24,7 @@ class SessionHelper {
 
     SessionHelper(@NonNull Context context) {
         super();
-        mContext = context;
+        mContext = context.getApplicationContext();
     }
 
     ToggleSessionResult toggleSession() {

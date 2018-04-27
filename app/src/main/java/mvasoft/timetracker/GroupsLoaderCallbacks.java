@@ -27,7 +27,7 @@ class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
                           GroupsList currentGroups,
                           GroupsList todayGroup,
                           GroupsList weekGroup) {
-        mContext = context;
+        mContext = context.getApplicationContext();
         mGroupInfoProvider = groupInfoProvider;
         mCurrentGroups = currentGroups;
         mTodayGroup = todayGroup;

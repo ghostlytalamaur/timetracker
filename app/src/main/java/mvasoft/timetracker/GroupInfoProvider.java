@@ -4,7 +4,7 @@ import android.net.Uri;
 
 import mvasoft.timetracker.data.DatabaseDescription;
 
-class GroupInfoProvider {
+public class GroupInfoProvider {
 
     private GroupType mCurrentGroupType;
 
