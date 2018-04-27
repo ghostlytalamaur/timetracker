@@ -1,5 +1,6 @@
 package mvasoft.timetracker.ui.base;
 
+import android.arch.lifecycle.LifecycleObserver;
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;
 import android.os.Bundle;
@@ -32,16 +33,21 @@ public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, getLayoutId(), container, false);
 
-        if (mViewModel == null) {
-            mViewModel = onCreateViewModel();
-        }
-
-        mBinding.setVariable(getModelVariableId(), mViewModel);
+        mBinding.setVariable(getModelVariableId(), getViewModel());
         mBinding.executePendingBindings();
         return mBinding.getRoot();
     }
 
     protected abstract ViewModel onCreateViewModel();
+
+    protected ViewModel getViewModel() {
+        if (mViewModel == null) {
+            mViewModel = onCreateViewModel();
+            if (mViewModel instanceof LifecycleObserver)
+                getLifecycle().addObserver((LifecycleObserver) mViewModel);
+        }
+        return mViewModel;
+    }
 
     protected Binding getBinding() {
         return mBinding;
