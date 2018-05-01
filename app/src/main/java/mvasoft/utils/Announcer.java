@@ -20,7 +20,7 @@ public class Announcer<T extends EventListener> {
                 getClass().getClassLoader(),
                 new Class<?>[]{listenerType},
                 new InvocationHandler() {
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    public Object invoke(Object proxy, Method method, Object[] args) {
                         announce(method, args);
                         return null;
                     }

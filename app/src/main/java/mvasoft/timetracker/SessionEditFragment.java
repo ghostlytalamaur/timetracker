@@ -1,15 +1,19 @@
 package mvasoft.timetracker;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -20,7 +24,6 @@ import mvasoft.timetracker.ui.SessionEditViewModel;
 import mvasoft.timetracker.ui.base.BindingSupportFragment;
 
 import static mvasoft.timetracker.Consts.LOADER_ID_SESSION;
-import mvasoft.timetracker.BR;
 
 public class SessionEditFragment extends BindingSupportFragment<FragmentSessionEditBinding,
         SessionEditViewModel> {
@@ -69,6 +72,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
         mData = new SessionEditData(-1, -1, -1);
         if (savedInstanceState != null)
@@ -85,13 +89,6 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
-
-        getBinding().fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveSession();
-            }
-        });
 
         getBinding().tvStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,8 +108,36 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_edit_session, menu);
+        menu.findItem(R.id.menu_save).setEnabled(getViewModel().getIsChanged());
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_save:
+                saveSession();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
+        return true;
+    }
+
+    @Override
     protected SessionEditViewModel onCreateViewModel() {
-        return new SessionEditViewModel(mData);
+        SessionEditViewModel vm = ViewModelProviders.of(this).get(SessionEditViewModel.class);
+        vm.setModel(mData);
+        vm.getIsChangedLiveData().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable Boolean aBoolean) {
+                if (getActivity() != null) getActivity().invalidateOptionsMenu();
+            }
+        });
+        return vm;
     }
 
     @Override
@@ -157,14 +182,14 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
                 mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_END)));
     }
 
-    private void saveSession() {
+    public void saveSession() {
         SessionHelper helper = new SessionHelper(getContext());
         boolean isSaved = helper.updateSession(mData.getId(), mData.getStartTime(),
                 mData.isClosed() ? mData.getEndTime() : 0);
-        if (isSaved)
-            Snackbar.make(getBinding().fab, R.string.session_saved, Snackbar.LENGTH_LONG);
-        else
-            Snackbar.make(getBinding().fab, R.string.session_unable_save, Snackbar.LENGTH_LONG);
+//        if (isSaved)
+//            Snackbar.make(getBinding().fab, R.string.session_saved, Snackbar.LENGTH_LONG);
+//        else
+//            Snackbar.make(getBinding().fab, R.string.session_unable_save, Snackbar.LENGTH_LONG);
     }
 
     private void editDateTime(long dateTime, int requestCode) {

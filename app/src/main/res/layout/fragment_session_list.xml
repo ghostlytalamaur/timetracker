@@ -62,7 +62,7 @@
             app:backgroundTint="@color/colorPrimaryDark"
             app:layout_anchor="@id/items_view"
             app:layout_anchorGravity="bottom|right|end"
-            app:srcCompat="@{session_list_view_model.hasStartedSession ? @drawable/animated_minus : @drawable/animated_plus}"
+            app:srcCompat="@{session_list_view_model.hasOpenedSessions ? @drawable/animated_minus : @drawable/animated_plus}"
              />
 
     </android.support.design.widget.CoordinatorLayout>

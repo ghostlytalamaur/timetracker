@@ -28,7 +28,11 @@ android {
     dataBinding {
         enabled = true
     }
-
+    packagingOptions {
+        exclude 'android/databinding/DataBinderMapper.java'
+        exclude 'android/databinding/DataBindingComponent.java'
+        exclude 'android/databinding/DynamicUtil.java'
+    }
 }
 
 dependencies {
@@ -50,7 +54,7 @@ dependencies {
     api project(path: ':datetimepicker')
     api project(':app:libs:twoway-view_core')
     api project(':app:libs:twoway-view_layouts')
-//    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
+    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
     testImplementation 'junit:junit:4.12'
 
     // ViewModel and LiveData
@@ -75,4 +79,5 @@ dependencies {
     // Test helpers for Room
     testImplementation "android.arch.persistence.room:testing:1.0.0"
 
+    implementation 'com.android.support:cardview-v7:27.1.1'
 }

@@ -8,7 +8,7 @@ public class GroupInfoProvider {
 
     private GroupType mCurrentGroupType;
 
-    Uri getCurrentGroupsUri() {
+    public Uri getCurrentGroupsUri() {
         switch (mCurrentGroupType) {
             case gt_None:
                 return DatabaseDescription.GroupsDescription.GROUP_NONE_URI;
@@ -25,11 +25,11 @@ public class GroupInfoProvider {
         return null;
     }
 
-    GroupType getCurrentGroupType() {
+    public GroupType getCurrentGroupType() {
         return mCurrentGroupType;
     }
 
-    void setCurrentGroupType(GroupType groupType) {
+    public void setCurrentGroupType(GroupType groupType) {
         mCurrentGroupType = groupType;
     }
 }

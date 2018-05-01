@@ -1,5 +1,6 @@
 package mvasoft.timetracker;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -134,7 +135,9 @@ public class SessionListFragment extends BindingSupportFragment<FragmentSessionL
 
     @Override
     protected SessionListViewModel onCreateViewModel() {
-        return new SessionListViewModel(mTodayGroup, mWeekGroup);
+        SessionListViewModel vm = ViewModelProviders.of(this).get(SessionListViewModel.class);
+        vm.setup(mTodayGroup, mWeekGroup);
+        return vm;
     }
 
     @Override

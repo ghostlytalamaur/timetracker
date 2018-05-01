@@ -1,6 +1,9 @@
 package mvasoft.timetracker.core;
 
+import android.app.Application;
 import android.content.Context;
+
+import javax.inject.Singleton;
 
 import dagger.Binds;
 import dagger.Module;
@@ -16,4 +19,8 @@ public abstract class AppModule {
 
     @ContributesAndroidInjector(modules = {WidgetModule.class})
     abstract SessionsContentProvider sessionsContentProviderInjector();
+
+    @Binds
+    @Singleton
+    abstract Application application(TimeTrackerApp app);
 }

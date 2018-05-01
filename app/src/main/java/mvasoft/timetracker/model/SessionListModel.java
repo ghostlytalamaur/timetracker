@@ -1,34 +1,26 @@
 package mvasoft.timetracker.model;
 
 import mvasoft.timetracker.GroupInfoProvider;
+import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.GroupsList;
 
 public class SessionListModel {
 
     private GroupInfoProvider mGroupInfoProvider;
-
     private GroupsList mCurrentGroups;
-    private GroupsList mTodayGroup;
-    private GroupsList mWeekGroup;
 
     public SessionListModel() {
         super();
 
         mGroupInfoProvider = new GroupInfoProvider();
-        mTodayGroup = new GroupsList();
-        mWeekGroup = new GroupsList();
         mCurrentGroups = new GroupsList();
     }
 
-    public GroupsList getCurrentGroups() {
+    public GroupsList getGroups() {
         return mCurrentGroups;
     }
 
-    public GroupsList getTodayGroups() {
-        return mTodayGroup;
-    }
-
-    public GroupsList getWeekGroups() {
-        return mWeekGroup;
+    public void setGroupType(GroupType groupType) {
+        mGroupInfoProvider.setCurrentGroupType(groupType);
     }
 }

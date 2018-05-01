@@ -3,7 +3,7 @@
           package="mvasoft.timetracker">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
+    <!--android:name=".MainActivity"-->
     <application
         android:name=".core.TimeTrackerApp"
         android:allowBackup="true"
@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".extlist.view.TabbedActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -20,6 +20,15 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <!--<activity android:name=".extlist.view.TabbedActivity" />-->
+        <activity
+            android:name=".editsession.view.EditSessionActivity"
+            android:parentActivityName=".extlist.view.TabbedActivity" >
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".extlist.view.TabbedActivity" />
         </activity>
 
         <provider

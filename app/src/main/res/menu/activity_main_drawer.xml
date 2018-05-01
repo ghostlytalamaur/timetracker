@@ -4,6 +4,10 @@
     <item
         android:id="@+id/nav_session_list"
         android:title="@string/nav_title_session_list" />
+
+    <item
+        android:id="@+id/nav_session_list_tabbed"
+        android:title="Tabbed session lise" />
     <!--<group android:checkableBehavior="single">-->
         <!--<item-->
             <!--android:id="@+id/nav_camera"-->

@@ -1,7 +1,13 @@
 package mvasoft.timetracker.ui.base;
 
-import android.databinding.BaseObservable;
+import android.app.Application;
+import android.support.annotation.NonNull;
 
-public class BaseViewModel extends BaseObservable {
+import mvasoft.timetracker.databinding.BindableAndroidViewModel;
 
+public class BaseViewModel extends BindableAndroidViewModel {
+
+    public BaseViewModel(@NonNull Application application) {
+        super(application);
+    }
 }

@@ -6,53 +6,44 @@ import android.databinding.ViewDataBinding;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.support.v7.app.AppCompatActivity;
 
-public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
-        ViewModel extends BaseViewModel> extends Fragment {
+public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
+        ViewModel extends BaseViewModel> extends AppCompatActivity {
 
     private Binding mBinding;
     private ViewModel mViewModel;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mBinding = DataBindingUtil.inflate(inflater, getLayoutId(), container, false);
-
+        mBinding = DataBindingUtil.setContentView(this, getLayoutId());
         if (getViewModel() != null)
             mBinding.setVariable(getModelVariableId(), getViewModel());
+        bindVariables();
         mBinding.setLifecycleOwner(this);
         mBinding.executePendingBindings();
-        return mBinding.getRoot();
     }
 
-    protected ViewModel getViewModel() {
-        if (mViewModel == null) {
-            mViewModel = onCreateViewModel();
-            if (mViewModel instanceof LifecycleObserver)
-                getLifecycle().addObserver((LifecycleObserver) mViewModel);
-        }
-        return mViewModel;
+    protected void bindVariables() {
+
     }
 
     protected Binding getBinding() {
         return mBinding;
     }
 
+    protected ViewModel getViewModel() {
+        if (mViewModel == null) {
+            mViewModel = onCreateViewModel();
+            if (mViewModel instanceof LifecycleObserver) {
+                getLifecycle().addObserver((LifecycleObserver) mViewModel);
+            }
+
+        }
+        return mViewModel;
+    }
 
     protected ViewModel onCreateViewModel() {
         return null;
@@ -61,5 +52,7 @@ public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
     protected @IdRes int getModelVariableId() {
         return 0;
     }
+
     protected abstract @LayoutRes int getLayoutId();
+
 }

@@ -48,7 +48,10 @@ public class GroupsList {
         if (wasCursor)
             mCursor.close();
 
-        mCursor = cursor;
+        if ((cursor != null) && !cursor.isClosed())
+            mCursor = cursor;
+        else
+            mCursor = null;
         if (wasCursor)
             updateData();
         else
@@ -57,7 +60,7 @@ public class GroupsList {
 
     @SuppressWarnings("ConstantConditions")
     private void updateData() {
-        if (mCursor == null) {
+        if ((mCursor == null) || (mCursor.isClosed())) {
             notifyDataChanged();
             return;
         }
@@ -118,14 +121,14 @@ public class GroupsList {
                 return i;
         return -1;
     }
-    SessionGroup get(int idx) {
+    public SessionGroup get(int idx) {
         if ((idx >= 0) && (idx < mList.size()))
             return mList.get(idx);
         else
             return null;
     }
 
-    int count() {
+    public int count() {
         return mList.size();
     }
 
@@ -172,7 +175,7 @@ public class GroupsList {
             return res;
         }
 
-        boolean isRunning() {
+        public boolean isRunning() {
             return mUncompletedCount > 0;
         }
 
@@ -190,7 +193,7 @@ public class GroupsList {
             mUncompletedCount = cnt;
         }
 
-        long getID() {
+        public long getID() {
             return mID;
         }
     }

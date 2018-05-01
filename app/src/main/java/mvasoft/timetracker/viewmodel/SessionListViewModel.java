@@ -1,10 +1,12 @@
 package mvasoft.timetracker.viewmodel;
 
+import android.app.Application;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.databinding.Bindable;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.Timer;
@@ -27,11 +29,8 @@ public class SessionListViewModel extends BaseViewModel implements LifecycleObse
     private GroupsList mWeekGroup;
     private GroupsList.IGroupsChangesListener mGroupsChangesListener;
 
-    public SessionListViewModel(GroupsList todayGroup, GroupsList weekGroup) {
-        super();
-
-        mTodayGroup = todayGroup;
-        mWeekGroup = weekGroup;
+    public SessionListViewModel(@NonNull Application application) {
+        super(application);
 
         mFormatter = new DateTimeFormatters();
         mGroupsChangesListener = new GroupsChangesListener();
@@ -43,6 +42,11 @@ public class SessionListViewModel extends BaseViewModel implements LifecycleObse
             }
         };
         mHandler = new Handler();
+    }
+
+    public void setup(GroupsList todayGroup, GroupsList weekGroup) {
+        mTodayGroup = todayGroup;
+        mWeekGroup = weekGroup;
     }
 
 
@@ -82,7 +86,7 @@ public class SessionListViewModel extends BaseViewModel implements LifecycleObse
     }
 
     @Bindable
-    public boolean getHasStartedSession() {
+    public boolean getHasOpenedSessions() {
         return mTodayGroup.hasOpenedSessions();
     }
 
@@ -128,7 +132,7 @@ public class SessionListViewModel extends BaseViewModel implements LifecycleObse
         public void onDataChanged() {
             notifyPropertyChanged(BR.todayText);
             notifyPropertyChanged(BR.weekText);
-            notifyPropertyChanged(BR.hasStartedSession);
+            notifyPropertyChanged(BR.hasOpenedSessions);
             updateTimer();
         }
     }

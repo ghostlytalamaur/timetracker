@@ -44,4 +44,5 @@
     <string name="backup_failed">Cannot backup database</string>
     <string name="import_succeeded">Import completed</string>
     <string name="import_failed">Cannot import database</string>
+    <string name="action_save">Save</string>
 </resources>

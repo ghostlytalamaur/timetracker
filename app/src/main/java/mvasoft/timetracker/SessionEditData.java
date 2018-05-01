@@ -63,7 +63,7 @@ public class SessionEditData {
 
     public void setEndTime(long end) {
         if (getEndTime() == end)
-            return;;
+            return;
 
         mEndTime = end;
         mAnnouncer.announce().dataChanged(SessionDataType.sdtEndTime);

@@ -1,6 +1,10 @@
 package mvasoft.timetracker.ui;
 
+import android.app.Application;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.databinding.Bindable;
+import android.support.annotation.NonNull;
 
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -19,11 +23,12 @@ public class SessionEditViewModel extends BaseViewModel {
     private PeriodFormatter mPeriodFormatter;
     private DateTimeFormatter mDateTimeFormatter;
     private SessionEditData mData;
-    public SessionEditViewModel(SessionEditData data) {
-        super();
+    private MutableLiveData<Boolean> mIsChangedLiveData;
 
-        mData = data;
-        mData.addDataChangedListener(new SessionDataChangedListener());
+    public SessionEditViewModel(@NonNull Application application) {
+        super(application);
+
+        // TODO: use DateTimeFormatters
         mPeriodFormatter = new PeriodFormatterBuilder().
                 printZeroAlways().
                 minimumPrintedDigits(2).
@@ -51,6 +56,11 @@ public class SessionEditViewModel extends BaseViewModel {
                 appendLiteral(":").
                 appendMinuteOfHour(2).
                 toFormatter();
+    }
+
+    public void setModel(SessionEditData model) {
+        mData = model;
+        mData.addDataChangedListener(new SessionDataChangedListener());
     }
 
     @Bindable
@@ -81,7 +91,15 @@ public class SessionEditViewModel extends BaseViewModel {
 
     public void setIsClosed(boolean isClosed) {
         mData.setIsClosed(isClosed);
+    }
+
+    public LiveData<Boolean> getIsChangedLiveData() {
+        if (mIsChangedLiveData == null) {
+            mIsChangedLiveData = new MutableLiveData<Boolean>();
+            mIsChangedLiveData.setValue(getIsChanged());
         }
+        return mIsChangedLiveData;
+    }
 
     private class SessionDataChangedListener implements SessionEditData.ISessionDataChangedListener {
 
@@ -99,6 +117,7 @@ public class SessionEditViewModel extends BaseViewModel {
                     break;
                 case sdtClosed:
                     notifyPropertyChanged(BR.isClosed);
+                    ((MutableLiveData<Boolean>) getIsChangedLiveData()).setValue(getIsChanged());
                     break;
             }
 

@@ -16,18 +16,18 @@ import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
 import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
 
-class SessionHelper {
+public class SessionHelper {
 
     static final long EMPTY_DURATION = -1;
     private static final long EMPTY_ID = -1;
     private final Context mContext;
 
-    SessionHelper(@NonNull Context context) {
+    public SessionHelper(@NonNull Context context) {
         super();
         mContext = context.getApplicationContext();
     }
 
-    ToggleSessionResult toggleSession() {
+    public ToggleSessionResult toggleSession() {
         if (stopSession())
             return ToggleSessionResult.tgs_Stopped;
         else if (startNewSession())
@@ -91,7 +91,7 @@ class SessionHelper {
         return false;
     }
 
-    boolean hasOpenedSessions() {
+    public boolean hasOpenedSessions() {
         return getOpenedSessionID() != EMPTY_ID;
     }
 
@@ -168,7 +168,7 @@ class SessionHelper {
                 values, null, null) > 0;
     }
 
-    enum ToggleSessionResult {
+    public enum ToggleSessionResult {
         tgs_Started,
         tgs_Stopped,
         tgs_Error
