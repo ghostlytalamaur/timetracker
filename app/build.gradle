@@ -54,7 +54,9 @@ dependencies {
     api project(path: ':datetimepicker')
     api project(':app:libs:twoway-view_core')
     api project(':app:libs:twoway-view_layouts')
-    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
+    api 'com.drextended.actionhandler:actionhandler:0.1.16'
+//    api project(':app:libs:rvdatabinding')
+//    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
     testImplementation 'junit:junit:4.12'
 
     // ViewModel and LiveData

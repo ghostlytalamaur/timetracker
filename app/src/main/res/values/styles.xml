@@ -11,6 +11,7 @@
         <item name="colorControlHighlight">@color/colorControlHighlight</item>
         <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormal</item>
         <item name="actionButtonColor">@android:color/white</item>
+        <!--<item name="colorControlNormal">@color/color_actionbar_icon</item>-->
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -23,9 +24,9 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="ListSelectedBackground">
-        <item name="android:background">?attr/selectableItemBackground</item>
+        <!--<item name="android:background">?attr/selectableItemBackground</item>-->
         <item name="android:clickable">true</item>
-        <!--<item name="android:background">@drawable/list_item_background</item>-->
+        <item name="android:background">@drawable/list_item_background</item>
 
     </style>
 

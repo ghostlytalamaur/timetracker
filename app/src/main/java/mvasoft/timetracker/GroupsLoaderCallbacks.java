@@ -93,15 +93,15 @@ class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
     }
 
     private void swapCurrentGroupCursor(Cursor cursor) {
-        mCurrentGroups.swapCursor(cursor);
+        mCurrentGroups.updateData(cursor);
     }
 
     private void swapTodayCursor(Cursor cursor) {
-        mTodayGroup.swapCursor(cursor);
+        mTodayGroup.updateData(cursor);
     }
 
     private void swapWeekCursor(Cursor cursor) {
-        mWeekGroup.swapCursor(cursor);
+        mWeekGroup.updateData(cursor);
     }
 
 }

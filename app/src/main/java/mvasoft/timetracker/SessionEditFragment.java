@@ -31,7 +31,6 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     private static final String ARGS_SESSION_ID = "session_id";
     private static final int REQUEST_START_TIME = 1;
     private static final int REQUEST_END_TIME   = 2;
-    private SessionEditData mData;
     private Cursor mCursor;
 
     static public SessionEditFragment newInstance(long sessionId) {
@@ -51,16 +50,16 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
             switch (requestCode) {
                 case REQUEST_START_TIME:
                     newDateTime = data.getLongExtra(DatePickerFragment.ARGS_DATE,
-                            mData.getStartTime() / 1000) / 1000;
-                    if (newDateTime != mData.getStartTime()) {
-                        mData.setStartTime(newDateTime);
+                            getViewModel().getModel().getStartTime() / 1000) / 1000;
+                    if (newDateTime != getViewModel().getModel().getStartTime()) {
+                        getViewModel().getModel().setStartTime(newDateTime);
                     }
                     break;
                 case REQUEST_END_TIME:
                     newDateTime = data.getLongExtra(DatePickerFragment.ARGS_DATE,
-                            mData.getEndTime() / 1000) / 1000;
-                    if (newDateTime != mData.getEndTime()) {
-                        mData.setEndTime(newDateTime);
+                            getViewModel().getModel().getEndTime() / 1000) / 1000;
+                    if (newDateTime != getViewModel().getModel().getEndTime()) {
+                        getViewModel().getModel().setEndTime(newDateTime);
                     }
                     break;
             }
@@ -72,17 +71,13 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-
-        mData = new SessionEditData(-1, -1, -1);
         if (savedInstanceState != null)
-            mData.restoreState(savedInstanceState);
-        else {
-            mData.setId(getArguments().getLong(ARGS_SESSION_ID));
+            getViewModel().getModel().restoreState(savedInstanceState);
+        else if (getArguments() != null) {
+            getViewModel().getModel().setId(getArguments().getLong(ARGS_SESSION_ID, getViewModel().getModel().getId()));
         }
-
-        SessionLoaderCallbacks loaderCallbacks = new SessionLoaderCallbacks();
-        getActivity().getSupportLoaderManager().initLoader(LOADER_ID_SESSION, null, loaderCallbacks);
+        setHasOptionsMenu(true);
+        getLoaderManager().initLoader(LOADER_ID_SESSION, null, new SessionLoaderCallbacks());
     }
 
     @Nullable
@@ -93,14 +88,14 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         getBinding().tvStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editDateTime(mData.getStartTime(), REQUEST_START_TIME);
+                editDateTime(getViewModel().getModel().getStartTime(), REQUEST_START_TIME);
             }
         });
 
         getBinding().tvEnd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editDateTime(mData.getEndTime(), REQUEST_END_TIME);
+                editDateTime(getViewModel().getModel().getEndTime(), REQUEST_END_TIME);
             }
         });
 
@@ -110,7 +105,9 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_edit_session, menu);
-        menu.findItem(R.id.menu_save).setEnabled(getViewModel().getIsChanged());
+        MenuItem item = menu.findItem(R.id.menu_save);
+        item.setEnabled(getViewModel().getIsChanged());
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -130,7 +127,6 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Override
     protected SessionEditViewModel onCreateViewModel() {
         SessionEditViewModel vm = ViewModelProviders.of(this).get(SessionEditViewModel.class);
-        vm.setModel(mData);
         vm.getIsChangedLiveData().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(@Nullable Boolean aBoolean) {
@@ -153,14 +149,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mData.saveState(outState);
-    }
-
-    @Override
-    public void onDestroy() {
-        swapCursor(null);
-        getActivity().getSupportLoaderManager().destroyLoader(LOADER_ID_SESSION);
-        super.onDestroy();
+        getViewModel().getModel().saveState(outState);
     }
 
     private void swapCursor(Cursor cursor) {
@@ -176,16 +165,16 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
             return;
 
         mCursor.moveToFirst();
-        mData.setOriginalStartTime(
+        getViewModel().getModel().setOriginalStartTime(
                 mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_START)));
-        mData.setOriginalEndTime(
+        getViewModel().getModel().setOriginalEndTime(
                 mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_END)));
     }
 
     public void saveSession() {
         SessionHelper helper = new SessionHelper(getContext());
-        boolean isSaved = helper.updateSession(mData.getId(), mData.getStartTime(),
-                mData.isClosed() ? mData.getEndTime() : 0);
+        boolean isSaved = helper.updateSession(getViewModel().getModel().getId(), getViewModel().getModel().getStartTime(),
+                getViewModel().getModel().isClosed() ? getViewModel().getModel().getEndTime() : 0);
 //        if (isSaved)
 //            Snackbar.make(getBinding().fab, R.string.session_saved, Snackbar.LENGTH_LONG);
 //        else
@@ -206,7 +195,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
             switch (id) {
                 case LOADER_ID_SESSION:
                     return new CursorLoader(getContext(),
-                            SessionDescription.buildSessionUri(mData.getId()),
+                            SessionDescription.buildSessionUri(getViewModel().getModel().getId()),
                             null, null, null, null);
             }
             return null;

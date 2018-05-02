@@ -8,6 +8,7 @@ import android.view.View;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
+
 public class BindingAdapters {
 
     @BindingAdapter("srcCompat")
@@ -64,5 +65,13 @@ public class BindingAdapters {
                 });
             }
         }
+    }
+
+    @BindingAdapter(value = {"activated"})
+    public static void setActivated(final View view, boolean isActivated) {
+        if (view.isActivated() == isActivated)
+            return;
+
+        view.setActivated(isActivated);
     }
 }

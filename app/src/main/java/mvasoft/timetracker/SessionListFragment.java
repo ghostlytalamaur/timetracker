@@ -165,11 +165,6 @@ public class SessionListFragment extends BindingSupportFragment<FragmentSessionL
         mCurrentGroups.removeChangesListener(mGroupListener);
     }
 
-    @Override
-    public void onDestroy() {
-        mCurrentGroups.swapCursor(null);
-        super.onDestroy();
-    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {

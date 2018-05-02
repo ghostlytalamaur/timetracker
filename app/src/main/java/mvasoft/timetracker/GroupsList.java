@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashSet;
+import java.util.Observable;
 
 import mvasoft.timetracker.data.DatabaseDescription;
 import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
@@ -15,7 +16,6 @@ public class GroupsList {
 
     private final ArrayList<SessionGroup> mList;
     private final Announcer<IGroupsChangesListener> mAnnouncer;
-    private Cursor mCursor;
 
     public GroupsList() {
         mList = new ArrayList<>();
@@ -43,43 +43,33 @@ public class GroupsList {
         return false;
     }
 
-    public void swapCursor(Cursor cursor) {
-        boolean wasCursor = mCursor != null;
-        if (wasCursor)
-            mCursor.close();
-
-        if ((cursor != null) && !cursor.isClosed())
-            mCursor = cursor;
-        else
-            mCursor = null;
-        if (wasCursor)
-            updateData();
-        else
-            fillList();
-    }
-
     @SuppressWarnings("ConstantConditions")
-    private void updateData() {
-        if ((mCursor == null) || (mCursor.isClosed())) {
+    public void updateData(Cursor cursor) {
+        if ((cursor == null) || (cursor.isClosed())) {
+            mList.clear();
             notifyDataChanged();
             return;
         }
 
+        boolean wasChanged = count() != cursor.getCount();
         HashSet<Long> processedIds = new HashSet<>();
-        for (int i = 0; i < mCursor.getCount(); i++) {
-            mCursor.moveToPosition(i);
-            long id = mCursor.getLong(mCursor.getColumnIndex(DatabaseDescription.SessionDescription._ID));
+        for (int i = 0; i < cursor.getCount(); i++) {
+            cursor.moveToPosition(i);
+            long id = cursor.getLong(cursor.getColumnIndex(DatabaseDescription.SessionDescription._ID));
 
             int idx = indexByID(id);
-            long start = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_START));
-            long end = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_END));
-            long duration = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_DURATION));
-            int cnt = mCursor.getInt(mCursor.getColumnIndex(GroupsDescription.COLUMN_UNCOMPLETED_COUNT));
+            long start = cursor.getLong(cursor.getColumnIndex(GroupsDescription.COLUMN_START));
+            long end = cursor.getLong(cursor.getColumnIndex(GroupsDescription.COLUMN_END));
+            long duration = cursor.getLong(cursor.getColumnIndex(GroupsDescription.COLUMN_DURATION));
+            int cnt = cursor.getInt(cursor.getColumnIndex(GroupsDescription.COLUMN_UNCOMPLETED_COUNT));
 
-            if (idx < 0)
+            if (idx < 0) {
                 mList.add(i, new SessionGroup(id, start, end, duration, cnt));
+                wasChanged = true;
+            }
             else if (!get(idx).sameData(start, end, duration, cnt)) {
                 get(idx).updateData(start, end, duration, cnt);
+                wasChanged = true;
                 if (idx != i)
                     mList.add(i, mList.remove(idx));
             }
@@ -89,26 +79,9 @@ public class GroupsList {
         for (int i = count() - 1; i >= 0; i--)
             if (!processedIds.contains(get(i).getID()))
                 mList.remove(i);
-        notifyDataChanged();
-    }
 
-    private void fillList() {
-        mList.clear();
-        if (mCursor == null) {
+        if (wasChanged)
             notifyDataChanged();
-            return;
-        }
-
-        for (int i = 0; i < mCursor.getCount(); i++) {
-            mCursor.moveToPosition(i);
-            long id = mCursor.getLong(mCursor.getColumnIndex(DatabaseDescription.SessionDescription._ID));
-            long start = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_START));
-            long end = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_END));
-            long duration = mCursor.getLong(mCursor.getColumnIndex(GroupsDescription.COLUMN_DURATION));
-            int cnt = mCursor.getInt(mCursor.getColumnIndex(GroupsDescription.COLUMN_UNCOMPLETED_COUNT));
-            mList.add(new SessionGroup(id, start, end, duration, cnt));
-        }
-        notifyDataChanged();
     }
 
     private void notifyDataChanged() {
@@ -144,7 +117,8 @@ public class GroupsList {
         void onDataChanged();
     }
 
-    public class SessionGroup {
+    public class SessionGroup extends Observable {
+        private static final long TARGET_SEC = 8 * 60 * 60;
         private final long mID;
         private long mStartTime;
         private long mEndTime;
@@ -191,10 +165,25 @@ public class GroupsList {
             mEndTime = end;
             mDuration = duration;
             mUncompletedCount = cnt;
+            setChanged();
+            notifyObservers();
         }
 
         public long getID() {
             return mID;
+        }
+
+        public long getGoalTimeDiff() {
+            return getDuration() - TARGET_SEC;
+        }
+
+        public boolean isGoalAchieved() {
+            return getGoalTimeDiff() >= 0;
+        }
+
+        public void dataChanged() {
+            setChanged();
+            notifyObservers();
         }
     }
 

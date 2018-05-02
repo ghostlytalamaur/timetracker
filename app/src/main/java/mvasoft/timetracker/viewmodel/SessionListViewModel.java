@@ -71,8 +71,8 @@ public class SessionListViewModel extends BaseViewModel implements LifecycleObse
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     public void onDestroy() {
-        mTodayGroup.swapCursor(null);
-        mWeekGroup.swapCursor(null);
+//        mTodayGroup.swapCursor(null);
+//        mWeekGroup.swapCursor(null);
     }
 
     @Bindable

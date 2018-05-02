@@ -3,9 +3,12 @@ package mvasoft.timetracker.extlist.view;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.view.ActionMode;
 
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.GroupType;
@@ -18,12 +21,15 @@ import mvasoft.timetracker.ui.base.BindingSupportActivity;
 public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding,
         TabbedActivityViewModel> implements ExSessionListFragment.ISessionListCallbacks {
 
+    private ActionMode mActionMode;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setSupportActionBar(getBinding().toolbar);
         initViewPager();
+
     }
 
     @Override
@@ -39,6 +45,18 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     @Override
     protected int getModelVariableId() {
         return BR.view_model;
+    }
+
+    @Override
+    public void onSupportActionModeStarted(@NonNull ActionMode mode) {
+        super.onSupportActionModeStarted(mode);
+        mActionMode = mode;
+    }
+
+    @Override
+    public void onSupportActionModeFinished(@NonNull ActionMode mode) {
+        mActionMode = null;
+        super.onSupportActionModeFinished(mode);
     }
 
     private void initViewPager() {
@@ -69,6 +87,24 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             }
         };
 
+        getBinding().viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (mActionMode == null)
+                    return;
+
+                if (mActionMode.getTag() == null || !mActionMode.getTag().equals(GroupType.values()[position]))
+                    mActionMode.finish();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
         getBinding().viewPager.setAdapter(adapter);
         getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
     }
@@ -78,4 +114,5 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         intent.putExtras(EditSessionActivity.makeArgs(sessionId));
         startActivity(intent);
     }
+
 }

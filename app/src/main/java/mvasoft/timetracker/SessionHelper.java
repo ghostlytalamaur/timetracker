@@ -10,6 +10,7 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import mvasoft.timetracker.data.DatabaseDescription;
 import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
@@ -73,9 +74,28 @@ public class SessionHelper {
         }
     }
 
+    public boolean deleteGroups(GroupType groupType, List<Long> groupIds) {
+        if (groupIds == null)
+            return false;
+
+        GroupInfoProvider info = new GroupInfoProvider();
+        info.setCurrentGroupType(groupType);
+        return deleteGroups(info.getCurrentGroupsUri(), groupIds);
+    }
+
     boolean deleteGroups(Uri groupUri, long[] groupIds) {
+        ArrayList<Long> ids = new ArrayList<>();
+        for (long id : groupIds)
+            ids.add(id);
+        return deleteGroups(groupUri, ids);
+    }
+
+    private boolean deleteGroups(Uri groupUri, List<Long> groupIds) {
+        if (groupIds == null)
+            return false;
+
         ArrayList<ContentProviderOperation> operations = new ArrayList<>();
-        for (long id : groupIds) {
+        for (Long id : groupIds) {
             ContentProviderOperation op = ContentProviderOperation.newDelete(
                     Uri.withAppendedPath(groupUri, Long.toString(id))).build();
             operations.add(op);

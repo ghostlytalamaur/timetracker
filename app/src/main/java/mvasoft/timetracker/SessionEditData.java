@@ -13,15 +13,17 @@ public class SessionEditData {
     private static final String STATE_ORIGINAL_START_TIME = "original_start";
     private static final String STATE_ORIGINAL_END_TIME = "original_end";
     private static final String STATE_ORIGINAL_IS_CLOSED = "is_changed";
+    private static final int FLAGS_FALSE = 0;
+    private static final int FLAGS_TRUE = 1;
+    private static final int FLAGS_UNDEF = -1;
+
     private final Announcer<ISessionDataChangedListener> mAnnouncer;
-
-
     private long mSessionId;
     private long mStartTime;
     private long mEndTime;
     private long mOriginalStartTime;
     private long mOriginalEndTime;
-    private boolean mIsClosed;
+    private int mIsClosed;
 
     public SessionEditData(long id, long start, long end) {
         super();
@@ -29,6 +31,7 @@ public class SessionEditData {
         mOriginalStartTime = start;
         mOriginalEndTime = end;
         mAnnouncer = new Announcer<>(ISessionDataChangedListener.class);
+        mIsClosed = FLAGS_UNDEF;
     }
 
     public long getId() {
@@ -70,12 +73,13 @@ public class SessionEditData {
     }
 
     public void restoreState(Bundle state) {
-        mSessionId = state.getLong(STATE_ID);
-        mOriginalStartTime = state.getLong(STATE_ORIGINAL_START_TIME);
-        mOriginalEndTime = state.getLong(STATE_ORIGINAL_END_TIME);
-        mStartTime = state.getLong(STATE_START_TIME);
-        mEndTime = state.getLong(STATE_END_TIME);
-        mIsClosed = state.getBoolean(STATE_ORIGINAL_IS_CLOSED);
+        // TODO: check is data changed
+        mSessionId = state.getLong(STATE_ID, mSessionId);
+        mOriginalStartTime = state.getLong(STATE_ORIGINAL_START_TIME, mOriginalStartTime);
+        mOriginalEndTime = state.getLong(STATE_ORIGINAL_END_TIME, mOriginalEndTime);
+        mStartTime = state.getLong(STATE_START_TIME, mStartTime);
+        mEndTime = state.getLong(STATE_END_TIME, mEndTime);
+        mIsClosed = state.getInt(STATE_ORIGINAL_IS_CLOSED, mIsClosed);
 
         mAnnouncer.announce().dataChanged(SessionDataType.sdtAll);
     }
@@ -86,7 +90,7 @@ public class SessionEditData {
         outState.putLong(STATE_ORIGINAL_END_TIME, mOriginalEndTime);
         outState.putLong(STATE_START_TIME, mStartTime);
         outState.putLong(STATE_END_TIME, mEndTime);
-        outState.putBoolean(STATE_ORIGINAL_IS_CLOSED, mIsClosed);
+        outState.putInt(STATE_ORIGINAL_IS_CLOSED, mIsClosed);
     }
 
     private long getOriginalEndTime() {
@@ -94,8 +98,11 @@ public class SessionEditData {
     }
 
     public void setOriginalEndTime(long end) {
+        if (mOriginalEndTime == end)
+            return;
+
         mOriginalEndTime = end;
-        mIsClosed = mOriginalEndTime > 0;
+        mIsClosed = mOriginalEndTime > 0 ? FLAGS_TRUE : FLAGS_FALSE;
 
         mAnnouncer.announce().dataChanged(SessionDataType.sdtStartTime);
         mAnnouncer.announce().dataChanged(SessionDataType.sdtClosed);
@@ -106,6 +113,9 @@ public class SessionEditData {
     }
 
     public void setOriginalStartTime(long start) {
+        if (mOriginalStartTime == start)
+            return;
+
         mOriginalStartTime = start;
 
         mAnnouncer.announce().dataChanged(SessionDataType.sdtStartTime);
@@ -119,15 +129,15 @@ public class SessionEditData {
     }
 
     public boolean isClosed() {
-        return mIsClosed;
+        return mIsClosed == FLAGS_TRUE;
     }
 
     public void setIsClosed(boolean aIsClosed) {
-        if (mIsClosed == aIsClosed)
+        if (isClosed() == aIsClosed)
             return;
 
-        mIsClosed = aIsClosed;
-        if (mIsClosed) {
+        mIsClosed = aIsClosed ? FLAGS_TRUE : FLAGS_FALSE;
+        if (isClosed()) {
             if (getEndTime() == 0)
                 setEndTime(System.currentTimeMillis() / 1000L);
         }
