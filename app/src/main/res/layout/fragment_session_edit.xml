@@ -7,7 +7,7 @@
     <data>
         <variable
             name="view_model"
-            type="mvasoft.timetracker.ui.SessionEditViewModel"
+            type="mvasoft.timetracker.ui.editsession.viewmodel.EditSessionFragmentViewModel"
             />
         <import
             alias="v"

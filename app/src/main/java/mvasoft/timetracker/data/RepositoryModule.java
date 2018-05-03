@@ -11,6 +11,7 @@ public abstract class RepositoryModule {
 
     // Результат - то, что провайдим.
     // параметр - конкретная реализация. В реализации используется инекция конструктора
+    @SuppressWarnings("unused")
     @Binds
     // Всегда провайдим один и тот же инстанс
     @Singleton

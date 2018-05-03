@@ -13,9 +13,9 @@ import javax.inject.Singleton;
 import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.GroupsList;
 import mvasoft.timetracker.Session;
-import mvasoft.timetracker.SessionHelper;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.data.room.entity.SessionGroupEntity;
+import mvasoft.timetracker.deprecated.SessionHelper;
 
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {

@@ -13,8 +13,6 @@ import com.hannesdorfmann.adapterdelegates2.AdapterDelegate;
 
 import java.util.List;
 
-import mvasoft.timetracker.extlist.model.BaseItemModel;
-
 public class LiveBindableAdapter<ListModel extends List<BaseItemModel>> extends
         BaseBindableAdapter<ListModel> {
 
@@ -25,7 +23,7 @@ public class LiveBindableAdapter<ListModel extends List<BaseItemModel>> extends
     public LiveBindableAdapter(AdapterDelegate<ListModel>... adapterDelegates) {
         super(adapterDelegates);
 //        ListDifferCallback diffCallback = new ListDifferCallback();
-        mDiffer = new AsyncListDiffer<BaseItemModel>(this, new ItemDifferCallback());
+        mDiffer = new AsyncListDiffer<>(this, new ItemDifferCallback());
     }
 
     public void setData(@NonNull LifecycleOwner owner, LiveData<ListModel> data) {

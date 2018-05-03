@@ -7,13 +7,13 @@
     <data>
         <variable
             name="view_model"
-            type="mvasoft.timetracker.editsession.viewmodel.EditSessionViewModel" />
+            type="mvasoft.timetracker.ui.editsession.viewmodel.EditSessionActivityViewModel" />
         <variable
             name="actionHandler"
             type="com.drextended.actionhandler.listener.ActionClickListener"/>
         <import
             alias="ActionType"
-            type="mvasoft.timetracker.editsession.view.EditSessionActionType" />
+            type="mvasoft.timetracker.ui.editsession.view.EditSessionActivity.EditSessionActionType" />
     </data>
 
     <android.support.design.widget.CoordinatorLayout

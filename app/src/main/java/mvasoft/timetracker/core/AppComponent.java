@@ -6,7 +6,7 @@ import dagger.Component;
 import dagger.android.AndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
 import mvasoft.timetracker.data.RepositoryModule;
-import mvasoft.timetracker.widget.WidgetModule;
+import mvasoft.timetracker.ui.widget.WidgetModule;
 
 @Singleton
 @Component(modules = {AndroidSupportInjectionModule.class,

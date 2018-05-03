@@ -8,8 +8,8 @@ import java.util.EventListener;
 import java.util.HashSet;
 import java.util.Observable;
 
-import mvasoft.timetracker.data.DatabaseDescription;
-import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
+import mvasoft.timetracker.deprecated.DatabaseDescription;
+import mvasoft.timetracker.deprecated.DatabaseDescription.GroupsDescription;
 import mvasoft.utils.Announcer;
 
 public class GroupsList {

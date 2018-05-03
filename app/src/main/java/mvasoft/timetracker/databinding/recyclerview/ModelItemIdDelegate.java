@@ -10,8 +10,6 @@ import com.drextended.rvdatabinding.delegate.ModelItemDelegate;
 
 import java.util.List;
 
-import mvasoft.timetracker.core.IdProvider;
-
 public class ModelItemIdDelegate<T> extends ModelItemDelegate<T> {
 
     private ActionClickListener mActionHandler;

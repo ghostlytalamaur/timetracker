@@ -7,7 +7,7 @@
     <data>
         <variable
             name="session_list_view_model"
-            type="mvasoft.timetracker.viewmodel.SessionListViewModel"
+            type="mvasoft.timetracker.deprecated.SessionListViewModel"
             />
         <import
             alias="v"

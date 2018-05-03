@@ -7,14 +7,14 @@
     <data>
         <variable
             name="view_model"
-            type="mvasoft.timetracker.extlist.modelview.TabbedActivityViewModel"
+            type="mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel"
             />
         <variable
             name="actionHandler"
             type="com.drextended.actionhandler.listener.ActionClickListener"/>
         <import
             alias="ActionType"
-            type="mvasoft.timetracker.extlist.view.TabbedActivity.TabbedActivityActionType" />
+            type="mvasoft.timetracker.ui.extlist.view.TabbedActivity.TabbedActivityActionType" />
     </data>
 
     <android.support.design.widget.CoordinatorLayout

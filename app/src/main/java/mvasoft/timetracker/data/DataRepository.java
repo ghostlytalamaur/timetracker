@@ -8,7 +8,7 @@ import java.util.List;
 import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.GroupsList;
 import mvasoft.timetracker.Session;
-import mvasoft.timetracker.SessionHelper;
+import mvasoft.timetracker.deprecated.SessionHelper;
 
 public interface DataRepository {
 
