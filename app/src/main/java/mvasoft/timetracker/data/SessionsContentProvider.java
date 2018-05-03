@@ -1,9 +1,7 @@
 package mvasoft.timetracker.data;
 
-import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -94,9 +92,8 @@ public class SessionsContentProvider extends DaggerContentProvider {
 
     @Override
     public boolean onCreate() {
-        super.onCreate();
-        mDBHelper = new SessionsDatabaseHelper(getContext());
-        return true;
+//        mDBHelper = new SessionsDatabaseHelper(getContext());
+        return super.onCreate();
     }
 
     @Override

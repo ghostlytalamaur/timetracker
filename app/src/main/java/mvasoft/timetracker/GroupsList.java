@@ -101,6 +101,11 @@ public class GroupsList {
             return null;
     }
 
+    public void add(SessionGroup group) {
+        if (group != null)
+            mList.add(group);
+    }
+
     public int count() {
         return mList.size();
     }
@@ -117,7 +122,7 @@ public class GroupsList {
         void onDataChanged();
     }
 
-    public class SessionGroup extends Observable {
+    public static class SessionGroup extends Observable {
         private static final long TARGET_SEC = 8 * 60 * 60;
         private final long mID;
         private long mStartTime;
@@ -125,13 +130,14 @@ public class GroupsList {
         private long mDuration;
         private int mUncompletedCount;
 
-        SessionGroup(long id, long start, long end, long duration, int uncomplCount) {
+        public SessionGroup(long id, long start, long end, long duration, int uncomplCount) {
             super();
             mID = id;
             mStartTime = start;
-            mEndTime = end;
+            mEndTime = end == 0 ? System.currentTimeMillis() / 1000 : end;
             mDuration = duration;
-            mUncompletedCount = uncomplCount;
+            mUncompletedCount = end == 0 ? 1 : 0; //uncomplCount;
+            mDuration = end == 0 ? 0 : mEndTime - mStartTime;
         }
 
         public long getStart() {
@@ -143,6 +149,7 @@ public class GroupsList {
         }
 
         public long getDuration() {
+            // FIXME: 03.05.2018
             long res = mDuration;
             if (mUncompletedCount > 0)
                 res += mUncompletedCount * System.currentTimeMillis() / 1000L - mEndTime;
@@ -150,7 +157,7 @@ public class GroupsList {
         }
 
         public boolean isRunning() {
-            return mUncompletedCount > 0;
+            return (mUncompletedCount > 0) || (mEndTime == 0);
         }
 
         boolean sameData(long start, long end, long duration, int cnt) {

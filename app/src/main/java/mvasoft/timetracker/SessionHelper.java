@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mvasoft.timetracker.data.DatabaseDescription;
-import mvasoft.timetracker.data.DatabaseDescription.GroupsDescription;
 import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 
 
@@ -23,18 +22,19 @@ public class SessionHelper {
     private static final long EMPTY_ID = -1;
     private final Context mContext;
 
-    public SessionHelper(@NonNull Context context) {
+    SessionHelper(@NonNull Context context) {
         super();
         mContext = context.getApplicationContext();
     }
 
     public ToggleSessionResult toggleSession() {
-        if (stopSession())
-            return ToggleSessionResult.tgs_Stopped;
-        else if (startNewSession())
-            return ToggleSessionResult.tgs_Started;
-
         return ToggleSessionResult.tgs_Error;
+//        if (stopSession())
+//            return ToggleSessionResult.tgs_Stopped;
+//        else if (startNewSession())
+//            return ToggleSessionResult.tgs_Started;
+//
+//        return ToggleSessionResult.tgs_Error;
     }
 
     private boolean stopSession() {
@@ -112,7 +112,7 @@ public class SessionHelper {
     }
 
     public boolean hasOpenedSessions() {
-        return getOpenedSessionID() != EMPTY_ID;
+        return false;//getOpenedSessionID() != EMPTY_ID;
     }
 
     /**
@@ -120,28 +120,30 @@ public class SessionHelper {
      * @return long, count of seconds
      */
     long getTodayDuration() {
-        final String SQL_WHERE = String.format(
-                "date(%1$s, 'unixepoch') = date('now')",
-                SessionDescription.COLUMN_START);
-
-        Cursor cursor = mContext.getContentResolver().query(GroupsDescription.GROUP_DAY_URI,
-                new String[] {GroupsDescription.COLUMN_DURATION},
-                SQL_WHERE, null, DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
-        try {
-            if ((cursor == null) || (cursor.getCount() <= 0))
-                return EMPTY_DURATION;
-
-            cursor.moveToFirst();
-            int colIdx = cursor.getColumnIndex(GroupsDescription.COLUMN_DURATION);
-            if (colIdx < 0 || colIdx >= cursor.getColumnCount())
-                return EMPTY_DURATION;
-
-            return cursor.getLong(colIdx);
-        }
-        finally {
-            if (cursor != null)
-                cursor.close();
-        }
+        return 0;
+//
+//        final String SQL_WHERE = String.format(
+//                "date(%1$s, 'unixepoch') = date('now')",
+//                SessionDescription.COLUMN_START);
+//
+//        Cursor cursor = mContext.getContentResolver().query(GroupsDescription.GROUP_DAY_URI,
+//                new String[] {GroupsDescription.COLUMN_DURATION},
+//                SQL_WHERE, null, DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
+//        try {
+//            if ((cursor == null) || (cursor.getCount() <= 0))
+//                return EMPTY_DURATION;
+//
+//            cursor.moveToFirst();
+//            int colIdx = cursor.getColumnIndex(GroupsDescription.COLUMN_DURATION);
+//            if (colIdx < 0 || colIdx >= cursor.getColumnCount())
+//                return EMPTY_DURATION;
+//
+//            return cursor.getLong(colIdx);
+//        }
+//        finally {
+//            if (cursor != null)
+//                cursor.close();
+//        }
     }
 
     long getCurrentDuration() {

@@ -1,19 +1,20 @@
 package mvasoft.timetracker.ui.base;
 
-import android.arch.lifecycle.LifecycleObserver;
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import dagger.android.support.DaggerFragment;
+
 public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
-        ViewModel extends BaseViewModel> extends Fragment {
+        ViewModel extends BaseViewModel> extends DaggerFragment {
 
     private Binding mBinding;
     private ViewModel mViewModel;
@@ -30,7 +31,7 @@ public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, getLayoutId(), container, false);
 
         if (getViewModel() != null)
@@ -43,8 +44,8 @@ public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
     protected ViewModel getViewModel() {
         if (mViewModel == null) {
             mViewModel = onCreateViewModel();
-            if (mViewModel instanceof LifecycleObserver)
-                getLifecycle().addObserver((LifecycleObserver) mViewModel);
+            if (mViewModel != null)
+                getLifecycle().addObserver(mViewModel);
         }
         return mViewModel;
     }

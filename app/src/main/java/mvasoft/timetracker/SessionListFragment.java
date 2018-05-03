@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
@@ -31,6 +32,8 @@ import android.widget.Toast;
 
 import org.lucasr.twowayview.ItemClickSupport;
 import org.lucasr.twowayview.ItemSelectionSupport;
+
+import java.util.Objects;
 
 import mvasoft.timetracker.databinding.FragmentSessionListBinding;
 import mvasoft.timetracker.ui.DateTimeFormatters;
@@ -78,7 +81,7 @@ public class SessionListFragment extends BindingSupportFragment<FragmentSessionL
                 getInt(PreferencesConst.GROUP_TYPE, GroupType.gt_None.ordinal())]
         );
 
-        mSessionHelper = new SessionHelper(getContext());
+        mSessionHelper = new SessionHelper(Objects.requireNonNull(getContext()));
 
         mTodayGroup = new GroupsList();
         mWeekGroup = new GroupsList();
@@ -109,7 +112,7 @@ public class SessionListFragment extends BindingSupportFragment<FragmentSessionL
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
         View fragmentView = super.onCreateView(inflater, container, savedInstanceState);
@@ -174,7 +177,7 @@ public class SessionListFragment extends BindingSupportFragment<FragmentSessionL
         MenuItem item = menu.findItem(R.id.action_group_type);
         Spinner spGroups = (Spinner) item.getActionView();
 
-        final ArrayAdapter<CharSequence> spAdapter = ArrayAdapter.createFromResource(getContext(),
+        final ArrayAdapter<CharSequence> spAdapter = ArrayAdapter.createFromResource(Objects.requireNonNull(getContext()),
                 R.array.group_types, R.layout.spinner_item);
         spAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spGroups.setAdapter(spAdapter);

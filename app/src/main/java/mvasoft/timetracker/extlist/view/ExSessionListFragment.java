@@ -1,9 +1,11 @@
 package mvasoft.timetracker.extlist.view;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
@@ -11,9 +13,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -26,17 +25,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.rvdatabinding.ListConfig;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import mvasoft.timetracker.BR;
-import mvasoft.timetracker.GroupInfoProvider;
 import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.R;
-import mvasoft.timetracker.data.DatabaseDescription;
 import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
 import mvasoft.timetracker.databinding.recyclerview.LiveBindableAdapter;
 import mvasoft.timetracker.databinding.recyclerview.ModelItemIdDelegate;
@@ -50,10 +50,14 @@ import static mvasoft.timetracker.Consts.LOG_TAG;
 public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel> {
 
     private static final String ARGS_GROUP_TYPE = "ARGS_GROUP_TYPE";
+    @SuppressWarnings("FieldCanBeLocal")
     private LiveBindableAdapter<List<BaseItemModel>> mAdapter;
     private GroupType mGroupType;
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
+
+    @Inject
+    ViewModelProvider.Factory viewModelFactory;
 
     public static Fragment newInstance(GroupType groupType) {
         Fragment fragment = new ExSessionListFragment();
@@ -79,23 +83,22 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
 
+        Log.d(LOG_TAG, "ExSessionListFragment.onCreateView() with " + mGroupType.toString());
         // TODO: move init into new onAfterCreateViewModel() method
         initAdapter();
-        initLoader();
-        Log.d(LOG_TAG, "ExSessionListFragment.onCreateView() with " + mGroupType.toString());
         updateActionMode();
         return v;
     }
 
     protected ExSessionListViewModel onCreateViewModel() {
-        ExSessionListViewModel.ExSessionListViewModelFactory factory =
-                new ExSessionListViewModel.ExSessionListViewModelFactory(
-                        getActivity().getApplication(), mGroupType);
+        ExSessionListViewModel vm = ViewModelProviders.of(this, viewModelFactory)
+                .get(ExSessionListViewModel.class);
 
-        return ViewModelProviders.of(this, factory).get(ExSessionListViewModel.class);
+        vm.setGroupType(mGroupType);
+        return vm;
     }
 
     protected @LayoutRes int getLayoutId() {
@@ -108,8 +111,8 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
 
     private void initAdapter() {
         Log.d(LOG_TAG, "ExSessionListFragment.initAdapter() with " + mGroupType.toString());
-        Log.d(LOG_TAG, "Adapter is null = " + String.valueOf(mAdapter == null));
 
+        //noinspection unchecked
         mAdapter = new LiveBindableAdapter<>(
                 new ModelItemIdDelegate<BaseItemModel>(new ExSessionListActionHandler(),
                         SessionGroupViewModel.class,
@@ -131,53 +134,17 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         listConfig.applyConfig(getContext(), getBinding().itemsView);
     }
 
-    private void initLoader() {
-        if (getActivity() == null)
-            return;
-
-        LoaderManager lm = getLoaderManager();
-        lm.initLoader(1000 + mGroupType.ordinal(), null, new LoaderManager.LoaderCallbacks<Cursor>() {
-            @NonNull
-            @Override
-            public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
-                GroupInfoProvider info = new GroupInfoProvider();
-                info.setCurrentGroupType(mGroupType);
-                return new CursorLoader(getActivity(),
-                        info.getCurrentGroupsUri(),
-                        null, null, null,
-                        DatabaseDescription.SessionDescription.COLUMN_START + " DESC");
-            }
-
-            @Override
-            public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-                if (getViewModel() == null)
-                    return;
-
-                getViewModel().getModel().getGroups().updateData(data);
-            }
-
-            @Override
-            public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-                if (getViewModel() == null)
-                    return;
-
-                getViewModel().getModel().getGroups().updateData(null);
-            }
-        });
-    }
-
-
     private class ExSessionListActionHandler implements ActionClickListener {
 
         @Override
         public void onActionClick(View view, String actionType, Object model) {
             switch (actionType) {
                 case ExSessionListActionType.CLICK:
-                    actionClick(view, model);
+                    actionClick(model);
                     break;
 
                 case ExSessionListActionType.SELECT:
-                    actionSelect(view, model);
+                    actionSelect(model);
                     break;
             }
 
@@ -185,7 +152,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         }
     }
 
-    private void actionClick(View view, Object model) {
+    private void actionClick(Object model) {
         if (!(model instanceof SessionGroupViewModel))
             return;
 
@@ -200,7 +167,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
 
     }
 
-    private void actionSelect(View view, Object model) {
+    private void actionSelect(Object model) {
         if (getActivity() == null)
             return;
 
@@ -214,6 +181,9 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     private void updateActionMode() {
+        if (getActivity() == null)
+            return;
+
         int cnt = getViewModel().getSelectedItemsCount();
         if (cnt > 0) {
             if (mActionMode == null)
@@ -231,7 +201,13 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         showDialog(R.string.msg_selected_session_will_removed, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                getViewModel().deleteSelected();
+                LiveData<Integer> result = getViewModel().deleteSelected();
+                result.observe(ExSessionListFragment.this, new Observer<Integer>() {
+                    @Override
+                    public void onChanged(@Nullable Integer cnt) {
+                        Toast.makeText(getContext(), cnt + " session was removed.", Toast.LENGTH_LONG).show();
+                    }
+                });
                 if (mActionMode != null)
                     mActionMode.finish();
             }

@@ -18,7 +18,7 @@ public class SessionGroupViewModel extends BaseObservable implements BaseItemMod
     private final GroupsList.SessionGroup mGroup;
     private Observer mObserver;
 
-    public SessionGroupViewModel(DateTimeFormatters formatter, GroupsList.SessionGroup group) {
+    SessionGroupViewModel(DateTimeFormatters formatter, GroupsList.SessionGroup group) {
         mFormatter = formatter;
         mGroup = group;
         mObserver = new Observer() {
@@ -37,7 +37,7 @@ public class SessionGroupViewModel extends BaseObservable implements BaseItemMod
 
     public String getStartDate() {
         if (mGroup != null)
-            return mFormatter.formatDate(mGroup.getStart());
+            return "id = " + getId() + mFormatter.formatDate(mGroup.getStart());
         else
             return "Start date";
     }
@@ -115,6 +115,8 @@ public class SessionGroupViewModel extends BaseObservable implements BaseItemMod
             return false;
         SessionGroupViewModel to = (SessionGroupViewModel) obj;
         return getIsSelected() == to.getIsSelected() &&
-                mGroup == to.mGroup;
+                (mGroup.getID() == to.mGroup.getID()) &&
+                (mGroup.getStart() == to.mGroup.getStart()) &&
+                (mGroup.getEnd() == to.mGroup.getEnd());
     }
 }

@@ -1,15 +1,15 @@
 package mvasoft.timetracker.ui.base;
 
-import android.arch.lifecycle.LifecycleObserver;
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
-import android.support.v7.app.AppCompatActivity;
+
+import dagger.android.support.DaggerAppCompatActivity;
 
 public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
-        ViewModel extends BaseViewModel> extends AppCompatActivity {
+        ViewModel extends BaseViewModel> extends DaggerAppCompatActivity {
 
     private Binding mBinding;
     private ViewModel mViewModel;
@@ -37,8 +37,8 @@ public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
     protected ViewModel getViewModel() {
         if (mViewModel == null) {
             mViewModel = onCreateViewModel();
-            if (mViewModel instanceof LifecycleObserver) {
-                getLifecycle().addObserver((LifecycleObserver) mViewModel);
+            if (mViewModel != null) {
+                getLifecycle().addObserver(mViewModel);
             }
 
         }

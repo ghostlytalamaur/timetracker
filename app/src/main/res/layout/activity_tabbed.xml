@@ -9,6 +9,12 @@
             name="view_model"
             type="mvasoft.timetracker.extlist.modelview.TabbedActivityViewModel"
             />
+        <variable
+            name="actionHandler"
+            type="com.drextended.actionhandler.listener.ActionClickListener"/>
+        <import
+            alias="ActionType"
+            type="mvasoft.timetracker.extlist.view.TabbedActivity.TabbedActivityActionType" />
     </data>
 
     <android.support.design.widget.CoordinatorLayout
@@ -74,8 +80,9 @@
             android:layout_marginEnd="16dp"
             app:backgroundTint="@color/colorPrimaryDark"
             app:layout_anchorGravity="bottom|right|end"
-            android:onClick="@{() -> view_model.toggleSession()}"
-            app:srcCompat="@{view_model.hasOpenedSessions ? @drawable/animated_minus : @drawable/animated_plus}"
+            app:actionHandler="@{actionHandler}"
+            app:actionType="@{ActionType.TOGGLE}"
+            app:srcCompat="@{view_model.openedSessionsId > 0 ? @drawable/animated_minus : @drawable/animated_plus}"
             />
 
     </android.support.design.widget.CoordinatorLayout>

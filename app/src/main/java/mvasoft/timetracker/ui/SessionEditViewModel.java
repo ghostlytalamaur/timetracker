@@ -6,8 +6,11 @@ import android.arch.lifecycle.MutableLiveData;
 import android.databinding.Bindable;
 import android.support.annotation.NonNull;
 
+import javax.inject.Inject;
+
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.SessionEditData;
+import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.base.BaseViewModel;
 
 
@@ -17,11 +20,15 @@ public class SessionEditViewModel extends BaseViewModel {
     private SessionEditData mData;
     private MutableLiveData<Boolean> mIsChangedLiveData;
 
-    public SessionEditViewModel(@NonNull Application application) {
+    private DataRepository mRepository;
+
+    @Inject
+    SessionEditViewModel(@NonNull Application application, DataRepository repository) {
         super(application);
+        mRepository = repository;
 
         mFormatter = new DateTimeFormatters();
-        mData = new SessionEditData(-1, -1, -1);
+        mData = new SessionEditData(mRepository);
         mData.addDataChangedListener(new SessionDataChangedListener());
     }
 
@@ -70,6 +77,10 @@ public class SessionEditViewModel extends BaseViewModel {
             mIsChangedLiveData.setValue(getIsChanged());
         }
         return mIsChangedLiveData;
+    }
+
+    public LiveData<Boolean> saveSession() {
+        return mRepository.updateSession(getModel().getSession());
     }
 
     private class SessionDataChangedListener implements SessionEditData.ISessionDataChangedListener {

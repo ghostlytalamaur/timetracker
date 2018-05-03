@@ -1,14 +1,13 @@
 package mvasoft.timetracker;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,14 +15,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import javax.inject.Inject;
 
 import mvasoft.datetimepicker.DatePickerFragment;
-import mvasoft.timetracker.data.DatabaseDescription.SessionDescription;
 import mvasoft.timetracker.databinding.FragmentSessionEditBinding;
 import mvasoft.timetracker.ui.SessionEditViewModel;
 import mvasoft.timetracker.ui.base.BindingSupportFragment;
-
-import static mvasoft.timetracker.Consts.LOADER_ID_SESSION;
 
 public class SessionEditFragment extends BindingSupportFragment<FragmentSessionEditBinding,
         SessionEditViewModel> {
@@ -31,7 +30,9 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     private static final String ARGS_SESSION_ID = "session_id";
     private static final int REQUEST_START_TIME = 1;
     private static final int REQUEST_END_TIME   = 2;
-    private Cursor mCursor;
+
+    @Inject
+    ViewModelProvider.Factory mFactory;
 
     static public SessionEditFragment newInstance(long sessionId) {
         
@@ -73,18 +74,18 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
             getViewModel().getModel().restoreState(savedInstanceState);
-        else if (getArguments() != null) {
+         if (getArguments() != null) {
             getViewModel().getModel().setId(getArguments().getLong(ARGS_SESSION_ID, getViewModel().getModel().getId()));
         }
         setHasOptionsMenu(true);
-        getLoaderManager().initLoader(LOADER_ID_SESSION, null, new SessionLoaderCallbacks());
     }
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
 
+        // TODO: 04.05.2018 refactor this. Use actionHandler as in other places
         getBinding().tvStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -126,7 +127,8 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
 
     @Override
     protected SessionEditViewModel onCreateViewModel() {
-        SessionEditViewModel vm = ViewModelProviders.of(this).get(SessionEditViewModel.class);
+        SessionEditViewModel vm = ViewModelProviders.of(this, mFactory).get(SessionEditViewModel.class);
+//        vm.setSessionId(mSe)
         vm.getIsChangedLiveData().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(@Nullable Boolean aBoolean) {
@@ -147,68 +149,32 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         getViewModel().getModel().saveState(outState);
     }
 
-    private void swapCursor(Cursor cursor) {
-        if (mCursor != null)
-            mCursor.close();
-        mCursor = cursor;
-        if (mCursor != null)
-            fillSession();
-    }
-
-    private void fillSession() {
-        if ((mCursor == null) || (mCursor.getCount() <= 0))
-            return;
-
-        mCursor.moveToFirst();
-        getViewModel().getModel().setOriginalStartTime(
-                mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_START)));
-        getViewModel().getModel().setOriginalEndTime(
-                mCursor.getLong(mCursor.getColumnIndex(SessionDescription.COLUMN_END)));
-    }
-
     public void saveSession() {
-        SessionHelper helper = new SessionHelper(getContext());
-        boolean isSaved = helper.updateSession(getViewModel().getModel().getId(), getViewModel().getModel().getStartTime(),
-                getViewModel().getModel().isClosed() ? getViewModel().getModel().getEndTime() : 0);
-//        if (isSaved)
-//            Snackbar.make(getBinding().fab, R.string.session_saved, Snackbar.LENGTH_LONG);
-//        else
-//            Snackbar.make(getBinding().fab, R.string.session_unable_save, Snackbar.LENGTH_LONG);
+        LiveData<Boolean> result = getViewModel().saveSession();
+        result.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable Boolean isSaved) {
+                if (isSaved != null && isSaved)
+                    Toast.makeText(getContext(),  R.string.session_saved, Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(getContext(),  R.string.session_unable_save, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void editDateTime(long dateTime, int requestCode) {
+        if (getFragmentManager() == null)
+            return;
+
         if (dateTime == 0)
             dateTime = System.currentTimeMillis() / 1000L;
         DatePickerFragment dlg = DatePickerFragment.newInstance(dateTime * 1000, "");
         dlg.setTargetFragment(this, requestCode);
         dlg.show(getFragmentManager(), "dialog_date");
-    }
-
-    private class SessionLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {
-        @Override
-        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            switch (id) {
-                case LOADER_ID_SESSION:
-                    return new CursorLoader(getContext(),
-                            SessionDescription.buildSessionUri(getViewModel().getModel().getId()),
-                            null, null, null, null);
-            }
-            return null;
-        }
-
-        @Override
-        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-            swapCursor(data);
-        }
-
-        @Override
-        public void onLoaderReset(Loader<Cursor> loader) {
-            swapCursor(null);
-        }
     }
 }

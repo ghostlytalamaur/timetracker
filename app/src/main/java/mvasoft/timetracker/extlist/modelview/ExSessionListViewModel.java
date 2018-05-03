@@ -4,14 +4,14 @@ import android.app.Application;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.OnLifecycleEvent;
-import android.arch.lifecycle.ViewModel;
-import android.arch.lifecycle.ViewModelProvider;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 
@@ -21,9 +21,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.inject.Inject;
+
+import dagger.Lazy;
 import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.GroupsList;
-import mvasoft.timetracker.SessionHelper;
+import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.extlist.model.BaseItemModel;
 import mvasoft.timetracker.extlist.model.ExSessionListModel;
 import mvasoft.timetracker.ui.DateTimeFormatters;
@@ -36,14 +39,19 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     private final Handler mHandler;
     private final Runnable mUpdateViewRunnable;
-    private SessionHelper mSessionHelper;
+    private final Observer<GroupsList> mGroupsObserver;
     private ExSessionListModel mModel;
     private final DateTimeFormatters mFormatter;
     private MutableLiveData<List<BaseItemModel>> mListModel;
     private Timer mUpdateTimer;
 
-    ExSessionListViewModel(@NonNull Application application) {
+    private final Lazy<DataRepository> mRepository;
+
+    @Inject
+    ExSessionListViewModel(@NonNull Application application, Lazy<DataRepository> repository) {
         super(application);
+        Log.d(LOG_TAG, "creating ExSessionListViewModel");
+
         mFormatter = new DateTimeFormatters();
         mUpdateViewRunnable = new Runnable() {
             @Override
@@ -52,7 +60,15 @@ public class ExSessionListViewModel extends BaseViewModel {
             }
         };
         mHandler = new Handler();
-        Log.d(LOG_TAG, "creating ExSessionListViewModel");
+        mModel = new ExSessionListModel(repository);
+        mRepository = repository;
+        mGroupsObserver = new Observer<GroupsList>() {
+            @Override
+            public void onChanged(@Nullable GroupsList groupsList) {
+                updateListData();
+                updateTimer();
+            }
+        };
     }
 
 
@@ -91,7 +107,8 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     private void updateTimer() {
-        boolean hasOpened = mModel.getGroups().hasOpenedSessions();
+        GroupsList groups = mModel.getGroups().getValue();
+        boolean hasOpened = groups != null && groups.hasOpenedSessions();
         if (!hasOpened)
             stopTimer();
         else
@@ -102,18 +119,15 @@ public class ExSessionListViewModel extends BaseViewModel {
         if (mListModel == null || mListModel.getValue() == null)
             return;
 
-        GroupsList groups = mModel.getGroups();
+        GroupsList groups = mModel.getGroups().getValue();
+        if (groups == null)
+            return;
+
         for (int i = 0; i < groups.count(); i++) {
             if (groups.get(i).isRunning())
                 // TODO: thinking: is best way to update using SessionGroupViewModel?
                 groups.get(i).dataChanged();
         }
-    }
-
-    private SessionHelper getSessionHelper() {
-        if (mSessionHelper == null)
-            mSessionHelper = new SessionHelper(getApplication());
-        return mSessionHelper;
     }
 
     private void clearListModelItems() {
@@ -130,17 +144,20 @@ public class ExSessionListViewModel extends BaseViewModel {
         if (mListModel == null)
             return;
 
+        GroupsList groups = mModel.getGroups().getValue();
+        if (groups == null)
+            return;
+
         LongSparseArray<BaseItemModel> oldItems = new LongSparseArray<>();
         List<BaseItemModel> oldList = mListModel.getValue();
         if (oldList != null)
-            for (int i = 0; i < oldItems.size(); i++) {
+            for (int i = 0; i < oldList.size(); i++) {
                 BaseItemModel item = oldList.get(i);
                 oldItems.append(item.getId(), item);
             }
 
         HashSet<Long> newIds = new HashSet<>();
         List<BaseItemModel> newList = new ArrayList<>();
-        GroupsList groups = mModel.getGroups();
         for (int i = 0; i < groups.count(); i++) {
             GroupsList.SessionGroup group = groups.get(i);
             BaseItemModel oldItem = oldItems.get(group.getID(), null);
@@ -167,18 +184,9 @@ public class ExSessionListViewModel extends BaseViewModel {
         return mListModel;
     }
 
-    private void setGroupType(GroupType groupType) {
-        if ((mModel != null) && (mModel.getGroupType() == groupType))
-            return;
-
-        mModel = new ExSessionListModel(groupType);
-        mModel.getGroups().addChangesListener(new GroupsList.IGroupsChangesListener() {
-            @Override
-            public void onDataChanged() {
-                updateListData();
-                updateTimer();
-            }
-        });
+    public void setGroupType(GroupType groupType) {
+        mModel.setGroupType(groupType);
+        mModel.getGroups().observeForever(mGroupsObserver);
     }
 
     public ExSessionListModel getModel() {
@@ -205,8 +213,8 @@ public class ExSessionListViewModel extends BaseViewModel {
         }
     }
 
-    public void deleteSelected() {
-        getSessionHelper().deleteGroups(mModel.getGroupType(), getSelectedItemsIds());
+    public LiveData<Integer> deleteSelected() {
+        return mRepository.get().deleteGroups(mModel.getGroupType(), getSelectedItemsIds());
     }
 
     private List<Long> getSelectedItemsIds() {
@@ -221,7 +229,10 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     public void copySelectedToClipboard() {
-        getApplication();
+        GroupsList groups = mModel.getGroups().getValue();
+        if (groups == null)
+            return;
+
         final ClipboardManager clipboard = (ClipboardManager)
                 getApplication().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard == null)
@@ -229,7 +240,7 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         StringBuilder text = new StringBuilder();
         for (Long id : getSelectedItemsIds()) {
-            GroupsList.SessionGroup group = mModel.getGroups().getByID(id);
+            GroupsList.SessionGroup group = groups.getByID(id);
             switch (mModel.getGroupType()) {
                 case gt_Day:
                     text.append(String.format("%s: %s\n",
@@ -248,26 +259,4 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", text.toString()));
     }
-
-    public static class ExSessionListViewModelFactory extends ViewModelProvider.NewInstanceFactory {
-
-
-        private Application mApplication;
-        private GroupType mGroupType;
-
-        public ExSessionListViewModelFactory(Application application, GroupType groupType) {
-            mApplication = application;
-            mGroupType = groupType;
-        }
-
-        public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-            if (modelClass.isAssignableFrom(ExSessionListViewModel.class)) {
-                ExSessionListViewModel vm = new ExSessionListViewModel(mApplication);
-                vm.setGroupType(mGroupType);
-                return (T) vm;
-            }
-            return super.create(modelClass);
-        }
-    }
-
 }

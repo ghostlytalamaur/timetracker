@@ -5,13 +5,14 @@ import javax.inject.Singleton;
 import dagger.Component;
 import dagger.android.AndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
-import mvasoft.timetracker.BackupAssistant;
+import mvasoft.timetracker.data.RepositoryModule;
 import mvasoft.timetracker.widget.WidgetModule;
 
 @Singleton
 @Component(modules = {AndroidSupportInjectionModule.class,
         AppModule.class,
-        WidgetModule.class})
+        WidgetModule.class,
+        RepositoryModule.class})
 public interface AppComponent extends AndroidInjector<TimeTrackerApp> {
 
 //    void inject(BackupAssistant assistant);

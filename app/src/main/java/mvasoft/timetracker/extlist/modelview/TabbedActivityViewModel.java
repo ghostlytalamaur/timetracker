@@ -1,35 +1,36 @@
 package mvasoft.timetracker.extlist.modelview;
 
 import android.app.Application;
-import android.databinding.Bindable;
+import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 
-import com.android.databinding.library.baseAdapters.BR;
+import javax.inject.Inject;
 
+import dagger.Lazy;
 import mvasoft.timetracker.SessionHelper;
+import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.base.BaseViewModel;
 
 public class TabbedActivityViewModel extends BaseViewModel {
 
-    private SessionHelper mHelper;
 
-    public TabbedActivityViewModel(@NonNull Application application) {
+    private Lazy<DataRepository> mRepository;
+    private LiveData<Long> mOpenedSessionId;
+
+    @Inject
+    TabbedActivityViewModel(@NonNull Application application, Lazy<DataRepository> repository) {
         super(application);
+        mRepository = repository;
     }
 
-    public void toggleSession() {
-        getHelper().toggleSession();
-        notifyPropertyChanged(BR.hasOpenedSessions);
+    public LiveData<SessionHelper.ToggleSessionResult> toggleSession() {
+        return mRepository.get().toggleSession();
     }
 
-    @Bindable
-    public boolean getHasOpenedSessions() {
-        return getHelper().hasOpenedSessions();
-    }
+    public LiveData<Long> getOpenedSessionsId() {
+        if (mOpenedSessionId == null)
+            mOpenedSessionId = mRepository.get().getOpenedSessionId();
 
-    private SessionHelper getHelper() {
-        if (mHelper == null)
-            mHelper = new SessionHelper(getApplication());
-        return mHelper;
+        return mOpenedSessionId;
     }
 }
