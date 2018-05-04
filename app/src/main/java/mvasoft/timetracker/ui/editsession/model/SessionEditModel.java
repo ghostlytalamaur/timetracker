@@ -6,8 +6,8 @@ import android.support.annotation.Nullable;
 
 import java.util.EventListener;
 
-import mvasoft.timetracker.Session;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.vo.Session;
 import mvasoft.utils.Announcer;
 
 // TODO: 04.05.2018 recator this class
@@ -186,9 +186,9 @@ public class SessionEditModel {
         @Override
         public void onChanged(@Nullable Session session) {
             if (session != null) {
-                setOriginalStartTime(session.startTime);
-                setOriginalEndTime(session.endTime);
-                mSessionId = session.id;
+                setOriginalStartTime(session.getStartTime());
+                setOriginalEndTime(session.getEndTime());
+                mSessionId = session.getId();
             }
             else {
                 setOriginalStartTime(0);

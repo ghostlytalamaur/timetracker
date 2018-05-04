@@ -16,5 +16,12 @@ public abstract class RoomTypeConverters {
     }
 
 //    @TypeConverter
-//    static String listOfLongToSt
+//    public static Session entityFromSession(Session session) {
+//        return new Session(session.getId(), session.getStartTime(), session.getEndTime());
+//    }
+
+//    @TypeConverter
+//    public static Session entityToSession(Session entity) {
+//        return new Session(entity.id, entity.startTime, entity.endTime);
+//    }
 }

@@ -9,19 +9,19 @@
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `StartTime` INTEGER NOT NULL, `EndTime` INTEGER NOT NULL)",
         "fields": [
           {
-            "fieldPath": "id",
+            "fieldPath": "mId",
             "columnName": "_id",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "startTime",
+            "fieldPath": "mStartTime",
             "columnName": "StartTime",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "endTime",
+            "fieldPath": "mEndTime",
             "columnName": "EndTime",
             "affinity": "INTEGER",
             "notNull": true

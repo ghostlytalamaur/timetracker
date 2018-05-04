@@ -5,9 +5,9 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-import mvasoft.timetracker.data.room.entity.SessionEntity;
+import mvasoft.timetracker.vo.Session;
 
-@Database(entities = {SessionEntity.class}, version = 1)
+@Database(entities = {Session.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase INSTANCE;

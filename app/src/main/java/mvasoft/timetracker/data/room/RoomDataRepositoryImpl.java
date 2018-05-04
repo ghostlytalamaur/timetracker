@@ -12,10 +12,9 @@ import javax.inject.Singleton;
 
 import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.GroupsList;
-import mvasoft.timetracker.Session;
 import mvasoft.timetracker.data.DataRepository;
-import mvasoft.timetracker.data.room.entity.SessionEntity;
 import mvasoft.timetracker.deprecated.SessionHelper;
+import mvasoft.timetracker.vo.Session;
 
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {
@@ -32,7 +31,7 @@ public class RoomDataRepositoryImpl implements DataRepository {
 
     @Override
     public LiveData<GroupsList> getGroups(GroupType groupType) {
-        LiveData<List<SessionEntity>> data = null;
+        LiveData<List<Session>> data = null;
         switch (groupType) {
             case gt_None:
                 data = mGroupsModel.getAll();
@@ -98,7 +97,7 @@ public class RoomDataRepositoryImpl implements DataRepository {
         protected Void doInBackground(Void... voids) {
             if (mDb.groupsModel().closeOpenedSessions() != 0)
                 mLiveData.postValue(SessionHelper.ToggleSessionResult.tgs_Stopped);
-            else if (mDb.groupsModel().appendSession(new SessionEntity(0, System.currentTimeMillis() / 1000L, 0)) > 0)
+            else if (mDb.groupsModel().appendSession(new Session(0, System.currentTimeMillis() / 1000L, 0)) > 0)
                 mLiveData.postValue(SessionHelper.ToggleSessionResult.tgs_Started);
             else
                 mLiveData.postValue(SessionHelper.ToggleSessionResult.tgs_Stopped);
