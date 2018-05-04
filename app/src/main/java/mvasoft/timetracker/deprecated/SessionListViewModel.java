@@ -17,7 +17,7 @@ import mvasoft.timetracker.GroupsList;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 
-import static mvasoft.timetracker.deprecated.Consts.LOG_TAG;
+import static mvasoft.timetracker.deprecated.Const.LOG_TAG;
 
 public class SessionListViewModel extends BaseViewModel implements LifecycleObserver {
 

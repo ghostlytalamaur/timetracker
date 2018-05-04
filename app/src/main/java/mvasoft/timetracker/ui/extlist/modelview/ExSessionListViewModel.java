@@ -32,7 +32,8 @@ import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.extlist.model.ExSessionListModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 
-import static mvasoft.timetracker.deprecated.Consts.LOG_TAG;
+import static mvasoft.timetracker.common.Const.LOG_TAG;
+
 
 public class ExSessionListViewModel extends BaseViewModel {
 

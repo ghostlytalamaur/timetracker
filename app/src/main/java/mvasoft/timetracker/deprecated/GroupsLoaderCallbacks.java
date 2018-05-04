@@ -10,9 +10,9 @@ import android.support.v4.content.Loader;
 
 import mvasoft.timetracker.GroupsList;
 
-import static mvasoft.timetracker.deprecated.Consts.LOADER_ID_GROUPS_CURRENT;
-import static mvasoft.timetracker.deprecated.Consts.LOADER_ID_GROUPS_TODAY;
-import static mvasoft.timetracker.deprecated.Consts.LOADER_ID_GROUPS_WEEK;
+import static mvasoft.timetracker.deprecated.Const.LOADER_ID_GROUPS_CURRENT;
+import static mvasoft.timetracker.deprecated.Const.LOADER_ID_GROUPS_TODAY;
+import static mvasoft.timetracker.deprecated.Const.LOADER_ID_GROUPS_WEEK;
 
 
 class GroupsLoaderCallbacks implements LoaderManager.LoaderCallbacks<Cursor> {

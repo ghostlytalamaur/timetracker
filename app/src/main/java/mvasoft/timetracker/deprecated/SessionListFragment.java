@@ -44,9 +44,9 @@ import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 
 import static android.content.Context.MODE_PRIVATE;
-import static mvasoft.timetracker.deprecated.Consts.LOADER_ID_GROUPS_CURRENT;
-import static mvasoft.timetracker.deprecated.Consts.LOADER_ID_GROUPS_TODAY;
-import static mvasoft.timetracker.deprecated.Consts.LOADER_ID_GROUPS_WEEK;
+import static mvasoft.timetracker.deprecated.Const.LOADER_ID_GROUPS_CURRENT;
+import static mvasoft.timetracker.deprecated.Const.LOADER_ID_GROUPS_TODAY;
+import static mvasoft.timetracker.deprecated.Const.LOADER_ID_GROUPS_WEEK;
 
 
 public class SessionListFragment extends BindingSupportFragment<FragmentSessionListBinding, SessionListViewModel> {

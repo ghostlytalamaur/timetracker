@@ -2,26 +2,21 @@ package mvasoft.timetracker.data.room.entity;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.PrimaryKey;
 
-import java.util.Observable;
+import java.util.List;
 
-@Entity(tableName = "sessions")
-public class SessionGroupEntity extends Observable {
+@Entity
+public class SessionGroupEntity {
 
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "_id")
-    public final long id;
+    @ColumnInfo(name = "groupId")
+    public long groupId;
 
-    @ColumnInfo(name = "StartTime")
-    public long startTime;
+    @ColumnInfo(name = "groupStartTime")
+    public long groupStartTime;
 
-    @ColumnInfo(name = "EndTime")
-    public long endTime;
+    @ColumnInfo(name = "groupEndTime")
+    public long groupEndTime;
 
-    public SessionGroupEntity(long id, long startTime, long endTime) {
-        this.id = id;
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
+    @ColumnInfo(name = "sessionIds")
+    public List<Long> sessionIds;
 }

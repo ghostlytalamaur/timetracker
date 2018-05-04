@@ -45,7 +45,8 @@ import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.SessionGroupViewModel;
 
-import static mvasoft.timetracker.deprecated.Consts.LOG_TAG;
+import static mvasoft.timetracker.common.Const.LOG_TAG;
+
 
 public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel> {
 
