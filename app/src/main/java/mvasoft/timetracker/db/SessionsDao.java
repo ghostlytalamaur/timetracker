@@ -1,4 +1,4 @@
-package mvasoft.timetracker.data.room;
+package mvasoft.timetracker.db;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
@@ -13,7 +13,7 @@ import mvasoft.timetracker.vo.Session;
 
 
 @Dao
-public abstract class GroupsListDao {
+public abstract class SessionsDao {
 
     @Query("SELECT * FROM sessions ORDER BY startTime DESC")
     public abstract LiveData<List<Session>> getAll();

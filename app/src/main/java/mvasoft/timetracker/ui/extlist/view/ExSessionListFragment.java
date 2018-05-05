@@ -4,7 +4,6 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -17,7 +16,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,7 +33,6 @@ import java.util.List;
 import javax.inject.Inject;
 
 import mvasoft.timetracker.BR;
-import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
 import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
@@ -43,27 +40,24 @@ import mvasoft.timetracker.databinding.recyclerview.LiveBindableAdapter;
 import mvasoft.timetracker.databinding.recyclerview.ModelItemIdDelegate;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
-import mvasoft.timetracker.ui.extlist.modelview.SessionGroupViewModel;
+import mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel;
 
 import static mvasoft.timetracker.common.Const.LOG_TAG;
 
 
 public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel> {
 
-    private static final String ARGS_GROUP_TYPE = "ARGS_GROUP_TYPE";
     @SuppressWarnings("FieldCanBeLocal")
     private LiveBindableAdapter<List<BaseItemModel>> mAdapter;
-    private GroupType mGroupType;
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
 
-    public static Fragment newInstance(GroupType groupType) {
+    public static Fragment newInstance() {
         Fragment fragment = new ExSessionListFragment();
         Bundle args = new Bundle();
-        args.putInt(ARGS_GROUP_TYPE, groupType.ordinal());
         fragment.setArguments(args);
         return fragment;
     }
@@ -73,13 +67,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         super.onCreate(savedInstanceState);
 
         // TODO: safe group type in savedInstanceState
-        Bundle args = getArguments();
-        mGroupType = GroupType.gt_None;
-        if (args != null)
-            mGroupType = GroupType.values()[args.getInt(ARGS_GROUP_TYPE, GroupType.gt_None.ordinal())];
         mActionModeCallbacks = new ActionModeCallbacks();
-
-        Log.d(LOG_TAG, "ExSessionListFragment.onCreate() with " + mGroupType.toString());
     }
 
     @Nullable
@@ -87,7 +75,6 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
 
-        Log.d(LOG_TAG, "ExSessionListFragment.onCreateView() with " + mGroupType.toString());
         // TODO: move init into new onAfterCreateViewModel() method
         initAdapter();
         updateActionMode();
@@ -95,11 +82,8 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     protected ExSessionListViewModel onCreateViewModel() {
-        ExSessionListViewModel vm = ViewModelProviders.of(this, viewModelFactory)
+        return ViewModelProviders.of(this, viewModelFactory)
                 .get(ExSessionListViewModel.class);
-
-        vm.setGroupType(mGroupType);
-        return vm;
     }
 
     protected @LayoutRes int getLayoutId() {
@@ -111,25 +95,20 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     private void initAdapter() {
-        Log.d(LOG_TAG, "ExSessionListFragment.initAdapter() with " + mGroupType.toString());
-
         //noinspection unchecked
         mAdapter = new LiveBindableAdapter<>(
-                new ModelItemIdDelegate<BaseItemModel>(new ExSessionListActionHandler(),
-                        SessionGroupViewModel.class,
+                new ModelItemIdDelegate<>(new ExSessionListActionHandler(),
+                        SessionItemViewModel.class,
                         R.layout.ex_session_list_item, BR.SessionGroup, BR.actionHandler)
         );
         mAdapter.setHasStableIds(true);
         mAdapter.setData(this, getViewModel().getListModel());
         ListConfig listConfig = new ListConfig.Builder(mAdapter)
                 .setDefaultDividerEnabled(true)
-                .setLayoutManagerProvider(new ListConfig.LayoutManagerProvider() {
-                    @Override
-                    public RecyclerView.LayoutManager get(Context context) {
-                        LinearLayoutManager lm = new LinearLayoutManager(context);
-                        lm.setStackFromEnd(false);
-                        return lm;
-                    }
+                .setLayoutManagerProvider(context -> {
+                    LinearLayoutManager lm = new LinearLayoutManager(context);
+                    lm.setStackFromEnd(false);
+                    return lm;
                 })
                 .build(getContext());
         listConfig.applyConfig(getContext(), getBinding().itemsView);
@@ -154,10 +133,10 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     private void actionClick(Object model) {
-        if (!(model instanceof SessionGroupViewModel))
+        if (!(model instanceof SessionItemViewModel))
             return;
 
-        SessionGroupViewModel groupModel = (SessionGroupViewModel) model;
+        SessionItemViewModel groupModel = (SessionItemViewModel) model;
         if ((mActionMode == null) &&
                 (getActivity() instanceof ISessionListCallbacks))
             ((ISessionListCallbacks) getActivity()).editSession(groupModel.getId());
@@ -172,10 +151,10 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         if (getActivity() == null)
             return;
 
-        if (!(model instanceof SessionGroupViewModel))
+        if (!(model instanceof SessionItemViewModel))
             return;
 
-        SessionGroupViewModel groupModel = (SessionGroupViewModel) model;
+        SessionItemViewModel groupModel = (SessionItemViewModel) model;
 
         groupModel.setIsSelected(true);
         updateActionMode();
@@ -234,7 +213,6 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             mActionMode = mode;
-            mActionMode.setTag(mGroupType);
             MenuInflater menuInflater = mode.getMenuInflater();
             menuInflater.inflate(R.menu.action_mode, menu);
             return true;

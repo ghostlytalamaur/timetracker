@@ -10,16 +10,15 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import mvasoft.timetracker.GroupType;
-import mvasoft.timetracker.GroupsList;
 import mvasoft.timetracker.data.DataRepository;
-import mvasoft.timetracker.deprecated.SessionHelper;
+import mvasoft.timetracker.db.AppDatabase;
+import mvasoft.timetracker.db.SessionsDao;
 import mvasoft.timetracker.vo.Session;
 
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {
 
-    private final GroupsListDao mGroupsModel;
+    private final SessionsDao mGroupsModel;
     private final AppDatabase mDatabase;
 
     @Inject
@@ -30,33 +29,14 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public LiveData<GroupsList> getGroups(GroupType groupType) {
-        LiveData<List<Session>> data = null;
-        switch (groupType) {
-            case gt_None:
-                data = mGroupsModel.getAll();
-                break;
-            case gt_Day:
-                data = mGroupsModel.getAll();
-                break;
-            case gt_Week:
-                data = mGroupsModel.getAll();
-                break;
-            case gt_Month:
-                data = mGroupsModel.getAll();
-                break;
-            case gt_Year:
-                data = mGroupsModel.getAll();
-                break;
-        }
-
-        return EntityDaoWrappers.wrapEntityList(data);
+    public LiveData<List<Session>> getSessions() {
+        return mGroupsModel.getAll();
     }
 
     @Override
-    public LiveData<Integer> deleteGroups(GroupType groupType, List<Long> groupIds) {
+    public LiveData<Integer> deleteSessions(List<Long> ids) {
         MutableLiveData<Integer> data = new MutableLiveData<>();
-        new DeleteSessionsAsync(mDatabase, data, groupType, groupIds).execute();
+        new DeleteSessionsAsync(mDatabase, data, ids).execute();
         return data;
     }
 
@@ -66,8 +46,8 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public MutableLiveData<SessionHelper.ToggleSessionResult> toggleSession() {
-        MutableLiveData<SessionHelper.ToggleSessionResult> res = new MutableLiveData<>();
+    public MutableLiveData<ToggleSessionResult> toggleSession() {
+        MutableLiveData<ToggleSessionResult> res = new MutableLiveData<>();
         new ToggleSessionAsync(mDatabase, res).execute();
         return res;
     }
@@ -86,9 +66,9 @@ public class RoomDataRepositoryImpl implements DataRepository {
     private static class ToggleSessionAsync extends AsyncTask<Void, Void, Void> {
 
         private final AppDatabase mDb;
-        private final MutableLiveData<SessionHelper.ToggleSessionResult> mLiveData;
+        private final MutableLiveData<ToggleSessionResult> mLiveData;
 
-        ToggleSessionAsync(AppDatabase db, MutableLiveData<SessionHelper.ToggleSessionResult> resData) {
+        ToggleSessionAsync(AppDatabase db, MutableLiveData<ToggleSessionResult> resData) {
             mDb = db;
             mLiveData = resData;
         }
@@ -96,11 +76,11 @@ public class RoomDataRepositoryImpl implements DataRepository {
         @Override
         protected Void doInBackground(Void... voids) {
             if (mDb.groupsModel().closeOpenedSessions() != 0)
-                mLiveData.postValue(SessionHelper.ToggleSessionResult.tgs_Stopped);
+                mLiveData.postValue(ToggleSessionResult.tgs_Stopped);
             else if (mDb.groupsModel().appendSession(new Session(0, System.currentTimeMillis() / 1000L, 0)) > 0)
-                mLiveData.postValue(SessionHelper.ToggleSessionResult.tgs_Started);
+                mLiveData.postValue(ToggleSessionResult.tgs_Started);
             else
-                mLiveData.postValue(SessionHelper.ToggleSessionResult.tgs_Stopped);
+                mLiveData.postValue(ToggleSessionResult.tgs_Stopped);
 
             return null;
         }
@@ -110,21 +90,18 @@ public class RoomDataRepositoryImpl implements DataRepository {
 
         private final AppDatabase mDb;
         private final MutableLiveData<Integer> mLiveData;
-        private final List<Long> mGroupIds;
-        private final GroupType mGroupType;
+        private final List<Long> mIds;
 
-        DeleteSessionsAsync(AppDatabase db, MutableLiveData<Integer> resData,
-                            GroupType groupType, List<Long> groupIds) {
+        DeleteSessionsAsync(AppDatabase db, MutableLiveData<Integer> resData, List<Long> ids) {
             mDb = db;
             mLiveData = resData;
-            mGroupType = groupType;
-            mGroupIds = groupIds;
+            mIds = ids;
         }
 
 
         @Override
         protected Void doInBackground(Void... voids) {
-            int cnt = mDb.groupsModel().deleteByIds(mGroupIds);
+            int cnt = mDb.groupsModel().deleteByIds(mIds);
             mLiveData.postValue(cnt);
             return null;
         }

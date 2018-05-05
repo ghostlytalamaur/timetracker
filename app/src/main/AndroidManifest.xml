@@ -3,7 +3,7 @@
           package="mvasoft.timetracker">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <!--android:name=".MainActivity"-->
+
     <application
         android:name=".core.TimeTrackerApp"
         android:allowBackup="true"
@@ -11,6 +11,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".ui.extlist.view.TabbedActivity"
             android:label="@string/app_name"
@@ -21,7 +22,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!--<activity android:name=".extlist.view.TabbedActivity" />-->
+
         <activity
             android:name=".ui.editsession.view.EditSessionActivity"
             android:parentActivityName=".ui.extlist.view.TabbedActivity" >
@@ -30,22 +31,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.extlist.view.TabbedActivity" />
         </activity>
-
-        <provider
-            android:name=".deprecated.SessionsContentProvider"
-            android:authorities="com.mvasoft.timetracker.data.provider"
-            android:enabled="true"
-            android:exported="false"/>
-
-        <receiver android:name=".ui.widget.SessionsWidget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/sessions_widget_info"/>
-        </receiver>
 
         <service
             android:name=".ui.widget.SessionsWidgetService"

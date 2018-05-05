@@ -21,11 +21,9 @@ import javax.inject.Inject;
 
 import dagger.Lazy;
 import mvasoft.timetracker.BR;
-import mvasoft.timetracker.GroupType;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.ActivityTabbedBinding;
-import mvasoft.timetracker.deprecated.SessionHelper;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
 import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
 import mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel;
@@ -81,28 +79,20 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     private void initViewPager() {
         FragmentStatePagerAdapter adapter = new FragmentStatePagerAdapter(getSupportFragmentManager()) {
 
-            private GroupType posToGroupType(int position) {
-                if (position >= 0 && position < GroupType.values().length)
-                    return GroupType.values()[position];
-                else
-                    return GroupType.gt_None;
-
-            }
-
             @Override
             public Fragment getItem(int position) {
-                return ExSessionListFragment.newInstance(posToGroupType(position));
+                return ExSessionListFragment.newInstance();
             }
 
             @Override
             public int getCount() {
-                return GroupType.values().length;
+                return 1;
             }
 
             @Nullable
             @Override
             public CharSequence getPageTitle(int position) {
-                return getResources().getStringArray(R.array.group_types)[position];
+                return getString(R.string.caption_tabs_empty);
             }
         };
 
@@ -116,8 +106,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
                 if (mActionMode == null)
                     return;
 
-                if (mActionMode.getTag() == null || !mActionMode.getTag().equals(GroupType.values()[position]))
-                    mActionMode.finish();
+                mActionMode.finish();
             }
 
             @Override
@@ -152,18 +141,18 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     }
 
     private void actionToggle() {
-        LiveData<SessionHelper.ToggleSessionResult> toggleResult = getViewModel().toggleSession();
-        toggleResult.observe(this, new Observer<SessionHelper.ToggleSessionResult>() {
+        LiveData<DataRepository.ToggleSessionResult> toggleResult = getViewModel().toggleSession();
+        toggleResult.observe(this, new Observer<DataRepository.ToggleSessionResult>() {
             @Override
-            public void onChanged(@Nullable SessionHelper.ToggleSessionResult toggleSessionResult) {
+            public void onChanged(@Nullable DataRepository.ToggleSessionResult toggleSessionResult) {
                 if (toggleSessionResult != null) {
                     switch (toggleSessionResult) {
                         case tgs_Started:
-                            Snackbar.make(getBinding().fab, R.string.session_started, Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(getBinding().fab, R.string.msg_session_started, Snackbar.LENGTH_LONG).show();
                             break;
 
                         case tgs_Stopped:
-                            Snackbar.make(getBinding().fab, R.string.session_stopped, Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(getBinding().fab, R.string.msg_session_stopped, Snackbar.LENGTH_LONG).show();
                             break;
                     }
                 }

@@ -2,37 +2,42 @@ package mvasoft.timetracker.ui.extlist.model;
 
 import android.arch.lifecycle.LiveData;
 
+import java.util.List;
+
 import dagger.Lazy;
-import mvasoft.timetracker.GroupType;
-import mvasoft.timetracker.GroupsList;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.vo.Session;
 
 public class ExSessionListModel {
 
-    private GroupType mGroupType;
-    private LiveData<GroupsList> mGroups;
+    private LiveData<List<Session>> mSessions;
     private Lazy<DataRepository> mRepository;
 
     public ExSessionListModel(Lazy<DataRepository> repository) {
         mRepository = repository;
-        mGroupType = GroupType.gt_None;
     }
 
-    public void setGroupType(GroupType groupType) {
-        if (mGroupType == groupType)
-            return;
-
-        mGroupType = groupType;
-
+    public LiveData<List<Session>> getSessionList() {
+        if (mSessions == null)
+            mSessions = mRepository.get().getSessions();
+        return mSessions;
     }
 
-    public LiveData<GroupsList> getGroups() {
-        if (mGroups == null)
-            mGroups = mRepository.get().getGroups(mGroupType);
-        return mGroups;
+    public boolean hasOpenedSessions() {
+        if (getSessionList().getValue() != null)
+            for (Session s : getSessionList().getValue())
+                if (s.getEndTime() == 0)
+                    return true;
+
+        return false;
     }
 
-    public GroupType getGroupType() {
-        return mGroupType;
+    public Session getById(long id) {
+        if (getSessionList().getValue() != null)
+            for (Session s : getSessionList().getValue())
+                if (s.getId() == id)
+                    return s;
+
+        return null;
     }
 }

@@ -14,8 +14,8 @@
     <string name="menu_delete_selected">Delete selected</string>
     <string name="action_fill_fake_sessions">Fill with fake sessions</string>
     <string name="title_session_selected">%d sessions selected</string>
-    <string name="session_started">Session started.</string>
-    <string name="session_stopped">Session stopped.</string>
+    <string name="msg_session_started">Session started.</string>
+    <string name="msg_session_stopped">Session stopped.</string>
     <string name="session_saved">Session saved.</string>
     <string name="session_unable_save">Unable to save session.</string>
     <string name="nav_title_session_list">Session list</string>
@@ -45,4 +45,5 @@
     <string name="import_succeeded">Import completed</string>
     <string name="import_failed">Cannot import database</string>
     <string name="action_save">Save</string>
+    <string name="caption_tabs_empty">None</string>
 </resources>

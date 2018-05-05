@@ -1,4 +1,4 @@
-package mvasoft.timetracker.data.room;
+package mvasoft.timetracker.db;
 
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.Room;
@@ -12,7 +12,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase INSTANCE;
 
-    public abstract GroupsListDao groupsModel();
+    public abstract SessionsDao groupsModel();
 
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {

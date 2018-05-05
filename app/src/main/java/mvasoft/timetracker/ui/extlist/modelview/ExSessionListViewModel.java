@@ -3,34 +3,31 @@ package mvasoft.timetracker.ui.extlist.modelview;
 import android.app.Application;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.OnLifecycleEvent;
+import android.arch.lifecycle.Transformations;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import dagger.Lazy;
-import mvasoft.timetracker.GroupType;
-import mvasoft.timetracker.GroupsList;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.extlist.model.ExSessionListModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
+import mvasoft.timetracker.vo.Session;
 
 import static mvasoft.timetracker.common.Const.LOG_TAG;
 
@@ -39,12 +36,11 @@ public class ExSessionListViewModel extends BaseViewModel {
 
 
     private final Handler mHandler;
-    private final Runnable mUpdateViewRunnable;
-    private final Observer<GroupsList> mGroupsObserver;
+    private ScheduledFuture<?> mUpdateFuture;
     private ExSessionListModel mModel;
     private final DateTimeFormatters mFormatter;
-    private MutableLiveData<List<BaseItemModel>> mListModel;
-    private Timer mUpdateTimer;
+    private LiveData<List<BaseItemModel>> mListModel;
+    private ScheduledExecutorService mUpdateExecutor;
 
     private final Lazy<DataRepository> mRepository;
 
@@ -54,22 +50,11 @@ public class ExSessionListViewModel extends BaseViewModel {
         Log.d(LOG_TAG, "creating ExSessionListViewModel");
 
         mFormatter = new DateTimeFormatters();
-        mUpdateViewRunnable = new Runnable() {
-            @Override
-            public void run() {
-                updateRunningItems();
-            }
-        };
         mHandler = new Handler();
         mModel = new ExSessionListModel(repository);
         mRepository = repository;
-        mGroupsObserver = new Observer<GroupsList>() {
-            @Override
-            public void onChanged(@Nullable GroupsList groupsList) {
-                updateListData();
-                updateTimer();
-            }
-        };
+        mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
+        mModel.getSessionList().observeForever(sessions -> updateTimer());
     }
 
 
@@ -83,111 +68,62 @@ public class ExSessionListViewModel extends BaseViewModel {
     public void pause() {
         Log.d(LOG_TAG, "ExSessionListViewModel.pause()");
 
-        stopTimer();
-    }
-
-    private void startTimer() {
-        if (mUpdateTimer != null)
-            return;
-
-        mUpdateTimer = new Timer();
-        mUpdateTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mHandler.post(mUpdateViewRunnable);
-            }
-        }, 1000, 1000);
-    }
-
-    private void stopTimer() {
-        if (mUpdateTimer != null) {
-            mUpdateTimer.cancel();
-            mUpdateTimer.purge();
-        }
-        mUpdateTimer = null;
+        mUpdateFuture.cancel(true);
+        mUpdateFuture = null;
     }
 
     private void updateTimer() {
-        GroupsList groups = mModel.getGroups().getValue();
-        boolean hasOpened = groups != null && groups.hasOpenedSessions();
-        if (!hasOpened)
-            stopTimer();
-        else
-            startTimer();
+        boolean hasOpened = mModel.hasOpenedSessions();
+        if (!hasOpened && mUpdateFuture != null && !mUpdateFuture.isCancelled()) {
+            mUpdateFuture.cancel(true);
+            mUpdateFuture = null;
+        }
+        else if (hasOpened && (mUpdateFuture == null || mUpdateFuture.isCancelled()))
+            mUpdateFuture = mUpdateExecutor.scheduleWithFixedDelay(() ->
+                    mHandler.post(this::updateRunningItems), 0, 1, TimeUnit.SECONDS);
     }
 
     private void updateRunningItems() {
         if (mListModel == null || mListModel.getValue() == null)
             return;
 
-        GroupsList groups = mModel.getGroups().getValue();
-        if (groups == null)
+        List<Session> list = mModel.getSessionList().getValue();
+        if (list == null)
             return;
 
-        for (int i = 0; i < groups.count(); i++) {
-            if (groups.get(i).isRunning())
-                // TODO: thinking: is best way to update using SessionGroupViewModel?
-                groups.get(i).dataChanged();
-        }
-    }
-
-    private void clearListModelItems() {
-        if (mListModel == null)
-            return;
-        if (mListModel.getValue() != null) {
-            List<BaseItemModel> list = mListModel.getValue();
-            for (BaseItemModel item : list)
-                item.onCleared();
-        }
-    }
-
-    private void updateListData() {
-        if (mListModel == null)
-            return;
-
-        GroupsList groups = mModel.getGroups().getValue();
-        if (groups == null)
-            return;
-
-        LongSparseArray<BaseItemModel> oldItems = new LongSparseArray<>();
-        List<BaseItemModel> oldList = mListModel.getValue();
-        if (oldList != null)
-            for (int i = 0; i < oldList.size(); i++) {
-                BaseItemModel item = oldList.get(i);
-                oldItems.append(item.getId(), item);
+        for (Session s : list) {
+            if (s.isRunning()) {
+                BaseItemModel vm = getSessionViewModel(s.getId());
+                if (vm != null)
+                    vm.dataChanged();
             }
-
-        HashSet<Long> newIds = new HashSet<>();
-        List<BaseItemModel> newList = new ArrayList<>();
-        for (int i = 0; i < groups.count(); i++) {
-            GroupsList.SessionGroup group = groups.get(i);
-            BaseItemModel oldItem = oldItems.get(group.getID(), null);
-            if (oldItem == null)
-                newList.add(new SessionGroupViewModel(mFormatter, group));
-            else
-                newList.add(oldItem);
-
-            newIds.add(group.getID());
         }
+    }
 
-        for (int i = 0; i < oldItems.size(); i++)
-            if (!newIds.contains(oldItems.keyAt(i)))
-                oldItems.valueAt(i).onCleared();
+    private BaseItemModel getSessionViewModel(long id) {
+        if (mListModel == null || mListModel.getValue() == null)
+            return null;
 
-        mListModel.setValue(newList);
+        for (BaseItemModel item : mListModel.getValue())
+            if (item.getId() == id)
+                return item;
+
+        return null;
     }
 
     public LiveData<List<BaseItemModel>> getListModel() {
         if (mListModel == null) {
-            mListModel = new MutableLiveData<>();
-            updateListData();
+            mListModel = Transformations.map(mModel.getSessionList(), list -> {
+                if (list.isEmpty())
+                    return null;
+
+                ArrayList<BaseItemModel> res = new ArrayList<>();
+                for (Session s : list)
+                    res.add(new SessionItemViewModel(mFormatter, s));
+                return res;
+            });
         }
         return mListModel;
-    }
-
-    public void setGroupType(GroupType groupType) {
-        mModel.setGroupType(groupType);
-        mModel.getGroups().observeForever(mGroupsObserver);
     }
 
     public int getSelectedItemsCount() {
@@ -196,8 +132,11 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     @Override
     protected void onCleared() {
-        Log.d(LOG_TAG, "ExSessionListViewModel.onCleared() with " + mModel.getGroupType().toString());
-        clearListModelItems();
+        Log.d(LOG_TAG, "ExSessionListViewModel.onCleared() ");
+        if (mListModel != null && mListModel.getValue() != null)
+            for (BaseItemModel item : mListModel.getValue())
+                item.onCleared();
+
         super.onCleared();
     }
 
@@ -211,7 +150,7 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     public LiveData<Integer> deleteSelected() {
-        return mRepository.get().deleteGroups(mModel.getGroupType(), getSelectedItemsIds());
+        return mRepository.get().deleteSessions(getSelectedItemsIds());
     }
 
     private List<Long> getSelectedItemsIds() {
@@ -226,7 +165,7 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     public void copySelectedToClipboard() {
-        GroupsList groups = mModel.getGroups().getValue();
+        List<Session> groups = mModel.getSessionList().getValue();
         if (groups == null)
             return;
 
@@ -237,21 +176,11 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         StringBuilder text = new StringBuilder();
         for (Long id : getSelectedItemsIds()) {
-            GroupsList.SessionGroup group = groups.getByID(id);
-            switch (mModel.getGroupType()) {
-                case gt_Day:
-                    text.append(String.format("%s: %s\n",
-                            mFormatter.formatDate(group.getStart()),
-                            mFormatter.formatDate(group.getDuration())));
-                    break;
-
-                default:
-                    text.append(String.format("%s - %s: %s\n",
-                            mFormatter.formatDate(group.getStart()),
-                            mFormatter.formatDate(group.getEnd()),
-                            mFormatter.formatPeriod(group.getDuration())));
-                    break;
-            }
+            Session session = mModel.getById(id);
+            text.append(String.format("%s - %s: %s\n",
+                    mFormatter.formatDate(session.getStartTime()),
+                    mFormatter.formatDate(session.getEndTime()),
+                    mFormatter.formatPeriod(session.getDuration())));
         }
 
         clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", text.toString()));

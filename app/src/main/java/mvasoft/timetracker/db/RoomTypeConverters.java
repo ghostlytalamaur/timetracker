@@ -1,4 +1,4 @@
-package mvasoft.timetracker.data.room;
+package mvasoft.timetracker.db;
 
 import android.arch.persistence.room.TypeConverter;
 

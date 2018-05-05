@@ -8,7 +8,6 @@ import javax.inject.Inject;
 
 import dagger.Lazy;
 import mvasoft.timetracker.data.DataRepository;
-import mvasoft.timetracker.deprecated.SessionHelper;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 
 public class TabbedActivityViewModel extends BaseViewModel {
@@ -23,7 +22,7 @@ public class TabbedActivityViewModel extends BaseViewModel {
         mRepository = repository;
     }
 
-    public LiveData<SessionHelper.ToggleSessionResult> toggleSession() {
+    public LiveData<DataRepository.ToggleSessionResult> toggleSession() {
         return mRepository.get().toggleSession();
     }
 

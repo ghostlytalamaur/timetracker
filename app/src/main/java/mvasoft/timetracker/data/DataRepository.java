@@ -5,19 +5,22 @@ import android.arch.lifecycle.MutableLiveData;
 
 import java.util.List;
 
-import mvasoft.timetracker.GroupType;
-import mvasoft.timetracker.GroupsList;
-import mvasoft.timetracker.deprecated.SessionHelper;
 import mvasoft.timetracker.vo.Session;
 
 public interface DataRepository {
 
-    LiveData<GroupsList> getGroups(GroupType groupType);
-    LiveData<Integer> deleteGroups(GroupType groupType, List<Long> groupIds);
+    LiveData<List<Session>> getSessions();
+    LiveData<Integer> deleteSessions(List<Long> ids);
 
     LiveData<Long> getOpenedSessionId();
-    MutableLiveData<SessionHelper.ToggleSessionResult> toggleSession();
+    MutableLiveData<ToggleSessionResult> toggleSession();
 
     LiveData<Boolean> updateSession(Session session);
     LiveData<Session> getSessionById(long id);
+
+    enum ToggleSessionResult {
+        tgs_Started,
+        tgs_Stopped,
+        tgs_Error
+    }
 }
