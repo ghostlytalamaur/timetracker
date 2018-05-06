@@ -41,6 +41,12 @@ public abstract class SessionsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract long appendSession(Session entity);
 
+    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
+    public abstract LiveData<List<Session>> getSessionForDate(long date);
+
+    @Query("SELECT _id from sessions ORDER BY startTime DESC")
+    public abstract LiveData<List<Long>> getSessionsIds();
+
 //    @RawQuery("UPDATE sessions SET EndTime = strftime('%s', 'now') WHERE EndTime = 0 OR EndTime IS NULL; INSERT INTO sessions (StartTime) SELECT strftime('%s', 'now') WHERE (SELECT Changes() = 0);")
 //    public abstract void toggleOpenedSession();
 }

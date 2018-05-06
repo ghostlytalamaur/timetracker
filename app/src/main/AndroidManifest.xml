@@ -25,6 +25,7 @@
 
         <activity
             android:name=".ui.editsession.view.EditSessionActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:parentActivityName=".ui.extlist.view.TabbedActivity" >
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data

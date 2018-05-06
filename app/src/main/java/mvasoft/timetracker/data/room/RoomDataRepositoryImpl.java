@@ -63,6 +63,16 @@ public class RoomDataRepositoryImpl implements DataRepository {
         return mGroupsModel.getSessionById(id);
     }
 
+    @Override
+    public LiveData<List<Session>> getSessionForDate(long date) {
+        return mGroupsModel.getSessionForDate(date);
+    }
+
+    @Override
+    public LiveData<List<Long>> getSessionsIds() {
+        return mGroupsModel.getSessionsIds();
+    }
+
     private static class ToggleSessionAsync extends AsyncTask<Void, Void, Void> {
 
         private final AppDatabase mDb;

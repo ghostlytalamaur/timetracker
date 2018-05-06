@@ -11,10 +11,10 @@ public class Session {
     @ColumnInfo(name = "_id")
     private final long mId;
 
-    @ColumnInfo(name = "StartTime")
-    private long mStartTime;
+    @ColumnInfo(name = "startTime")
+    private  long mStartTime;
 
-    @ColumnInfo(name = "EndTime")
+    @ColumnInfo(name = "endTime")
     private long mEndTime;
 
     public Session(long id, long startTime, long endTime) {
@@ -58,7 +58,7 @@ public class Session {
         return false;
     }
 
-    public long getGoalTimeDiff() {
+    public long getTargetDiff() {
         return 0;
     }
 

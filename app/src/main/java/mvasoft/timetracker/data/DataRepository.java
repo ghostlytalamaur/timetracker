@@ -18,6 +18,10 @@ public interface DataRepository {
     LiveData<Boolean> updateSession(Session session);
     LiveData<Session> getSessionById(long id);
 
+    LiveData<List<Session>> getSessionForDate(long date);
+
+    LiveData<List<Long>> getSessionsIds();
+
     enum ToggleSessionResult {
         tgs_Started,
         tgs_Stopped,

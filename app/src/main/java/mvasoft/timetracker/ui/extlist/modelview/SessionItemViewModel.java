@@ -19,20 +19,6 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
         mSession = session;
     }
 
-    public String getStartDate() {
-        if (mSession != null)
-            return "id = " + getId() + mFormatter.formatDate(mSession.getStartTime());
-        else
-            return "Start date";
-    }
-
-    public String getEndDate() {
-         if (mSession != null)
-            return mFormatter.formatDate(mSession.getEndTime());
-        else
-            return "End date";
-    }
-
     public String getStartTime() {
         if (mSession != null)
             return mFormatter.formatTime(mSession.getStartTime());
@@ -49,21 +35,13 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
 
     public String getDuration() {
         if (mSession != null)
-            return mFormatter.formatPeriod(mSession.getDuration());
+            return mFormatter.formatDuration(mSession.getDuration());
         else
             return "Duration";
     }
 
-    public String getGoalTimeDiff() {
-        if (mSession != null) {
-            return mFormatter.formatPeriod(mSession.getGoalTimeDiff());
-        }
-        else
-            return "Target";
-    }
-
-    public boolean getIsGoalAchieved() {
-        return mSession != null && mSession.isGoalAchieved();
+    public boolean getIsRunning() {
+        return (mSession != null) && mSession.isRunning();
     }
 
     @Bindable
@@ -80,8 +58,6 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
 
     @Override
     public void onCleared() {
-//        if (mSession != null)
-//            mSession.deleteObserver(mObserver);
     }
 
     @Override

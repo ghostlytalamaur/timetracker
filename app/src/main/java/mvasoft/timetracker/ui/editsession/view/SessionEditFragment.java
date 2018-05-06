@@ -179,4 +179,8 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         dlg.setTargetFragment(this, requestCode);
         dlg.show(getFragmentManager(), "dialog_date");
     }
+
+    public void setSessionId(long sessionId) {
+        getViewModel().getModel().setId(sessionId);
+    }
 }

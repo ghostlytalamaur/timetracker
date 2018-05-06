@@ -6,6 +6,7 @@ import android.arch.lifecycle.ViewModelProvider;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoMap;
+import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionActivityViewModel;
 import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionFragmentViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel;
@@ -28,6 +29,11 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(EditSessionFragmentViewModel.class)
     abstract ViewModel bindSessionEditViewModel(EditSessionFragmentViewModel editSessionFragmentViewModel);
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(EditSessionActivityViewModel.class)
+    abstract ViewModel bindEditSessionActivityViewModel(EditSessionActivityViewModel editSessionActivityViewModel);
 
     @Binds
     abstract ViewModelProvider.Factory bindViewModelFactory(DIViewModelFactory factory);

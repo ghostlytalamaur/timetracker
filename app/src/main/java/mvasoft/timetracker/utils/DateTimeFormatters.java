@@ -66,8 +66,9 @@ public class DateTimeFormatters {
         return getDateFormatter().print(new DateTime(unixTimeSec * 1000L));
     }
 
-    public String formatPeriod(long secPeriod) {
-        return getPeriodFormatter().print(new Period(secPeriod * 1000L));
+    public String formatDuration(long secDuration) {
+        return (secDuration < 0 ? "-" : "") +
+                getPeriodFormatter().print(new Period(Math.abs(secDuration) * 1000L));
     }
 
 

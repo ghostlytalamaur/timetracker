@@ -49,7 +49,7 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
 
     @Bindable
     public String getDuration() {
-        return mFormatter.formatPeriod(mData.getDuration());
+        return mFormatter.formatDuration(mData.getDuration());
     }
 
     @Bindable
@@ -75,7 +75,13 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
     }
 
     public LiveData<Boolean> saveSession() {
-        return mRepository.updateSession(getModel().getSession());
+        if (getModel().getSession() != null)
+            return mRepository.updateSession(getModel().getSessionForUpdate());
+        else {
+            MutableLiveData<Boolean> res = new MutableLiveData<>();
+            res.setValue(false);
+            return res;
+        }
     }
 
     private class SessionDataChangedListener implements SessionEditModel.ISessionDataChangedListener {

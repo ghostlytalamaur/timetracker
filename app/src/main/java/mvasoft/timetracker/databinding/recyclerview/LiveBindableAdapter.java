@@ -2,9 +2,7 @@ package mvasoft.timetracker.databinding.recyclerview;
 
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.recyclerview.extensions.AsyncListDiffer;
 import android.support.v7.util.DiffUtil;
 
@@ -22,19 +20,16 @@ public class LiveBindableAdapter<ListModel extends List<BaseItemModel>> extends
 
     public LiveBindableAdapter(AdapterDelegate<ListModel>... adapterDelegates) {
         super(adapterDelegates);
-//        ListDifferCallback diffCallback = new ListDifferCallback();
         mDiffer = new AsyncListDiffer<>(this, new ItemDifferCallback());
     }
 
     public void setData(@NonNull LifecycleOwner owner, LiveData<ListModel> data) {
-            mData = data;
-            if (mData != null)
-                mData.observe(owner, new Observer<ListModel>() {
-                    @Override
-                    public void onChanged(@Nullable ListModel data) {
-                        mDiffer.submitList(data);
-                    }
-                });
+        if (mData == data)
+            return;
+
+        mData = data;
+        if (mData != null)
+            mData.observe(owner, mDiffer::submitList);
     }
 
     @Override

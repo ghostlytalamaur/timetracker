@@ -167,8 +167,16 @@ public class SessionEditModel {
         mAnnouncer.addListener(listener);
     }
 
-    public Session getSession() {
-        return new Session(getId(), getStartTime(), isClosed() ? getEndTime() : 0);
+    public LiveData<Session> getSession() {
+        return mSessionLiveData;
+    }
+
+    public Session getSessionForUpdate() {
+        Session s = mSessionLiveData.getValue();
+        if (s != null)
+            return new Session(s.getId(),getStartTime(), isClosed() ? getEndTime() : 0);
+        else
+            return null;
     }
 
     public enum SessionDataType {

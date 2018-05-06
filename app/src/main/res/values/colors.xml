@@ -5,4 +5,6 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorControlHighlight">#aa9dc9ff</color>
     <color name="colorSwitchThumbNormal">#83004d7c</color>
+    <color name="colorTextPositive">@android:color/holo_green_light</color>
+    <color name="colorTextNegative">@android:color/holo_red_light</color>
 </resources>

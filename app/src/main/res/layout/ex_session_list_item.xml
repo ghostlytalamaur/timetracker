@@ -21,10 +21,9 @@
             type="android.view.View" />
     </data>
 
-    <android.support.v7.widget.CardView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="2dp"
         style="@style/ListSelectedBackground"
         app:activated="@{SessionGroup.isSelected}"
         app:actionHandler="@{actionHandler}"
@@ -35,51 +34,24 @@
         <android.support.constraint.ConstraintLayout
             style="@style/ListSelectedBackground"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="2dp"
-            android:layout_marginTop="2dp"
+            android:layout_height="48dp"
             android:clickable="false"
             tools:ignore="HardcodedText">
-
-            <TextView
-                android:id="@+id/tvStart"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_weight="1"
-                android:text="@{SessionGroup.startDate}"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="start date" />
-
-            <TextView
-                android:id="@+id/tvEnd"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="13dp"
-                android:layout_weight="1"
-                android:text="@{SessionGroup.endDate}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvStart"
-                app:layout_constraintVertical_bias="1.0"
-                tools:text="end date" />
 
 
             <TextView
                 android:id="@+id/tvElapsed"
                 android:layout_width="wrap_content"
                 android:layout_height="25dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
                 android:gravity="end|center_vertical"
                 android:text="@{SessionGroup.duration}"
                 android:textStyle="bold"
-                app:layout_constraintBaseline_toBaselineOf="@+id/tvStartTime"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintStart_toEndOf="@+id/imgDuration"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                app:layout_constraintVertical_bias="0.363"
                 tools:layout_constraintBottom_creator="1"
                 tools:layout_constraintLeft_creator="1"
                 tools:layout_constraintRight_creator="1"
@@ -90,32 +62,85 @@
                 android:id="@+id/tvStartTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="220dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
                 android:text="@{SessionGroup.startTime}"
-                app:layout_constraintBaseline_toBaselineOf="@+id/tvStart"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintStart_toEndOf="@+id/imgStart"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
                 tools:text="start time" />
 
             <TextView
                 android:id="@+id/tvEndTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="220dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
                 android:text="@{SessionGroup.endTime}"
-                app:layout_constraintBaseline_toBaselineOf="@+id/tvEnd"
-                app:layout_constraintStart_toStartOf="parent"
+                android:visibility="@{SessionGroup.isRunning ? v.GONE : v.VISIBLE}"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintStart_toEndOf="@+id/imgEnd"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
                 tools:text="end time" />
 
-            <TextView
-                android:id="@+id/tvTargetDiff"
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_begin="16dp" />
+
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintGuide_percent="0.5"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/imgEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="32dp"
+                android:visibility="@{SessionGroup.isRunning ? v.GONE : v.VISIBLE}"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintStart_toEndOf="@+id/tvStartTime"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                app:srcCompat="@drawable/ic_clock_out" />
+
+            <ImageView
+                android:id="@+id/imgStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="@{SessionGroup.goalTimeDiff}"
-                android:textColor="@{SessionGroup.isGoalAchieved ? @android:color/holo_green_dark : @android:color/holo_red_dark}"
-                tools:text="target"
-                app:layout_constraintBaseline_toBaselineOf="@+id/tvEndTime"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintEnd_toStartOf="@+id/guideline2"
+                app:layout_constraintStart_toStartOf="@+id/guideline2"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                app:srcCompat="@drawable/ic_clock_in" />
+
+            <ImageView
+                android:id="@+id/imgDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintEnd_toStartOf="@+id/guideline7"
+                app:layout_constraintStart_toStartOf="@+id/guideline7"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                app:srcCompat="@drawable/ic_clock_end" />
+
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_end="80dp" />
+
         </android.support.constraint.ConstraintLayout>
-    </android.support.v7.widget.CardView>
+    </LinearLayout>
 </layout>

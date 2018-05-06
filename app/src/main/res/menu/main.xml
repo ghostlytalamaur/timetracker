@@ -3,13 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_group_type"
-        android:icon="@android:drawable/ic_menu_today"
-        android:title="@string/group_by"
-        app:actionViewClass="android.widget.Spinner"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"

@@ -1,6 +1,7 @@
 package mvasoft.timetracker.ui.extlist.modelview;
 
 import android.app.Application;
+import android.arch.core.util.Function;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.OnLifecycleEvent;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import dagger.Lazy;
+import mvasoft.timetracker.common.CalculatedLiveData;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
 import mvasoft.timetracker.ui.common.BaseViewModel;
@@ -42,6 +44,10 @@ public class ExSessionListViewModel extends BaseViewModel {
     private LiveData<List<BaseItemModel>> mListModel;
     private ScheduledExecutorService mUpdateExecutor;
 
+    private CalculatedLiveData<List<Session>, String> mSummaryTimeLiveData;
+    private CalculatedLiveData<List<Session>, String> mTargetDiffLiveData;
+    private CalculatedLiveData<List<Session>, Boolean> mIsTargetAchieved;
+
     private final Lazy<DataRepository> mRepository;
 
     @Inject
@@ -57,6 +63,40 @@ public class ExSessionListViewModel extends BaseViewModel {
         mModel.getSessionList().observeForever(sessions -> updateTimer());
     }
 
+    public LiveData<String> getSummaryTime() {
+        if (mSummaryTimeLiveData == null) {
+            mSummaryTimeLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<Session>, String>() {
+                @Override
+                public String apply(List<Session> input) {
+                    return mFormatter.formatDuration(mModel.getSummaryTime());
+                }
+            });
+        }
+        return mSummaryTimeLiveData;
+    }
+
+    public LiveData<String> getTargetDiff() {
+        if (mTargetDiffLiveData == null) {
+            mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<Session>, String>() {
+                @Override
+                public String apply(List<Session> input) {
+                    return mFormatter.formatDuration(mModel.getTargetDiff());
+                }
+            });
+        }
+        return mTargetDiffLiveData;
+    }
+
+    public LiveData<Boolean> getIsTargetAchieved() {
+        if (mIsTargetAchieved == null)
+            mIsTargetAchieved = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<Session>, Boolean>() {
+                @Override
+                public Boolean apply(List<Session> input) {
+                    return mModel.getTargetDiff() >= 0;
+                }
+            });
+        return mIsTargetAchieved;
+    }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void resume() {
@@ -68,8 +108,10 @@ public class ExSessionListViewModel extends BaseViewModel {
     public void pause() {
         Log.d(LOG_TAG, "ExSessionListViewModel.pause()");
 
-        mUpdateFuture.cancel(true);
-        mUpdateFuture = null;
+        if (mUpdateFuture != null) {
+            mUpdateFuture.cancel(true);
+            mUpdateFuture = null;
+        }
     }
 
     private void updateTimer() {
@@ -98,6 +140,11 @@ public class ExSessionListViewModel extends BaseViewModel {
                     vm.dataChanged();
             }
         }
+
+        if (mSummaryTimeLiveData != null)
+            mSummaryTimeLiveData.invalidateValue();
+        if (mTargetDiffLiveData != null)
+            mTargetDiffLiveData.invalidateValue();
     }
 
     private BaseItemModel getSessionViewModel(long id) {
@@ -118,8 +165,8 @@ public class ExSessionListViewModel extends BaseViewModel {
                     return null;
 
                 ArrayList<BaseItemModel> res = new ArrayList<>();
-                for (Session s : list)
-                    res.add(new SessionItemViewModel(mFormatter, s));
+                for (int i = list.size() - 1; i >= 0; i--)
+                    res.add(new SessionItemViewModel(mFormatter, list.get(i)));
                 return res;
             });
         }
@@ -180,9 +227,13 @@ public class ExSessionListViewModel extends BaseViewModel {
             text.append(String.format("%s - %s: %s\n",
                     mFormatter.formatDate(session.getStartTime()),
                     mFormatter.formatDate(session.getEndTime()),
-                    mFormatter.formatPeriod(session.getDuration())));
+                    mFormatter.formatDuration(session.getDuration())));
         }
 
         clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", text.toString()));
+    }
+
+    public void setDate(long date) {
+        mModel.setDate(date);
     }
 }

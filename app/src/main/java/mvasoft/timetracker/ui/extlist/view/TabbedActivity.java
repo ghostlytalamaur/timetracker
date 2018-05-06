@@ -10,12 +10,16 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.view.ActionMode;
+import android.view.Menu;
 import android.view.View;
+import android.widget.CalendarView;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
+
+import org.joda.time.DateTime;
 
 import javax.inject.Inject;
 
@@ -25,13 +29,16 @@ import mvasoft.timetracker.R;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.ActivityTabbedBinding;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
+import mvasoft.timetracker.ui.common.PagerAdapter;
 import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
 import mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel;
+import mvasoft.timetracker.utils.DateTimeFormatters;
 
 public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding,
         TabbedActivityViewModel> implements ExSessionListFragment.ISessionListCallbacks {
 
     private final ActionClickListener mActionHandler = new TabbedActivityActionHandler();
+    private final DateTimeFormatters mFormatter = new DateTimeFormatters();
     private ActionMode mActionMode;
 
     @Inject
@@ -39,6 +46,8 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
     @Inject
     public Lazy<DataRepository> mRepository;
+    private PagerAdapter mPagerAdapter;
+    private boolean mIsExpanded;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +56,29 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         getBinding().setVariable(BR.actionHandler, mActionHandler);
         setSupportActionBar(getBinding().toolbar);
         initViewPager();
+        getBinding().datePickerTitle.setText(mFormatter.formatDate(System.currentTimeMillis() / 1000));
+
+        getBinding().calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                DateTime dt = new DateTime(year, month + 1, dayOfMonth, 0, 0, 0);
+                long date = dt.getMillis() / 1000;
+                Fragment fragment = mPagerAdapter.getFragment(getBinding().viewPager.getCurrentItem());
+                if (fragment instanceof ExSessionListFragment)
+                    ((ExSessionListFragment) fragment).setDate(date);
+                getBinding().datePickerTitle.setText(mFormatter.formatDate(date));
+            }
+        });
+        getBinding().appBarLayout.addOnOffsetChangedListener(
+                (appBarLayout, verticalOffset) -> mIsExpanded = verticalOffset == 0);
+
+        getBinding().datePickerButton.setOnClickListener(v -> {
+            float rotation = mIsExpanded ? 0 : 180;
+            ViewCompat.animate(getBinding().datePickerArrow).rotation(rotation).start();
+
+            getBinding().appBarLayout.setExpanded(!mIsExpanded, true);
+        });
+        getBinding().toolbar.setElevation(40);
     }
 
     @Override
@@ -64,10 +96,17 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         return BR.view_model;
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
     @Override
     public void onSupportActionModeStarted(@NonNull ActionMode mode) {
-        super.onSupportActionModeStarted(mode);
         mActionMode = mode;
+        super.onSupportActionModeStarted(mode);
     }
 
     @Override
@@ -77,11 +116,11 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     }
 
     private void initViewPager() {
-        FragmentStatePagerAdapter adapter = new FragmentStatePagerAdapter(getSupportFragmentManager()) {
+        mPagerAdapter = new PagerAdapter(getSupportFragmentManager()) {
 
             @Override
             public Fragment getItem(int position) {
-                return ExSessionListFragment.newInstance();
+                return ExSessionListFragment.newInstance(getBinding().calendarView.getDate() / 1000);
             }
 
             @Override
@@ -92,7 +131,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             @Nullable
             @Override
             public CharSequence getPageTitle(int position) {
-                return getString(R.string.caption_tabs_empty);
+                return getString(R.string.caption_tabs_empty) + position;
             }
         };
 
@@ -113,8 +152,8 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             public void onPageScrollStateChanged(int state) {
             }
         });
-        getBinding().viewPager.setAdapter(adapter);
-        getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
+        getBinding().viewPager.setAdapter(mPagerAdapter);
+//        getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
     }
 
     public void editSession(long sessionId) {
