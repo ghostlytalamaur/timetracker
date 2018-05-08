@@ -10,6 +10,7 @@
     <string name="caption_start">Start: %s</string>
     <string name="caption_stop">Stop: %s</string>
     <string name="caption_duration">Duration: %s</string>
+    <string name="caption_working_days">Working days</string>
     <string name="text_today_empty">Today: --:--:--</string>
     <string name="query_invalid_uri">Invalid query uri.</string>
     <string name="text_week">Week: %s</string>

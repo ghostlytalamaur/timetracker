@@ -26,6 +26,7 @@ import dagger.Lazy;
 import mvasoft.timetracker.common.CalculatedLiveData;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
+import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.extlist.model.ExSessionListModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
@@ -51,13 +52,14 @@ public class ExSessionListViewModel extends BaseViewModel {
     private final Lazy<DataRepository> mRepository;
 
     @Inject
-    ExSessionListViewModel(@NonNull Application application, Lazy<DataRepository> repository) {
+    ExSessionListViewModel(@NonNull Application application, Lazy<DataRepository> repository,
+                           Lazy<AppPreferences> appPreferences) {
         super(application);
         Log.d(LOG_TAG, "creating ExSessionListViewModel");
 
         mFormatter = new DateTimeFormatters();
         mHandler = new Handler();
-        mModel = new ExSessionListModel(repository);
+        mModel = new ExSessionListModel(repository, appPreferences);
         mRepository = repository;
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
         mModel.getSessionList().observeForever(sessions -> updateTimer());

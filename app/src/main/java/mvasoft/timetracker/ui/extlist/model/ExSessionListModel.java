@@ -4,21 +4,26 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 
+import org.joda.time.DateTime;
+
 import java.util.List;
 
 import dagger.Lazy;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.vo.Session;
 
 public class ExSessionListModel {
 
     private static final long TARGET_TIME = 8 * 60 * 60;
     private final MutableLiveData<Long> mDateLiveData;
+    private final Lazy<AppPreferences> mPreferences;
     private LiveData<List<Session>> mSessions;
     private Lazy<DataRepository> mRepository;
 
-    public ExSessionListModel(Lazy<DataRepository> repository) {
+    public ExSessionListModel(Lazy<DataRepository> repository, Lazy<AppPreferences> preferences) {
         mRepository = repository;
+        mPreferences = preferences;
         mDateLiveData = new MutableLiveData<>();
     }
 
@@ -61,7 +66,19 @@ public class ExSessionListModel {
         return summary;
     }
 
+    private long getTargetTime() {
+        if (isWorkingDay())
+            return mPreferences.get().getTargetTime();
+        else
+            return 0;
+    }
+
+    private boolean isWorkingDay() {
+        // TODO: cache value
+        return mDateLiveData.getValue() != null && mPreferences.get().isWorkingDay(new DateTime(mDateLiveData.getValue() * 1000).getDayOfWeek());
+    }
+
     public long getTargetDiff() {
-        return getSummaryTime() - TARGET_TIME;
+        return getSummaryTime() - getTargetTime();
     }
 }

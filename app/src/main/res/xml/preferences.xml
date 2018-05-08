@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <MultiSelectListPreference
+        android:defaultValue="@array/working_days_default"
+        android:entries="@array/day_of_week_names"
+        android:entryValues="@array/day_of_week_numbers"
+        android:key="pref_working_days"
+        android:title="@string/caption_working_days" />
+    <EditTextPreference
+        android:defaultValue="480"
+        android:inputType="numberDecimal"
+        android:key="pref_target_time_min"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Target time (minutes)"
+        />
+</PreferenceScreen>
