@@ -9,6 +9,8 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
 import mvasoft.timetracker.data.RepositoryModule;
+import mvasoft.timetracker.ui.editdate.view.EditDateActivity;
+import mvasoft.timetracker.ui.editdate.view.EditDateFragment;
 import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
 import mvasoft.timetracker.ui.editsession.view.SessionEditFragment;
 import mvasoft.timetracker.ui.extlist.view.ExSessionListFragment;
@@ -36,6 +38,13 @@ abstract class AppModule {
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
     abstract SessionEditFragment SessionEditFragmentInjector();
+
+    @ContributesAndroidInjector(modules = {RepositoryModule.class})
+    abstract EditDateActivity EditDateActivityInjector();
+
+    @ContributesAndroidInjector(modules = {RepositoryModule.class})
+    abstract EditDateFragment EditDateFragmentInjector();
+
 
     @Binds
     @Singleton

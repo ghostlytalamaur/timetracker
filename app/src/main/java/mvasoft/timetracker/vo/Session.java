@@ -54,14 +54,6 @@ public class Session {
             return System.currentTimeMillis() / 1000 - mStartTime;
     }
 
-    public boolean isGoalAchieved() {
-        return false;
-    }
-
-    public long getTargetDiff() {
-        return 0;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj)

@@ -31,6 +31,7 @@ import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.extlist.model.ExSessionListModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.vo.Session;
+import mvasoft.timetracker.vo.SessionWithDescription;
 
 import static mvasoft.timetracker.common.Const.LOG_TAG;
 
@@ -45,9 +46,9 @@ public class ExSessionListViewModel extends BaseViewModel {
     private LiveData<List<BaseItemModel>> mListModel;
     private ScheduledExecutorService mUpdateExecutor;
 
-    private CalculatedLiveData<List<Session>, String> mSummaryTimeLiveData;
-    private CalculatedLiveData<List<Session>, String> mTargetDiffLiveData;
-    private CalculatedLiveData<List<Session>, Boolean> mIsTargetAchieved;
+    private CalculatedLiveData<List<SessionWithDescription>, String> mSummaryTimeLiveData;
+    private CalculatedLiveData<List<SessionWithDescription>, String> mTargetDiffLiveData;
+    private CalculatedLiveData<List<SessionWithDescription>, Boolean> mIsTargetAchieved;
 
     private final Lazy<DataRepository> mRepository;
 
@@ -67,9 +68,9 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     public LiveData<String> getSummaryTime() {
         if (mSummaryTimeLiveData == null) {
-            mSummaryTimeLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<Session>, String>() {
+            mSummaryTimeLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<SessionWithDescription>, String>() {
                 @Override
-                public String apply(List<Session> input) {
+                public String apply(List<SessionWithDescription> input) {
                     return mFormatter.formatDuration(mModel.getSummaryTime());
                 }
             });
@@ -79,9 +80,9 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     public LiveData<String> getTargetDiff() {
         if (mTargetDiffLiveData == null) {
-            mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<Session>, String>() {
+            mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<SessionWithDescription>, String>() {
                 @Override
-                public String apply(List<Session> input) {
+                public String apply(List<SessionWithDescription> input) {
                     return mFormatter.formatDuration(mModel.getTargetDiff());
                 }
             });
@@ -91,9 +92,9 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     public LiveData<Boolean> getIsTargetAchieved() {
         if (mIsTargetAchieved == null)
-            mIsTargetAchieved = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<Session>, Boolean>() {
+            mIsTargetAchieved = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<SessionWithDescription>, Boolean>() {
                 @Override
-                public Boolean apply(List<Session> input) {
+                public Boolean apply(List<SessionWithDescription> input) {
                     return mModel.getTargetDiff() >= 0;
                 }
             });
@@ -131,7 +132,7 @@ public class ExSessionListViewModel extends BaseViewModel {
         if (mListModel == null || mListModel.getValue() == null)
             return;
 
-        List<Session> list = mModel.getSessionList().getValue();
+        List<? extends Session> list = mModel.getSessionList().getValue();
         if (list == null)
             return;
 
@@ -214,7 +215,7 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     public void copySelectedToClipboard() {
-        List<Session> groups = mModel.getSessionList().getValue();
+        List<? extends Session> groups = mModel.getSessionList().getValue();
         if (groups == null)
             return;
 

@@ -9,7 +9,9 @@ import android.arch.persistence.room.Update;
 
 import java.util.List;
 
+import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.Session;
+import mvasoft.timetracker.vo.SessionWithDescription;
 
 
 @Dao
@@ -41,11 +43,28 @@ public abstract class SessionsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract long appendSession(Session entity);
 
-    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
-    public abstract LiveData<List<Session>> getSessionForDate(long date);
+    @Query("SELECT * from sessions LEFT JOIN days on date(startTime, 'unixepoch') = date(days.dayDate, 'unixepoch') WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
+    public abstract LiveData<List<SessionWithDescription>> getSessionForDate(long date);
 
     @Query("SELECT _id from sessions ORDER BY startTime DESC")
     public abstract LiveData<List<Long>> getSessionsIds();
+
+    @Query("SELECT * from sessions LEFT JOIN days on date(startTime, 'unixepoch') = date(days.dayDate, 'unixepoch') WHERE startTime BETWEEN :dateStart AND :dateEnd")
+    public abstract LiveData<List<SessionWithDescription>> getSessionWithDescription(long dateStart, long dateEnd);
+
+
+    @Query("SELECT dayId from days WHERE date(:date, 'unixepoch') = date(dayDate, 'unixepoch')")
+    public abstract boolean hasDayDescription(long date);
+
+    @Insert
+    public abstract long appendDayDescription(DayDescription dayDescription);
+
+    @Update
+    public abstract int updateDayDescription(DayDescription dayDescription);
+
+    @Query("SELECT * from days WHERE date(:date, 'unixepoch') = date(dayDate, 'unixepoch')")
+    public abstract LiveData<DayDescription> getDayDescription(long date);
+
 
 //    @RawQuery("UPDATE sessions SET EndTime = strftime('%s', 'now') WHERE EndTime = 0 OR EndTime IS NULL; INSERT INTO sessions (StartTime) SELECT strftime('%s', 'now') WHERE (SELECT Changes() = 0);")
 //    public abstract void toggleOpenedSession();

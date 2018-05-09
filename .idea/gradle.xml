@@ -9,9 +9,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/app/libs" />
-            <option value="$PROJECT_DIR$/app/libs/twoway-view_core" />
-            <option value="$PROJECT_DIR$/app/libs/twoway-view_layouts" />
             <option value="$PROJECT_DIR$/datetimepicker" />
           </set>
         </option>

@@ -31,6 +31,7 @@ import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.ActivityTabbedBinding;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
 import mvasoft.timetracker.ui.common.PagerAdapter;
+import mvasoft.timetracker.ui.editdate.view.EditDateActivity;
 import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
 import mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel;
 import mvasoft.timetracker.ui.preferences.PreferencesActivity;
@@ -50,6 +51,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     public Lazy<DataRepository> mRepository;
     private PagerAdapter mPagerAdapter;
     private boolean mIsExpanded;
+    private long mDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,15 +62,16 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         initViewPager();
         getBinding().datePickerTitle.setText(mFormatter.formatDate(System.currentTimeMillis() / 1000));
 
+        mDate = getBinding().calendarView.getDate() / 1000;
         getBinding().calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
                 DateTime dt = new DateTime(year, month + 1, dayOfMonth, 0, 0, 0);
-                long date = dt.getMillis() / 1000;
+                mDate = dt.getMillis() / 1000;
                 Fragment fragment = mPagerAdapter.getFragment(getBinding().viewPager.getCurrentItem());
                 if (fragment instanceof ExSessionListFragment)
-                    ((ExSessionListFragment) fragment).setDate(date);
-                getBinding().datePickerTitle.setText(mFormatter.formatDate(date));
+                    ((ExSessionListFragment) fragment).setDate(mDate);
+                getBinding().datePickerTitle.setText(mFormatter.formatDate(mDate));
             }
         });
         getBinding().appBarLayout.addOnOffsetChangedListener(
@@ -107,12 +110,16 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent = null;
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent intent = new Intent(this, PreferencesActivity.class);
+                intent = new Intent(this, PreferencesActivity.class);
                 startActivity(intent);
-
                 break;
+            case R.id.action_edit_date:
+                intent = new Intent(this, EditDateActivity.class);
+                intent.putExtras(EditDateActivity.makeArgs(mDate));
+                startActivity(intent);
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -141,13 +148,13 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
             @Override
             public int getCount() {
-                return 1;
+                return 3;
             }
 
             @Nullable
             @Override
             public CharSequence getPageTitle(int position) {
-                return getString(R.string.caption_tabs_empty) + position;
+                return getString(R.string.caption_tabs_day) + position;
             }
         };
 
@@ -169,7 +176,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             }
         });
         getBinding().viewPager.setAdapter(mPagerAdapter);
-//        getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
+        getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
     }
 
     public void editSession(long sessionId) {
@@ -211,7 +218,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
                             break;
                     }
                 }
-
+                toggleResult.removeObserver(this);
             }
         });
 

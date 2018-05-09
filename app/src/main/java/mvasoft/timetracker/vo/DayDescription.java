@@ -7,19 +7,23 @@ import android.arch.persistence.room.PrimaryKey;
 @Entity(tableName = "days")
 public class DayDescription {
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "_id")
+    @ColumnInfo(name = "dayId")
     private long mId;
 
-    @ColumnInfo(name = "date")
+    @ColumnInfo(name = "dayDate")
     private long mDate;
 
     @ColumnInfo(name = "targetDuration")
     private long mTargetDuration;
 
-    public DayDescription(long id, long date, long targetDuration) {
+    @ColumnInfo(name = "isWorkingDay")
+    private boolean mIsWorkingDay;
+
+    public DayDescription(long id, long date, long targetDuration, boolean isWorkingDay) {
         mId = id;
         mDate = date;
         mTargetDuration = targetDuration;
+        mIsWorkingDay = isWorkingDay;
     }
 
     public long getId() {
@@ -32,5 +36,9 @@ public class DayDescription {
 
     public long getTargetDuration() {
         return mTargetDuration;
+    }
+
+    public boolean isWorkingDay() {
+        return mIsWorkingDay;
     }
 }

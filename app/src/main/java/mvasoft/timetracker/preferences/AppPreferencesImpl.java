@@ -13,8 +13,8 @@ public class AppPreferencesImpl extends AppPreferences {
     }
 
     @Override
-    public long getTargetTime() {
-        return Long.valueOf(mPreferences.getString("pref_target_time_min", "0")) * 60;
+    public long getTargetTimeInMin() {
+        return Long.valueOf(mPreferences.getString("pref_target_time_min", "0"));
     }
 
     @Override

@@ -40,6 +40,14 @@
                 android:value=".ui.extlist.view.TabbedActivity" />
         </activity>
 
+        <activity android:name=".ui.editdate.view.EditDateActivity"
+            android:parentActivityName=".ui.extlist.view.TabbedActivity" >
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.extlist.view.TabbedActivity" />
+        </activity>
+
 
         <service
             android:name=".ui.widget.SessionsWidgetService"

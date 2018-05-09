@@ -1,6 +1,7 @@
 package mvasoft.timetracker.databinding;
 
 import android.databinding.BindingAdapter;
+import android.databinding.InverseMethod;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.FloatingActionButton;
@@ -73,5 +74,22 @@ public class BindingAdapters {
             return;
 
         view.setActivated(isActivated);
+    }
+
+    @InverseMethod("fromString")
+    public static String toString(Long oldValue, Long value) {
+        if (value == null)
+            return "0";
+        else
+            return String.valueOf(value);
+    }
+
+    public static Long fromString(Long defValue, String str) {
+        try {
+            return Long.valueOf(str);
+        }
+        catch (NumberFormatException e) {
+            return defValue;
+        }
     }
 }

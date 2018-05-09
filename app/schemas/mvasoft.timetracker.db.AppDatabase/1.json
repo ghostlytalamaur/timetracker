@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "fcbd2c631a9673d4c65380b7af0d96c8",
+    "identityHash": "b71c0d8c6636ea134775a85617249a0e",
     "entities": [
       {
         "tableName": "sessions",
@@ -38,17 +38,17 @@
       },
       {
         "tableName": "days",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `targetDuration` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dayId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dayDate` INTEGER NOT NULL, `targetDuration` INTEGER NOT NULL, `isWorkingDay` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "mId",
-            "columnName": "_id",
+            "columnName": "dayId",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
             "fieldPath": "mDate",
-            "columnName": "date",
+            "columnName": "dayDate",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -57,11 +57,17 @@
             "columnName": "targetDuration",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "mIsWorkingDay",
+            "columnName": "isWorkingDay",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "_id"
+            "dayId"
           ],
           "autoGenerate": true
         },
@@ -71,7 +77,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"fcbd2c631a9673d4c65380b7af0d96c8\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"b71c0d8c6636ea134775a85617249a0e\")"
     ]
   }
 }

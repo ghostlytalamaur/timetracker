@@ -48,46 +48,34 @@ dependencies {
     annotationProcessor deps.dagger.compiler
     annotationProcessor deps.dagger.android_support_compiler
 
-//    implementation 'com.applandeo:material-calendar-view:1.4.0'
+    implementation deps.support.app_compat
+    implementation deps.support.support
+    implementation deps.support.design
+    implementation deps.support.constraint_layout
 
-    api fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation deps.lifecycle.extensions
+    implementation deps.room.runtime
+
+    testImplementation deps.room.testing
+    testImplementation deps.arch_core.testing
+
+    annotationProcessor deps.lifecycle.compiler
+    annotationProcessor deps.room.compiler
+
+    testImplementation deps.junit.junit
+
+    androidTestImplementation(deps.espresso.core, {
         exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
-    api 'com.android.support:appcompat-v7:27.1.1'
-    api 'com.android.support:support-v4:27.1.1'
-    api 'com.android.support:design:27.1.1'
-    api 'com.android.support.constraint:constraint-layout:1.1.0'
-    api 'joda-time:joda-time:2.9.9'
-    api project(path: ':datetimepicker')
-    api project(':app:libs:twoway-view_core')
-    api project(':app:libs:twoway-view_layouts')
-    api 'com.drextended.actionhandler:actionhandler:0.1.16'
-//    api project(':app:libs:rvdatabinding')
+
+
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    implementation 'joda-time:joda-time:2.9.9'
+    implementation 'com.drextended.actionhandler:actionhandler:0.1.16'
+    implementation project(path: ':datetimepicker')
+    //    api project(':app:libs:rvdatabinding')
 //    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
-    testImplementation 'junit:junit:4.12'
-
-    // ViewModel and LiveData
-    implementation "android.arch.lifecycle:extensions:1.1.1"
-    // alternatively, just ViewModel
-//    implementation "android.arch.lifecycle:viewmodel:1.1.1"
-    // alternatively, just LiveData
-//    implementation "android.arch.lifecycle:livedata:1.1.1"
-
-    annotationProcessor "android.arch.lifecycle:compiler:1.1.1"
-
-    // Room (use 1.1.0-beta3 for latest beta)
-    implementation "android.arch.persistence.room:runtime:1.0.0"
-    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
-
-    // Paging
-    implementation "android.arch.paging:runtime:1.0.0-rc1"
-
-    // Test helpers for LiveData
-    testImplementation "android.arch.core:core-testing:1.1.1"
-
-    // Test helpers for Room
-    testImplementation "android.arch.persistence.room:testing:1.0.0"
-
-    implementation 'com.android.support:cardview-v7:27.1.1'
+//    implementation 'com.applandeo:material-calendar-view:1.4.0'
 }

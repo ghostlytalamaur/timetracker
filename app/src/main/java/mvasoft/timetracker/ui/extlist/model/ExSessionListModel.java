@@ -11,26 +11,37 @@ import java.util.List;
 import dagger.Lazy;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
+import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.Session;
+import mvasoft.timetracker.vo.SessionWithDescription;
 
 public class ExSessionListModel {
 
-    private static final long TARGET_TIME = 8 * 60 * 60;
     private final MutableLiveData<Long> mDateLiveData;
     private final Lazy<AppPreferences> mPreferences;
-    private LiveData<List<Session>> mSessions;
+    private LiveData<List<SessionWithDescription>> mSessions;
+    private LiveData<DayDescription> mDayDescription;
     private Lazy<DataRepository> mRepository;
 
     public ExSessionListModel(Lazy<DataRepository> repository, Lazy<AppPreferences> preferences) {
         mRepository = repository;
         mPreferences = preferences;
         mDateLiveData = new MutableLiveData<>();
+
+        mSessions = Transformations.switchMap(mDateLiveData,
+                (date) -> mRepository.get().getSessionForDate(date));
+
+        mDayDescription = new MutableLiveData<>();
+        mDayDescription = Transformations.switchMap(mDateLiveData,
+                (date) -> mRepository.get().getDayDescription(date));
+
+        // Empty observer to compute mDayDescription value every time, when mDateLiveData changes
+        // LiveData does not update their value when no active observers
+        // TODO: think about leaks
+        mDayDescription.observeForever(dayDescription -> {});
     }
 
-    public LiveData<List<Session>> getSessionList() {
-        if (mSessions == null)
-            mSessions = Transformations.switchMap(mDateLiveData,
-                    (date) -> mRepository.get().getSessionForDate(date));
+    public LiveData<List<SessionWithDescription>> getSessionList() {
         return mSessions;
     }
 
@@ -58,7 +69,7 @@ public class ExSessionListModel {
     }
 
     public long getSummaryTime() {
-        List<Session> list = getSessionList().getValue();
+        List<? extends Session> list = getSessionList().getValue();
         long summary = 0;
         if (list != null)
             for (Session s : list)
@@ -67,15 +78,21 @@ public class ExSessionListModel {
     }
 
     private long getTargetTime() {
-        if (isWorkingDay())
-            return mPreferences.get().getTargetTime();
+        if (mDayDescription.getValue() == null)
+            return mPreferences.get().getTargetTimeInMin() * 60;
+        else if (isWorkingDay())
+            return mDayDescription.getValue().getTargetDuration() * 60;
         else
             return 0;
     }
 
     private boolean isWorkingDay() {
         // TODO: cache value
-        return mDateLiveData.getValue() != null && mPreferences.get().isWorkingDay(new DateTime(mDateLiveData.getValue() * 1000).getDayOfWeek());
+        if (mDayDescription.getValue() != null)
+            return mDayDescription.getValue().isWorkingDay();
+        else
+            return mDateLiveData.getValue() != null &&
+                    mPreferences.get().isWorkingDay(new DateTime(mDateLiveData.getValue() * 1000).getDayOfWeek());
     }
 
     public long getTargetDiff() {

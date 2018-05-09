@@ -11,6 +11,9 @@
     <string name="caption_stop">Stop: %s</string>
     <string name="caption_duration">Duration: %s</string>
     <string name="caption_working_days">Working days</string>
+    <string name="caption_tabs_empty">None</string>
+    <string name="caption_tabs_day">Day</string>
+
     <string name="text_today_empty">Today: --:--:--</string>
     <string name="query_invalid_uri">Invalid query uri.</string>
     <string name="text_week">Week: %s</string>
@@ -50,5 +53,4 @@
     <string name="import_succeeded">Import completed</string>
     <string name="import_failed">Cannot import database</string>
     <string name="action_save">Save</string>
-    <string name="caption_tabs_empty">None</string>
 </resources>
