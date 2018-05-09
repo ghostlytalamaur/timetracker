@@ -47,8 +47,9 @@ public class ExSessionListViewModel extends BaseViewModel {
     private ScheduledExecutorService mUpdateExecutor;
 
     private CalculatedLiveData<List<SessionWithDescription>, String> mSummaryTimeLiveData;
-    private CalculatedLiveData<List<SessionWithDescription>, String> mTargetDiffLiveData;
-    private CalculatedLiveData<List<SessionWithDescription>, Boolean> mIsTargetAchieved;
+    private final CalculatedLiveData<List<SessionWithDescription>, Long> mTargetDiffLiveData;
+    private final LiveData<String> mTargetDiffStrLiveData;
+    private final LiveData<Boolean> mIsTargetAchieved;
 
     private final Lazy<DataRepository> mRepository;
 
@@ -64,6 +65,14 @@ public class ExSessionListViewModel extends BaseViewModel {
         mRepository = repository;
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
         mModel.getSessionList().observeForever(sessions -> updateTimer());
+
+        mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getSessionList(),
+                input -> mModel.getTargetDiff());
+
+        mTargetDiffStrLiveData = Transformations.map(mTargetDiffLiveData,
+                mFormatter::formatDuration);
+        mIsTargetAchieved = Transformations.map(mTargetDiffLiveData,
+                (target) -> target >= 0);
     }
 
     public LiveData<String> getSummaryTime() {
@@ -79,25 +88,10 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     public LiveData<String> getTargetDiff() {
-        if (mTargetDiffLiveData == null) {
-            mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<SessionWithDescription>, String>() {
-                @Override
-                public String apply(List<SessionWithDescription> input) {
-                    return mFormatter.formatDuration(mModel.getTargetDiff());
-                }
-            });
-        }
-        return mTargetDiffLiveData;
+        return mTargetDiffStrLiveData;
     }
 
     public LiveData<Boolean> getIsTargetAchieved() {
-        if (mIsTargetAchieved == null)
-            mIsTargetAchieved = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<SessionWithDescription>, Boolean>() {
-                @Override
-                public Boolean apply(List<SessionWithDescription> input) {
-                    return mModel.getTargetDiff() >= 0;
-                }
-            });
         return mIsTargetAchieved;
     }
 

@@ -2,16 +2,20 @@ package mvasoft.timetracker.ui.extlist.model;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.Transformations;
+import android.support.annotation.Nullable;
 
 import org.joda.time.DateTime;
 
+import java.util.Arrays;
 import java.util.List;
 
 import dagger.Lazy;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.vo.DayDescription;
+import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
 import mvasoft.timetracker.vo.SessionWithDescription;
 
@@ -22,6 +26,8 @@ public class ExSessionListModel {
     private LiveData<List<SessionWithDescription>> mSessions;
     private LiveData<DayDescription> mDayDescription;
     private Lazy<DataRepository> mRepository;
+
+    private LiveData<List<DayGroup>> mDayGroups;
 
     public ExSessionListModel(Lazy<DataRepository> repository, Lazy<AppPreferences> preferences) {
         mRepository = repository;
@@ -39,6 +45,14 @@ public class ExSessionListModel {
         // LiveData does not update their value when no active observers
         // TODO: think about leaks
         mDayDescription.observeForever(dayDescription -> {});
+        mDayGroups = Transformations.switchMap(mDateLiveData,
+                (date) -> mRepository.get().getDayGroups(Arrays.asList(date)));
+        mDayGroups.observeForever(new Observer<List<DayGroup>>() {
+            @Override
+            public void onChanged(@Nullable List<DayGroup> dayGroups) {
+
+            }
+        });
     }
 
     public LiveData<List<SessionWithDescription>> getSessionList() {
