@@ -91,7 +91,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     protected ExSessionListViewModel onCreateViewModel() {
         ExSessionListViewModel vm = ViewModelProviders.of(this, viewModelFactory)
                 .get(ExSessionListViewModel.class);
-        vm.setDate(mDate);
+        vm.setDate(mDate, mDate);
         return vm;
     }
 
@@ -118,9 +118,9 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         listConfig.applyConfig(getContext(), getBinding().itemsView);
     }
 
-    public void setDate(long date) {
-        mDate = date;
-        getViewModel().setDate(date);
+    public void setDate(long dateStart, long dateEnd) {
+        mDate = dateStart;
+        getViewModel().setDate(dateStart, dateEnd);
     }
 
     private class ExSessionListActionHandler implements ActionClickListener {
@@ -148,6 +148,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         SessionItemViewModel groupModel = (SessionItemViewModel) model;
         if ((mActionMode == null) &&
                 (getActivity() instanceof ISessionListCallbacks))
+            // TODO: update for groups
             ((ISessionListCallbacks) getActivity()).editSession(groupModel.getId());
         else if (mActionMode != null) {
             groupModel.setIsSelected(!groupModel.getIsSelected());

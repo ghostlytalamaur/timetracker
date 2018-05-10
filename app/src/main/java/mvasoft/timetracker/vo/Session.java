@@ -5,7 +5,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
 @Entity(tableName = "sessions")
-public class Session {
+public class Session implements TimeInfoProvider {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "_id")
@@ -31,16 +31,8 @@ public class Session {
         return mStartTime;
     }
 
-    public void setStartTime(long startTime) {
-        mStartTime = startTime;
-    }
-
     public long getEndTime() {
         return mEndTime;
-    }
-
-    public void setEndTime(long endTime) {
-        mEndTime = endTime;
     }
 
     public boolean isRunning() {

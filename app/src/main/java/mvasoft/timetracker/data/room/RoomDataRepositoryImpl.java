@@ -19,7 +19,6 @@ import mvasoft.timetracker.db.SessionsDao;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
-import mvasoft.timetracker.vo.SessionWithDescription;
 
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {
@@ -98,17 +97,7 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public LiveData<List<SessionWithDescription>> getSessionForDate(long date) {
-        long startDate = date - 7 * 24 * 60 * 60;
-        long endDate = date + 7 * 24 * 60 * 60;
-//        LiveData<List<SessionWithDescription>> res = mGroupsModel.getSessionWithDescription(startDate, endDate);
-//        return Transformations.map(res, new Function<List<SessionWithDescription>, List<Session>>() {
-//            @Override
-//            public List<Session> apply(List<SessionWithDescription> input) {
-//                List<Session> out = new ArrayList<>(input);
-//                return out;
-//            }
-//        });
+    public LiveData<List<Session>> getSessionForDate(long date) {
         return mGroupsModel.getSessionForDate(date);
     }
 

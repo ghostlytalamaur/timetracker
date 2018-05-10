@@ -7,7 +7,6 @@ import java.util.List;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
-import mvasoft.timetracker.vo.SessionWithDescription;
 
 public interface DataRepository {
 
@@ -20,7 +19,7 @@ public interface DataRepository {
     LiveData<Boolean> updateSession(Session session);
     LiveData<Session> getSessionById(long id);
 
-    LiveData<List<SessionWithDescription>> getSessionForDate(long date);
+    LiveData<List<Session>> getSessionForDate(long date);
 
     LiveData<List<Long>> getSessionsIds();
 

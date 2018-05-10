@@ -46,8 +46,9 @@ public abstract class SessionsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract long appendSession(Session entity);
 
-    @Query("SELECT * from sessions LEFT JOIN days on date(startTime, 'unixepoch') = date(days.dayDate, 'unixepoch') WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
-    public abstract LiveData<List<SessionWithDescription>> getSessionForDate(long date);
+//    LEFT JOIN days on date(startTime, 'unixepoch') = date(days.dayDate, 'unixepoch')
+    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
+    public abstract LiveData<List<Session>> getSessionForDate(long date);
     @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
     public abstract List<Session> getSessionForDateRaw(long date);
 
@@ -79,12 +80,12 @@ public abstract class SessionsDao {
         for (Long day : days) {
             DayDescription dayDescription = getDayDescriptionRaw(day);
             List<Session> sessions = getSessionForDateRaw(day);
-            if (dayDescription == null && sessions == null)
+            if (dayDescription == null && sessions == null || sessions.size() == 0)
                 continue;
 
             if (res == null)
                 res = new ArrayList<>();
-            res.add(new DayGroup(dayDescription, sessions));
+            res.add(new DayGroup(day, dayDescription, sessions));
         }
         return res;
     }

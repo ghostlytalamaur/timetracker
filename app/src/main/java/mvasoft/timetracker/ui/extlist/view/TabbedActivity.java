@@ -36,6 +36,7 @@ import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
 import mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel;
 import mvasoft.timetracker.ui.preferences.PreferencesActivity;
 import mvasoft.timetracker.utils.DateTimeFormatters;
+import mvasoft.timetracker.utils.DateTimeHelper;
 
 public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding,
         TabbedActivityViewModel> implements ExSessionListFragment.ISessionListCallbacks {
@@ -62,15 +63,14 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         initViewPager();
         getBinding().datePickerTitle.setText(mFormatter.formatDate(System.currentTimeMillis() / 1000));
 
+        // TODO: save selected date in savedInstanceState
         mDate = getBinding().calendarView.getDate() / 1000;
         getBinding().calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
                 DateTime dt = new DateTime(year, month + 1, dayOfMonth, 0, 0, 0);
                 mDate = dt.getMillis() / 1000;
-                Fragment fragment = mPagerAdapter.getFragment(getBinding().viewPager.getCurrentItem());
-                if (fragment instanceof ExSessionListFragment)
-                    ((ExSessionListFragment) fragment).setDate(mDate);
+                updateFragmentDate();
                 getBinding().datePickerTitle.setText(mFormatter.formatDate(mDate));
             }
         });
@@ -83,7 +83,24 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
             getBinding().appBarLayout.setExpanded(!mIsExpanded, true);
         });
-        getBinding().toolbar.setElevation(40);
+    }
+
+    private void updateFragmentDate() {
+        Fragment fragment = mPagerAdapter.getFragment(getBinding().viewPager.getCurrentItem());
+        if (fragment instanceof ExSessionListFragment) {
+            ExSessionListFragment listFragment = ((ExSessionListFragment) fragment);
+            switch (getBinding().viewPager.getCurrentItem()) {
+                case 1: // Week
+                    listFragment.setDate(DateTimeHelper.startOfWeek(mDate), DateTimeHelper.endOfWeek(mDate));
+                    break;
+                case 2: // Month
+                    listFragment.setDate(DateTimeHelper.startOfMonth(mDate), DateTimeHelper.endOfMonth(mDate));
+                    break;
+                default: // Day
+                    listFragment.setDate(mDate, mDate);
+                    break;
+            }
+        }
     }
 
     @Override
@@ -143,6 +160,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
             @Override
             public Fragment getItem(int position) {
+                // TODO: set date properly
                 return ExSessionListFragment.newInstance(getBinding().calendarView.getDate() / 1000);
             }
 
@@ -154,7 +172,12 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             @Nullable
             @Override
             public CharSequence getPageTitle(int position) {
-                return getString(R.string.caption_tabs_day) + position;
+                switch (position) {
+                    case 0: return getString(R.string.caption_tabs_day);
+                    case 1: return getString(R.string.caption_tabs_week);
+                    case 2: return getString(R.string.caption_tabs_month);
+                    default: return "Undefined";
+                }
             }
         };
 
@@ -165,6 +188,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
             @Override
             public void onPageSelected(int position) {
+                updateFragmentDate();
                 if (mActionMode == null)
                     return;
 
@@ -203,7 +227,8 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     }
 
     private void actionToggle() {
-        LiveData<DataRepository.ToggleSessionResult> toggleResult = getViewModel().toggleSession();
+        // TODO: move fab action handler to fragment
+        final LiveData<DataRepository.ToggleSessionResult> toggleResult = getViewModel().toggleSession();
         toggleResult.observe(this, new Observer<DataRepository.ToggleSessionResult>() {
             @Override
             public void onChanged(@Nullable DataRepository.ToggleSessionResult toggleSessionResult) {

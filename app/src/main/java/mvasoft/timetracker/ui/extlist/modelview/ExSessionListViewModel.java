@@ -26,12 +26,13 @@ import dagger.Lazy;
 import mvasoft.timetracker.common.CalculatedLiveData;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
+import mvasoft.timetracker.databinding.recyclerview.ListItemHelper;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
-import mvasoft.timetracker.ui.extlist.model.ExSessionListModel;
+import mvasoft.timetracker.ui.extlist.model.DayGroupListModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
+import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
-import mvasoft.timetracker.vo.SessionWithDescription;
 
 import static mvasoft.timetracker.common.Const.LOG_TAG;
 
@@ -41,13 +42,13 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     private final Handler mHandler;
     private ScheduledFuture<?> mUpdateFuture;
-    private ExSessionListModel mModel;
+    private DayGroupListModel mModel;
     private final DateTimeFormatters mFormatter;
     private LiveData<List<BaseItemModel>> mListModel;
     private ScheduledExecutorService mUpdateExecutor;
 
-    private CalculatedLiveData<List<SessionWithDescription>, String> mSummaryTimeLiveData;
-    private final CalculatedLiveData<List<SessionWithDescription>, Long> mTargetDiffLiveData;
+    private CalculatedLiveData<List<DayGroup>, String> mSummaryTimeLiveData;
+    private final CalculatedLiveData<List<DayGroup>, Long> mTargetDiffLiveData;
     private final LiveData<String> mTargetDiffStrLiveData;
     private final LiveData<Boolean> mIsTargetAchieved;
 
@@ -61,13 +62,13 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         mFormatter = new DateTimeFormatters();
         mHandler = new Handler();
-        mModel = new ExSessionListModel(repository, appPreferences);
+        mModel = new DayGroupListModel(appPreferences, repository);
         mRepository = repository;
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
-        mModel.getSessionList().observeForever(sessions -> updateTimer());
+        mModel.getItems().observeForever(sessions -> updateTimer());
 
-        mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getSessionList(),
-                input -> mModel.getTargetDiff());
+        mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getItems(),
+                input -> mModel.getTargetTimeDiff());
 
         mTargetDiffStrLiveData = Transformations.map(mTargetDiffLiveData,
                 mFormatter::formatDuration);
@@ -77,9 +78,9 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     public LiveData<String> getSummaryTime() {
         if (mSummaryTimeLiveData == null) {
-            mSummaryTimeLiveData = new CalculatedLiveData<>(mModel.getSessionList(), new Function<List<SessionWithDescription>, String>() {
+            mSummaryTimeLiveData = new CalculatedLiveData<>(mModel.getItems(), new Function<List<DayGroup>, String>() {
                 @Override
-                public String apply(List<SessionWithDescription> input) {
+                public String apply(List<DayGroup> input) {
                     return mFormatter.formatDuration(mModel.getSummaryTime());
                 }
             });
@@ -112,7 +113,7 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     private void updateTimer() {
-        boolean hasOpened = mModel.hasOpenedSessions();
+        boolean hasOpened = mModel.hasRunningSessions();
         if (!hasOpened && mUpdateFuture != null && !mUpdateFuture.isCancelled()) {
             mUpdateFuture.cancel(true);
             mUpdateFuture = null;
@@ -126,11 +127,11 @@ public class ExSessionListViewModel extends BaseViewModel {
         if (mListModel == null || mListModel.getValue() == null)
             return;
 
-        List<? extends Session> list = mModel.getSessionList().getValue();
+        List<? extends DayGroup> list = mModel.getItems().getValue();
         if (list == null)
             return;
 
-        for (Session s : list) {
+        for (DayGroup s : list) {
             if (s.isRunning()) {
                 BaseItemModel vm = getSessionViewModel(s.getId());
                 if (vm != null)
@@ -157,26 +158,42 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     public LiveData<List<BaseItemModel>> getListModel() {
         if (mListModel == null) {
-            mListModel = Transformations.map(mModel.getSessionList(), list -> {
-                if (list.isEmpty())
-                    return null;
-
-                ArrayList<BaseItemModel> res = new ArrayList<>();
-                for (int i = list.size() - 1; i >= 0; i--)
-                    res.add(new SessionItemViewModel(mFormatter, list.get(i)));
-                return res;
+            mListModel = Transformations.map(mModel.getItems(), list -> {
+                return buildListItem();
             });
         }
         return mListModel;
     }
 
+    private List<BaseItemModel> buildListItem() {
+        List<DayGroup> list = mModel.getItems().getValue();
+        if (list == null ||  list.isEmpty())
+            return null;
+
+        // TODO: use different items for group and single session
+        ArrayList<BaseItemModel> res = new ArrayList<>();
+        if (mModel.isSingleDay()) {
+            DayGroup group = list.get(0);
+            for (Session item : group.getSessions())
+                res.add(new SessionItemViewModel(mFormatter, item));
+        }
+        else {
+            for (DayGroup item : mModel.getItems().getValue())
+                res.add(new SessionItemViewModel(mFormatter, item));
+        }
+        return res;
+    }
+
     public int getSelectedItemsCount() {
-        return getSelectedItemsIds().size();
+        int res = 0;
+        for (BaseItemModel ignored : ListItemHelper.getSelectedItemsIter(mListModel.getValue()))
+            res++;
+        return res;
     }
 
     @Override
     protected void onCleared() {
-        Log.d(LOG_TAG, "ExSessionListViewModel.onCleared() ");
+        Log.d(LOG_TAG, "ExSessionListViewModel.onCleared()");
         if (mListModel != null && mListModel.getValue() != null)
             for (BaseItemModel item : mListModel.getValue())
                 item.onCleared();
@@ -185,52 +202,30 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     public void deselectAll() {
-        List<BaseItemModel> list = getListModel().getValue();
-        if (list != null) {
-            for (int i = 0; i < list.size(); i++)
-                if (list.get(i).getIsSelected())
-                    list.get(i).setIsSelected(false);
-        }
+        ListItemHelper.deselectAll(getListModel().getValue());
     }
 
     public LiveData<Integer> deleteSelected() {
-        return mRepository.get().deleteSessions(getSelectedItemsIds());
+        return mRepository.get().deleteSessions(ListItemHelper.getSelectedItemsIds(mListModel.getValue()));
     }
 
-    private List<Long> getSelectedItemsIds() {
-        ArrayList<Long> ids = new ArrayList<>();
-        List<BaseItemModel> list = getListModel().getValue();
-        if (list != null) {
-            for (int i = 0; i < list.size(); i++)
-                if (list.get(i).getIsSelected())
-                    ids.add(list.get(i).getId());
-        }
-        return ids;
-    }
 
     public void copySelectedToClipboard() {
-        List<? extends Session> groups = mModel.getSessionList().getValue();
-        if (groups == null)
-            return;
-
         final ClipboardManager clipboard = (ClipboardManager)
                 getApplication().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard == null)
             return;
 
         StringBuilder text = new StringBuilder();
-        for (Long id : getSelectedItemsIds()) {
-            Session session = mModel.getById(id);
-            text.append(String.format("%s - %s: %s\n",
-                    mFormatter.formatDate(session.getStartTime()),
-                    mFormatter.formatDate(session.getEndTime()),
-                    mFormatter.formatDuration(session.getDuration())));
-        }
+
+        for (BaseItemModel item : ListItemHelper.getSelectedItemsIter(getListModel().getValue()))
+            if (item instanceof SessionItemViewModel)
+                text.append(((SessionItemViewModel) item).asString());
 
         clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", text.toString()));
     }
 
-    public void setDate(long date) {
-        mModel.setDate(date);
+    public void setDate(long dateStart, long dateEnd) {
+        mModel.setDateRange(dateStart, dateEnd);
     }
 }

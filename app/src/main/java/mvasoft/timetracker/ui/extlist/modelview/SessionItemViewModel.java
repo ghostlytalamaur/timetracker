@@ -6,42 +6,42 @@ import android.databinding.Bindable;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
-import mvasoft.timetracker.vo.Session;
+import mvasoft.timetracker.vo.TimeInfoProvider;
 
 public class SessionItemViewModel extends BaseObservable implements BaseItemModel {
 
     private boolean mIsSelected;
     private final DateTimeFormatters mFormatter;
-    private final Session mSession;
+    private final TimeInfoProvider mTimeInfo;
 
-    SessionItemViewModel(DateTimeFormatters formatter, Session session) {
+    SessionItemViewModel(DateTimeFormatters formatter, TimeInfoProvider timeInfo) {
         mFormatter = formatter;
-        mSession = session;
+        mTimeInfo = timeInfo;
     }
 
     public String getStartTime() {
-        if (mSession != null)
-            return mFormatter.formatTime(mSession.getStartTime());
+        if (mTimeInfo != null)
+            return mFormatter.formatDate(mTimeInfo.getStartTime()) + " " + mFormatter.formatTime(mTimeInfo.getStartTime());
         else
             return "Start date";
     }
 
     public String getEndTime() {
-         if (mSession != null)
-             return mFormatter.formatTime(mSession.getEndTime());
+         if (mTimeInfo != null)
+             return mFormatter.formatDate(mTimeInfo.getEndTime()) + " " + mFormatter.formatTime(mTimeInfo.getEndTime());
         else
             return "End date";
     }
 
     public String getDuration() {
-        if (mSession != null)
-            return mFormatter.formatDuration(mSession.getDuration());
+        if (mTimeInfo != null)
+            return mFormatter.formatDuration(mTimeInfo.getDuration());
         else
             return "Duration";
     }
 
     public boolean getIsRunning() {
-        return (mSession != null) && mSession.isRunning();
+        return (mTimeInfo != null) && mTimeInfo.isRunning();
     }
 
     @Bindable
@@ -67,10 +67,17 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
 
     @Override
     public long getId() {
-        if (mSession != null)
-            return mSession.getId();
+        if (mTimeInfo != null)
+            return mTimeInfo.getId();
         else
             return 0;
+    }
+
+    public String asString() {
+        return String.format("%s - %s: %s\n",
+                mFormatter.formatDate(mTimeInfo.getStartTime()),
+                mFormatter.formatDate(mTimeInfo.getEndTime()),
+                mFormatter.formatDuration(mTimeInfo.getDuration()));
     }
 
     @Override
@@ -79,6 +86,6 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
             return false;
         SessionItemViewModel to = (SessionItemViewModel) obj;
         return getIsSelected() == to.getIsSelected() &&
-                (mSession != null && mSession.equals(to.mSession));
+                (mTimeInfo != null && mTimeInfo.equals(to.mTimeInfo));
     }
 }

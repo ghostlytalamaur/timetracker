@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="17dp"
             android:layout_marginStart="8dp"
-            android:text="@{String.format(@string/caption_today, view_model.summaryTime)}"
+            android:text="@{String.format(@string/caption_summary, view_model.summaryTime)}"
             app:layout_constraintBottom_toTopOf="@+id/guideline"
             app:layout_constraintStart_toEndOf="@+id/imageView"
             app:layout_constraintTop_toTopOf="@+id/guideline"
