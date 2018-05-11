@@ -4,6 +4,7 @@ import android.app.Application;
 import android.arch.core.util.Function;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.arch.lifecycle.Transformations;
 import android.content.ClipData;
@@ -11,6 +12,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -41,6 +43,8 @@ public class ExSessionListViewModel extends BaseViewModel {
 
 
     private final Handler mHandler;
+    private final ModelObserver mModelObserver;
+    private final Lazy<AppPreferences> mAppPreferences;
     private ScheduledFuture<?> mUpdateFuture;
     private DayGroupListModel mModel;
     private final DateTimeFormatters mFormatter;
@@ -62,10 +66,12 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         mFormatter = new DateTimeFormatters();
         mHandler = new Handler();
+        mAppPreferences = appPreferences;
         mModel = new DayGroupListModel(appPreferences, repository);
         mRepository = repository;
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
-        mModel.getItems().observeForever(sessions -> updateTimer());
+        mModelObserver = new ModelObserver();
+        mModel.getItems().observeForever(mModelObserver);
 
         mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getItems(),
                 input -> mModel.getTargetTimeDiff());
@@ -127,16 +133,11 @@ public class ExSessionListViewModel extends BaseViewModel {
         if (mListModel == null || mListModel.getValue() == null)
             return;
 
-        List<? extends DayGroup> list = mModel.getItems().getValue();
-        if (list == null)
-            return;
-
-        for (DayGroup s : list) {
-            if (s.isRunning()) {
-                BaseItemModel vm = getSessionViewModel(s.getId());
-                if (vm != null)
-                    vm.dataChanged();
-            }
+        List<BaseItemModel> list = mListModel.getValue();
+        for (BaseItemModel item : list) {
+            if (item instanceof SessionItemViewModel && ((SessionItemViewModel) item).getIsRunning() ||
+                    item instanceof DayItemViewModel && ((DayItemViewModel) item).getIsRunning())
+                item.dataChanged();
         }
 
         if (mSummaryTimeLiveData != null)
@@ -145,22 +146,9 @@ public class ExSessionListViewModel extends BaseViewModel {
             mTargetDiffLiveData.invalidateValue();
     }
 
-    private BaseItemModel getSessionViewModel(long id) {
-        if (mListModel == null || mListModel.getValue() == null)
-            return null;
-
-        for (BaseItemModel item : mListModel.getValue())
-            if (item.getId() == id)
-                return item;
-
-        return null;
-    }
-
     public LiveData<List<BaseItemModel>> getListModel() {
         if (mListModel == null) {
-            mListModel = Transformations.map(mModel.getItems(), list -> {
-                return buildListItem();
-            });
+            mListModel = Transformations.map(mModel.getItems(), list -> buildListItem());
         }
         return mListModel;
     }
@@ -179,7 +167,7 @@ public class ExSessionListViewModel extends BaseViewModel {
         }
         else {
             for (DayGroup item : mModel.getItems().getValue())
-                res.add(new SessionItemViewModel(mFormatter, item));
+                res.add(new DayItemViewModel(mFormatter, item, mAppPreferences.get()));
         }
         return res;
     }
@@ -198,6 +186,12 @@ public class ExSessionListViewModel extends BaseViewModel {
             for (BaseItemModel item : mListModel.getValue())
                 item.onCleared();
 
+        if (mUpdateFuture != null && !mUpdateFuture.isCancelled()) {
+            mUpdateFuture.cancel(true);
+            mUpdateFuture = null;
+        }
+
+        mModel.getItems().removeObserver(mModelObserver);
         super.onCleared();
     }
 
@@ -227,5 +221,13 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     public void setDate(long dateStart, long dateEnd) {
         mModel.setDateRange(dateStart, dateEnd);
+    }
+
+    private class ModelObserver implements Observer<List<DayGroup>> {
+
+        @Override
+        public void onChanged(@Nullable List<DayGroup> list) {
+            updateTimer();
+        }
     }
 }

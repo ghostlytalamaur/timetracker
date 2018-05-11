@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.Pair;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.view.ActionMode;
@@ -41,6 +42,9 @@ import mvasoft.timetracker.utils.DateTimeHelper;
 public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding,
         TabbedActivityViewModel> implements ExSessionListFragment.ISessionListCallbacks {
 
+    private static final String STATE_DATE = "selected_date";
+    private static final String STATE_TAB = "tab_num";
+
     private final ActionClickListener mActionHandler = new TabbedActivityActionHandler();
     private final DateTimeFormatters mFormatter = new DateTimeFormatters();
     private ActionMode mActionMode;
@@ -61,10 +65,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         getBinding().setVariable(BR.actionHandler, mActionHandler);
         setSupportActionBar(getBinding().toolbar);
         initViewPager();
-        getBinding().datePickerTitle.setText(mFormatter.formatDate(System.currentTimeMillis() / 1000));
 
-        // TODO: save selected date in savedInstanceState
-        mDate = getBinding().calendarView.getDate() / 1000;
         getBinding().calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
@@ -83,23 +84,45 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
             getBinding().appBarLayout.setExpanded(!mIsExpanded, true);
         });
+
+        // Restore state
+        if (savedInstanceState != null) {
+            mDate = savedInstanceState.getLong(STATE_DATE, System.currentTimeMillis() / 1000);
+            getBinding().viewPager.setCurrentItem(savedInstanceState.getInt(STATE_TAB, 0));
+        }
+        else {
+            mDate = getBinding().calendarView.getDate() / 1000;
+        }
+        getBinding().calendarView.setDate(mDate * 1000);
+        getBinding().datePickerTitle.setText(mFormatter.formatDate(mDate));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(STATE_DATE, mDate);
+        outState.putInt(STATE_TAB, getBinding().viewPager.getCurrentItem());
     }
 
     private void updateFragmentDate() {
         Fragment fragment = mPagerAdapter.getFragment(getBinding().viewPager.getCurrentItem());
         if (fragment instanceof ExSessionListFragment) {
             ExSessionListFragment listFragment = ((ExSessionListFragment) fragment);
-            switch (getBinding().viewPager.getCurrentItem()) {
-                case 1: // Week
-                    listFragment.setDate(DateTimeHelper.startOfWeek(mDate), DateTimeHelper.endOfWeek(mDate));
-                    break;
-                case 2: // Month
-                    listFragment.setDate(DateTimeHelper.startOfMonth(mDate), DateTimeHelper.endOfMonth(mDate));
-                    break;
-                default: // Day
-                    listFragment.setDate(mDate, mDate);
-                    break;
-            }
+            Pair<Long, Long> dateRange = getDateForFragment(getBinding().viewPager.getCurrentItem());
+            //noinspection ConstantConditions
+            listFragment.setDate(dateRange.first, dateRange.second);
+        }
+    }
+
+    @NonNull
+    private Pair<Long, Long> getDateForFragment(int position) {
+        switch (position) {
+            case 1: // Week
+                return new Pair<>(DateTimeHelper.startOfWeek(mDate), DateTimeHelper.endOfWeek(mDate));
+            case 2: // Month
+                return new Pair<>(DateTimeHelper.startOfMonth(mDate), DateTimeHelper.endOfMonth(mDate));
+            default: // Day
+                return new Pair<>(mDate, mDate);
         }
     }
 
@@ -127,7 +150,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent = null;
+        Intent intent;
         switch (item.getItemId()) {
             case R.id.action_settings:
                 intent = new Intent(this, PreferencesActivity.class);
@@ -160,8 +183,9 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
             @Override
             public Fragment getItem(int position) {
-                // TODO: set date properly
-                return ExSessionListFragment.newInstance(getBinding().calendarView.getDate() / 1000);
+                Pair<Long, Long> dateRange = getDateForFragment(position);
+                //noinspection ConstantConditions
+                return ExSessionListFragment.newInstance(dateRange.first, dateRange.second);
             }
 
             @Override
@@ -169,7 +193,6 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
                 return 3;
             }
 
-            @Nullable
             @Override
             public CharSequence getPageTitle(int position) {
                 switch (position) {

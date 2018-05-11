@@ -21,14 +21,14 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
 
     public String getStartTime() {
         if (mTimeInfo != null)
-            return mFormatter.formatDate(mTimeInfo.getStartTime()) + " " + mFormatter.formatTime(mTimeInfo.getStartTime());
+            return /*mFormatter.formatDate(mTimeInfo.getStartTime()) + " " +*/ mFormatter.formatTime(mTimeInfo.getStartTime());
         else
             return "Start date";
     }
 
     public String getEndTime() {
          if (mTimeInfo != null)
-             return mFormatter.formatDate(mTimeInfo.getEndTime()) + " " + mFormatter.formatTime(mTimeInfo.getEndTime());
+             return /*mFormatter.formatDate(mTimeInfo.getEndTime()) + " " +*/ mFormatter.formatTime(mTimeInfo.getEndTime());
         else
             return "End date";
     }

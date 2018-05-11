@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -39,6 +40,7 @@ import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
 import mvasoft.timetracker.databinding.recyclerview.LiveBindableAdapter;
 import mvasoft.timetracker.databinding.recyclerview.ModelItemIdDelegate;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
+import mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel;
 
@@ -47,21 +49,24 @@ import static mvasoft.timetracker.common.Const.LOG_TAG;
 
 public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel> {
 
-    private static final String ARGS_DATE = "args_date";
+    private static final String ARGS_DATE_START = "args_date_MIN";
+    private static final String ARGS_DATE_END = "args_date_MAX";
 
     @SuppressWarnings("FieldCanBeLocal")
     private LiveBindableAdapter<List<BaseItemModel>> mAdapter;
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
-    private long mDate;
+    private long mDateStart;
+    private long mDateEnd;
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
 
-    public static Fragment newInstance(long date) {
+    public static Fragment newInstance(long minDate, long maxDate) {
         Fragment fragment = new ExSessionListFragment();
         Bundle args = new Bundle();
-        args.putLong(ARGS_DATE, date);
+        args.putLong(ARGS_DATE_START, minDate);
+        args.putLong(ARGS_DATE_END, maxDate);
         fragment.setArguments(args);
         return fragment;
     }
@@ -70,10 +75,11 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null)
-            mDate = getArguments().getLong(ARGS_DATE);
+        if (getArguments() != null) {
+            mDateStart = getArguments().getLong(ARGS_DATE_START);
+            mDateEnd = getArguments().getLong(ARGS_DATE_END);
+        }
 
-        // TODO: safe group type in savedInstanceState
         mActionModeCallbacks = new ActionModeCallbacks();
     }
 
@@ -82,7 +88,6 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
 
-        // TODO: move init into new onAfterCreateViewModel() method
         initAdapter();
         updateActionMode();
         return v;
@@ -91,7 +96,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     protected ExSessionListViewModel onCreateViewModel() {
         ExSessionListViewModel vm = ViewModelProviders.of(this, viewModelFactory)
                 .get(ExSessionListViewModel.class);
-        vm.setDate(mDate, mDate);
+        vm.setDate(mDateStart, mDateEnd);
         return vm;
     }
 
@@ -108,7 +113,10 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         mAdapter = new LiveBindableAdapter<>(
                 new ModelItemIdDelegate<>(new ExSessionListActionHandler(),
                         SessionItemViewModel.class,
-                        R.layout.ex_session_list_item, BR.SessionGroup, BR.actionHandler)
+                        R.layout.list_item_session, BR.SessionGroup, BR.actionHandler),
+                new ModelItemIdDelegate<>(null,
+                        DayItemViewModel.class,
+                        R.layout.list_item_day, BR.view_model, 0)
         );
         mAdapter.setHasStableIds(true);
         mAdapter.setData(this, getViewModel().getListModel());
@@ -116,10 +124,16 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
                 .addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL))
                 .build(getContext());
         listConfig.applyConfig(getContext(), getBinding().itemsView);
+        if (getBinding().itemsView.getLayoutManager() instanceof LinearLayoutManager) {
+            ((LinearLayoutManager) getBinding().itemsView.getLayoutManager()).setStackFromEnd(true);
+            ((LinearLayoutManager) getBinding().itemsView.getLayoutManager()).setReverseLayout(true);
+        }
+
     }
 
     public void setDate(long dateStart, long dateEnd) {
-        mDate = dateStart;
+        mDateStart = dateStart;
+        mDateEnd = dateEnd;
         getViewModel().setDate(dateStart, dateEnd);
     }
 
@@ -196,6 +210,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
                     @Override
                     public void onChanged(@Nullable Integer cnt) {
                         Toast.makeText(getContext(), cnt + " session was removed.", Toast.LENGTH_LONG).show();
+                        result.removeObserver(this);
                     }
                 });
                 if (mActionMode != null)

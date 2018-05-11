@@ -11,16 +11,6 @@
             name="view_model"
             type="mvasoft.timetracker.ui.editsession.viewmodel.EditSessionActivityViewModel"
             />
-
-        <variable
-            name="actionHandler"
-            type="com.drextended.actionhandler.listener.ActionClickListener"
-            />
-
-        <import
-            alias="ActionType"
-            type="mvasoft.timetracker.ui.editsession.view.EditSessionActivity.EditSessionActionType"
-            />
     </data>
 
 

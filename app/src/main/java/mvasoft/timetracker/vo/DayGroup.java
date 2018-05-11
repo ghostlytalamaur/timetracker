@@ -104,4 +104,8 @@ public class DayGroup implements TimeInfoProvider {
     public List<Session> getSessions() {
         return mSessions;
     }
+
+    public long getTargetTimeDiff(AppPreferences preferences) {
+        return getDuration() - getTargetTime(preferences);
+    }
 }

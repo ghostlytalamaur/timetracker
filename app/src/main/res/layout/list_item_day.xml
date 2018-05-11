@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <data>
+        <variable
+            name="view_model"
+            type="mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel"
+            />
+
+        <import
+            alias="v"
+            type="android.view.View" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/ListSelectedBackground"
+        app:activated="@{view_model.isSelected}"
+        >
+
+        <android.support.constraint.ConstraintLayout
+            style="@style/ListSelectedBackground"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:clickable="false"
+            tools:ignore="HardcodedText">
+
+
+            <TextView
+                android:id="@+id/tvTarget"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:text="@{view_model.targetTimeDiff}"
+                android:textColor="@{view_model.isTargetAchieved ? @color/colorTextPositive : @color/colorTextNegative}"
+                app:layout_constraintBottom_toBottomOf="@+id/imgTarget"
+                app:layout_constraintStart_toEndOf="@+id/imgTarget"
+                app:layout_constraintTop_toTopOf="@+id/imgTarget"
+                tools:text="target" />
+
+            <ImageView
+                android:id="@+id/imgTarget"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toStartOf="@+id/guideline7"
+                app:layout_constraintStart_toStartOf="@+id/guideline7"
+                app:layout_constraintTop_toBottomOf="@+id/imgDuration"
+                app:srcCompat="@drawable/ic_to_target" />
+
+            <TextView
+                android:id="@+id/tvElapsed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:text="@{view_model.duration}"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintStart_toEndOf="@+id/imgDuration"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                tools:text="duration" />
+
+            <TextView
+                android:id="@+id/tvStartTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:text="@{view_model.startTime}"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintStart_toEndOf="@+id/imgStart"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                tools:text="start time" />
+
+            <TextView
+                android:id="@+id/tvEndTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:text="@{view_model.endTime}"
+                android:visibility="@{view_model.isRunning ? v.GONE : v.VISIBLE}"
+                app:layout_constraintBottom_toBottomOf="@+id/imgEnd"
+                app:layout_constraintStart_toEndOf="@+id/imgEnd"
+                app:layout_constraintTop_toTopOf="@+id/imgEnd"
+                tools:text="end time" />
+
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_begin="16dp" />
+
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintGuide_percent="0.27"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/imgEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"
+                android:visibility="@{view_model.isRunning ? v.GONE : v.VISIBLE}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/imgStart"
+                app:layout_constraintTop_toBottomOf="@+id/imgStart"
+                app:srcCompat="@drawable/ic_clock_out" />
+
+            <ImageView
+                android:id="@+id/imgStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintEnd_toStartOf="@+id/guideline2"
+                app:layout_constraintStart_toStartOf="@+id/guideline2"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                app:srcCompat="@drawable/ic_clock_in" />
+
+            <ImageView
+                android:id="@+id/imgDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintEnd_toStartOf="@+id/guideline7"
+                app:layout_constraintStart_toStartOf="@+id/guideline7"
+                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                app:srcCompat="@drawable/ic_clock_end" />
+
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_end="80dp" />
+
+        </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
+</layout>

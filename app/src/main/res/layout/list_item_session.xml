@@ -34,7 +34,7 @@
         <android.support.constraint.ConstraintLayout
             style="@style/ListSelectedBackground"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:clickable="false"
             tools:ignore="HardcodedText">
 
@@ -42,16 +42,16 @@
             <TextView
                 android:id="@+id/tvElapsed"
                 android:layout_width="wrap_content"
-                android:layout_height="25dp"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
                 android:gravity="end|center_vertical"
                 android:text="@{SessionGroup.duration}"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
-                app:layout_constraintStart_toEndOf="@+id/imgDuration"
-                app:layout_constraintTop_toTopOf="@+id/guideline4"
-                app:layout_constraintVertical_bias="0.363"
+                app:layout_constraintBottom_toBottomOf="@+id/imgDuration"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/imgDuration"
                 tools:layout_constraintBottom_creator="1"
                 tools:layout_constraintLeft_creator="1"
                 tools:layout_constraintRight_creator="1"
@@ -64,10 +64,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 android:text="@{SessionGroup.startTime}"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
+                app:layout_constraintBottom_toBottomOf="@+id/imgStart"
                 app:layout_constraintStart_toEndOf="@+id/imgStart"
-                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                app:layout_constraintTop_toTopOf="@+id/imgStart"
                 tools:text="start time" />
 
             <TextView
@@ -84,43 +85,29 @@
                 app:layout_constraintTop_toTopOf="@+id/imgEnd"
                 tools:text="end time" />
 
-            <android.support.constraint.Guideline
-                android:id="@+id/guideline2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_begin="16dp" />
-
-            <android.support.constraint.Guideline
-                android:id="@+id/guideline4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintGuide_percent="0.27"
-                app:layout_constraintTop_toTopOf="parent" />
-
             <ImageView
                 android:id="@+id/imgEnd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:layout_marginStart="128dp"
                 android:layout_marginTop="8dp"
                 android:visibility="@{SessionGroup.isRunning ? v.GONE : v.VISIBLE}"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/imgStart"
-                app:layout_constraintTop_toBottomOf="@+id/imgStart"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_clock_out" />
 
             <ImageView
                 android:id="@+id/imgStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
-                app:layout_constraintEnd_toStartOf="@+id/guideline2"
-                app:layout_constraintStart_toStartOf="@+id/guideline2"
-                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_clock_in" />
 
             <ImageView
@@ -129,18 +116,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:layout_marginEnd="8dp"
-                app:layout_constraintBottom_toTopOf="@+id/guideline4"
-                app:layout_constraintEnd_toStartOf="@+id/guideline7"
-                app:layout_constraintStart_toStartOf="@+id/guideline7"
-                app:layout_constraintTop_toTopOf="@+id/guideline4"
+                android:layout_marginTop="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/tvElapsed"
+                app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_clock_end" />
-
-            <android.support.constraint.Guideline
-                android:id="@+id/guideline7"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_end="80dp" />
 
         </android.support.constraint.ConstraintLayout>
     </LinearLayout>

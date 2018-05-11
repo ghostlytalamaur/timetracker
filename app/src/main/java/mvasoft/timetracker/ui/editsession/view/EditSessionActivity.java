@@ -6,9 +6,6 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.view.View;
-
-import com.drextended.actionhandler.listener.ActionClickListener;
 
 import java.util.List;
 
@@ -22,7 +19,7 @@ import mvasoft.timetracker.ui.common.PagerAdapter;
 import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionActivityViewModel;
 
 public class EditSessionActivity extends BindingSupportActivity<ActivityEditSessionBinding,
-        EditSessionActivityViewModel> implements ActionClickListener {
+        EditSessionActivityViewModel> {
 
     private static final String ARGS_START_ID = "ARGS_START_ID";
     private static final String STATE_CURRENT_ID = "STATE_CURRENT_ID";
@@ -138,18 +135,5 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
             }
         };
         getBinding().viewPager.setAdapter(mAdapter);
-    }
-
-    @Override
-    public void onActionClick(View view, String actionType, Object model) {
-        // TODO: remove if not needed
-        switch (actionType) {
-            case EditSessionActionType.SAVE:
-                break;
-        }
-    }
-
-    public abstract static class EditSessionActionType {
-        static final String SAVE = "safe";
     }
 }
