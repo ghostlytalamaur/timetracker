@@ -5,6 +5,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -44,6 +45,9 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
     private static final String STATE_DATE = "selected_date";
     private static final String STATE_TAB = "tab_num";
+    private static final String PREF_DATE = "selected_date";
+    private static final String PREF_TAB  = "tab_num";
+
 
     private final ActionClickListener mActionHandler = new TabbedActivityActionHandler();
     private final DateTimeFormatters mFormatter = new DateTimeFormatters();
@@ -84,17 +88,23 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
             getBinding().appBarLayout.setExpanded(!mIsExpanded, true);
         });
+        restoreState(savedInstanceState);
+    }
 
-        // Restore state
+    private void restoreState(Bundle savedInstanceState) {
+        int currentTab = 0;
         if (savedInstanceState != null) {
             mDate = savedInstanceState.getLong(STATE_DATE, System.currentTimeMillis() / 1000);
-            getBinding().viewPager.setCurrentItem(savedInstanceState.getInt(STATE_TAB, 0));
+            currentTab = savedInstanceState.getInt(STATE_TAB, currentTab);
         }
         else {
-            mDate = getBinding().calendarView.getDate() / 1000;
+            SharedPreferences pref = getPreferences(MODE_PRIVATE);
+            mDate = pref.getLong(PREF_DATE, getBinding().calendarView.getDate() / 1000);
+            currentTab = pref.getInt(PREF_TAB, currentTab);
         }
         getBinding().calendarView.setDate(mDate * 1000);
         getBinding().datePickerTitle.setText(mFormatter.formatDate(mDate));
+        getBinding().viewPager.setCurrentItem(currentTab);
     }
 
     @Override
@@ -102,6 +112,15 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         super.onSaveInstanceState(outState);
         outState.putLong(STATE_DATE, mDate);
         outState.putInt(STATE_TAB, getBinding().viewPager.getCurrentItem());
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        pref.edit().putLong(PREF_DATE, mDate)
+                .putInt(PREF_TAB, getBinding().viewPager.getCurrentItem())
+                .apply();
     }
 
     private void updateFragmentDate() {

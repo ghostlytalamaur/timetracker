@@ -158,7 +158,6 @@ public class ExSessionListViewModel extends BaseViewModel {
         if (list == null ||  list.isEmpty())
             return null;
 
-        // TODO: use different items for group and single session
         ArrayList<BaseItemModel> res = new ArrayList<>();
         if (mModel.isSingleDay()) {
             DayGroup group = list.get(0);
@@ -167,7 +166,8 @@ public class ExSessionListViewModel extends BaseViewModel {
         }
         else {
             for (DayGroup item : mModel.getItems().getValue())
-                res.add(new DayItemViewModel(mFormatter, item, mAppPreferences.get()));
+                if (item.hasSessions())
+                    res.add(new DayItemViewModel(mFormatter, item, mAppPreferences.get()));
         }
         return res;
     }

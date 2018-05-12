@@ -80,12 +80,12 @@ public abstract class SessionsDao {
         for (Long day : days) {
             DayDescription dayDescription = getDayDescriptionRaw(day);
             List<Session> sessions = getSessionForDateRaw(day);
-            if (dayDescription == null && sessions == null || sessions.size() == 0)
+            if (dayDescription == null && (sessions == null || sessions.size() == 0))
                 continue;
 
             if (res == null)
                 res = new ArrayList<>();
-            res.add(new DayGroup(day, dayDescription, sessions));
+            res.add(new DayGroup(day, dayDescription, sessions == null || sessions.size() == 0 ? null : sessions));
         }
         return res;
     }

@@ -51,7 +51,7 @@ public class DayItemViewModel extends BaseObservable implements BaseItemModel {
     }
 
     public boolean getIsTargetAchieved() {
-        return mDayGroup != null && mDayGroup.getTargetTime(mPreferences) >= 0;
+        return mDayGroup != null && mDayGroup.getTargetTimeDiff(mPreferences) >= 0;
     }
 
     public boolean getIsRunning() {

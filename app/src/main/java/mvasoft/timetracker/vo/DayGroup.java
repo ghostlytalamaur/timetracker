@@ -10,6 +10,10 @@ public class DayGroup implements TimeInfoProvider {
 
     private final DayDescription mDayDescription;
     private final List<Session> mSessions;
+    private final boolean mIsRunning;
+    private final long mStartTime;
+    private final long mEndTime;
+    private final long mDuration;
 
     private long mDay;
 
@@ -17,6 +21,26 @@ public class DayGroup implements TimeInfoProvider {
         mDay = day;
         mDayDescription = dayDescription;
         mSessions = sessions;
+
+        boolean isRunning = false;
+        long start = 0;
+        long end = 0;
+        long duration = 0;
+        if (mSessions != null && mSessions.size() > 0) {
+            start = mSessions.get(0).getStartTime();
+            end = mSessions.get(0).getEndTime();
+            for (Session s : mSessions) {
+                isRunning = isRunning || s.isRunning();
+                start = Math.min(start, s.getStartTime());
+                end = Math.max(end, s.getEndTime());
+                duration += s.getDuration();
+            }
+        }
+
+        mIsRunning = isRunning;
+        mStartTime = start;
+        mEndTime = isRunning ? 0 : end;
+        mDuration = isRunning ? 0 : duration;
     }
 
     public void appendSessionIds(final List<Long> destIds) {
@@ -24,14 +48,6 @@ public class DayGroup implements TimeInfoProvider {
             for (Session s : mSessions)
                 if (!destIds.contains(s.getId()))
                     destIds.add(s.getId());
-    }
-
-    public boolean hasRunningSessions() {
-        if (mSessions != null)
-            for (Session s : mSessions)
-                if (s.isRunning())
-                    return true;
-        return false;
     }
 
     public long getDay() {
@@ -45,42 +61,35 @@ public class DayGroup implements TimeInfoProvider {
 
     @Override
     public long getStartTime() {
-        long res = 0;
-        if (mSessions.size() > 0)
-            res = mSessions.get(0).getEndTime();
-
-        for (Session s : mSessions)
-            res = Math.max(res, s.getEndTime());
-        return res;
+        return mStartTime;
     }
 
     @Override
     public long getEndTime() {
-        long res = 0;
-        if (mSessions.size() > 0)
-            res = mSessions.get(0).getStartTime();
-
-        for (Session s : mSessions)
-            res = Math.min(res, s.getStartTime());
-        return res;
+        return mEndTime;
     }
 
+    public boolean hasSessions() {
+        return mSessions != null && mSessions.size() > 0;
+    }
 
     public long getDuration() {
         long res = 0;
-        if (mSessions != null)
-            for (Session s : mSessions)
-                res += s.getDuration();
+
+        if (mIsRunning) {
+            if (mSessions != null)
+                for (Session s : mSessions)
+                    res += s.getDuration();
+        }
+        else
+            res = mDuration;
+
         return res;
     }
 
     @Override
     public boolean isRunning() {
-        if (mSessions != null)
-            for (Session s : mSessions)
-                if (s.isRunning())
-                    return true;
-        return false;
+        return mIsRunning;
     }
 
 
