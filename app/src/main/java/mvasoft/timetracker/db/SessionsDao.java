@@ -90,6 +90,9 @@ public abstract class SessionsDao {
         return res;
     }
 
+    @Insert
+    public abstract void appendAll(ArrayList<Session> list);
+
     /*
         working with DayGroup
      */

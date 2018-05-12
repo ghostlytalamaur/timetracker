@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="mvasoft.timetracker">
+    package="mvasoft.timetracker">
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".core.TimeTrackerApp"
@@ -17,44 +17,38 @@
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
             android:name=".ui.editsession.view.EditSessionActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".ui.extlist.view.TabbedActivity" >
+            android:parentActivityName=".ui.extlist.view.TabbedActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.extlist.view.TabbedActivity" />
         </activity>
-        <activity android:name=".ui.preferences.PreferencesActivity"
-            android:parentActivityName=".ui.extlist.view.TabbedActivity" >
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.extlist.view.TabbedActivity" />
-        </activity>
-
-        <activity android:name=".ui.editdate.view.EditDateActivity"
-            android:parentActivityName=".ui.extlist.view.TabbedActivity" >
+        <activity
+            android:name=".ui.preferences.PreferencesActivity"
+            android:parentActivityName=".ui.extlist.view.TabbedActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.extlist.view.TabbedActivity" />
         </activity>
 
-
-        <service
-            android:name=".ui.widget.SessionsWidgetService"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="">
-        </service>
+        <activity
+            android:name=".ui.editdate.view.EditDateActivity"
+            android:parentActivityName=".ui.extlist.view.TabbedActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.extlist.view.TabbedActivity" />
+        </activity>
     </application>
 
 </manifest>

@@ -161,8 +161,9 @@ public class ExSessionListViewModel extends BaseViewModel {
         ArrayList<BaseItemModel> res = new ArrayList<>();
         if (mModel.isSingleDay()) {
             DayGroup group = list.get(0);
-            for (Session item : group.getSessions())
-                res.add(new SessionItemViewModel(mFormatter, item));
+            if (group.hasSessions())
+                for (Session item : group.getSessions())
+                    res.add(new SessionItemViewModel(mFormatter, item));
         }
         else {
             for (DayGroup item : mModel.getItems().getValue())

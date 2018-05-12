@@ -6,6 +6,7 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.persistence.room.InvalidationTracker;
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -141,6 +142,11 @@ public class RoomDataRepositoryImpl implements DataRepository {
                 return mDatabase.groupsModel().getDayGroups(days);
             }
         };
+    }
+
+    @Override
+    public void appendAll(ArrayList<Session> list) {
+        mExecutors.getDiskIO().execute(() ->mGroupsModel.appendAll(list));
     }
 
 }

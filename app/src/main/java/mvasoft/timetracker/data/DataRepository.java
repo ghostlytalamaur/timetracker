@@ -2,6 +2,7 @@ package mvasoft.timetracker.data;
 
 import android.arch.lifecycle.LiveData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import mvasoft.timetracker.vo.DayDescription;
@@ -33,6 +34,8 @@ public interface DataRepository {
 
 
     LiveData<List<DayGroup>> getDayGroups(List<Long> days);
+
+    void appendAll(ArrayList<Session> list);
 
     enum ToggleSessionResult {
         tgs_Started,

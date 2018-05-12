@@ -6,12 +6,15 @@ android {
     compileSdkVersion build_versions.target_sdk
     buildToolsVersion build_versions.build_tools
     defaultConfig {
-        applicationId "mvasoft.timetracker"
+        applicationId "mvasoft.timetracker.new"
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        // Specify string resource: @string/app_name which used in AndroidManifest.xml
+        resValue "string", "app_name", "TimeTracker 2"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -20,6 +23,10 @@ android {
         }
     }
     buildTypes {
+        debug {
+            resValue "string", "app_name", "TimeTracker Debug"
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
