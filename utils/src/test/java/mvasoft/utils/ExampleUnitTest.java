@@ -1,4 +1,4 @@
-package com.mvasoft.utils;
+package mvasoft.utils;
 
 import org.junit.Test;
 

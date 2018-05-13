@@ -11,8 +11,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
-import com.mvasoft.utils.FileUtils;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -27,6 +25,7 @@ import mvasoft.timetracker.db.AppDatabase;
 import mvasoft.timetracker.db.DatabaseHelper;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
+import mvasoft.utils.FileUtils;
 
 public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding, BaseViewModel> {
 

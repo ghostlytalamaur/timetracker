@@ -1,4 +1,4 @@
-package com.mvasoft.utils;
+package mvasoft.utils;
 
 import java.io.File;
 import java.io.FileInputStream;

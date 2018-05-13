@@ -1,4 +1,4 @@
-package com.mvasoft.utils;
+package mvasoft.utils;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.mvasoft.utils.test", appContext.getPackageName());
+        assertEquals("mvasoft.utils.test", appContext.getPackageName());
     }
 }
