@@ -17,11 +17,11 @@ import mvasoft.timetracker.utils.DateTimeFormatters;
 
 public class EditSessionFragmentViewModel extends BaseViewModel {
 
-    private DateTimeFormatters mFormatter;
-    private SessionEditModel mData;
+    private final DateTimeFormatters mFormatter;
+    private final SessionEditModel mData;
     private MutableLiveData<Boolean> mIsChangedLiveData;
 
-    private DataRepository mRepository;
+    private final DataRepository mRepository;
 
     @Inject
     EditSessionFragmentViewModel(@NonNull Application application, DataRepository repository) {

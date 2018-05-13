@@ -12,8 +12,8 @@ import java.util.List;
 
 public class ModelItemIdDelegate<T> extends ModelItemDelegate<T> {
 
-    private ActionClickListener mActionHandler;
-    private int mActionHandlerId;
+    private final ActionClickListener mActionHandler;
+    private final int mActionHandlerId;
 
     public ModelItemIdDelegate(ActionClickListener actionHandler, @NonNull Class<? extends T> modelClass, int itemLayoutResId, int modelId, int actionHandlerId) {
         super(modelClass, itemLayoutResId, modelId);

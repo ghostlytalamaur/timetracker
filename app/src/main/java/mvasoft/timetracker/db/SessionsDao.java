@@ -63,7 +63,7 @@ public abstract class SessionsDao {
     public abstract boolean hasDayDescription(long date);
 
     @Insert
-    public abstract long appendDayDescription(DayDescription dayDescription);
+    public abstract void appendDayDescription(DayDescription dayDescription);
 
     @Update
     public abstract int updateDayDescription(DayDescription dayDescription);

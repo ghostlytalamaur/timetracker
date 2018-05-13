@@ -9,7 +9,7 @@ import javax.inject.Singleton;
 @Singleton
 public class WidgetHelper implements IWidgetHelper {
 
-    private Context mContext;
+    private final Context mContext;
 
     @Inject
     WidgetHelper(Context context) {

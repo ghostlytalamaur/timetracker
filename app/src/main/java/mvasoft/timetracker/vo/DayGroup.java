@@ -15,7 +15,7 @@ public class DayGroup implements TimeInfoProvider {
     private final long mEndTime;
     private final long mDuration;
 
-    private long mDay;
+    private final long mDay;
 
     public DayGroup(long day, DayDescription dayDescription, List<Session> sessions) {
         mDay = day;
@@ -41,13 +41,6 @@ public class DayGroup implements TimeInfoProvider {
         mStartTime = start;
         mEndTime = isRunning ? 0 : end;
         mDuration = isRunning ? 0 : duration;
-    }
-
-    public void appendSessionIds(final List<Long> destIds) {
-        if (destIds != null && mSessions != null)
-            for (Session s : mSessions)
-                if (!destIds.contains(s.getId()))
-                    destIds.add(s.getId());
     }
 
     public long getDay() {

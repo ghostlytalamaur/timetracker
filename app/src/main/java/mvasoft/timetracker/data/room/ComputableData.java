@@ -11,10 +11,10 @@ abstract class ComputableData<T> extends LiveData<T> {
 
     private final Executor mMainThreadExecutor;
     private final Executor mExecutor;
-    private Runnable mRefreshRunnable;
+    private final Runnable mRefreshRunnable;
 
-    private AtomicBoolean mInvalid = new AtomicBoolean(true);
-    private AtomicBoolean mComputing = new AtomicBoolean(false);
+    private final AtomicBoolean mInvalid = new AtomicBoolean(true);
+    private final AtomicBoolean mComputing = new AtomicBoolean(false);
 
     // invalidation check always happens on the main thread
     private final Runnable mInvalidationRunnable;

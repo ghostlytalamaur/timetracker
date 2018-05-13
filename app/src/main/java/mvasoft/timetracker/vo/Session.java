@@ -12,10 +12,10 @@ public class Session implements TimeInfoProvider {
     private final long mId;
 
     @ColumnInfo(name = "startTime")
-    private  long mStartTime;
+    private final long mStartTime;
 
     @ColumnInfo(name = "endTime")
-    private long mEndTime;
+    private final long mEndTime;
 
     public Session(long id, long startTime, long endTime) {
         mId = id;

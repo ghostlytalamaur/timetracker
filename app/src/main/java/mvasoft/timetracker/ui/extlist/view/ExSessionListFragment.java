@@ -17,7 +17,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,8 +42,6 @@ import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel;
-
-import static mvasoft.timetracker.common.Const.LOG_TAG;
 
 
 public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel> {
@@ -109,6 +106,9 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     private void initAdapter() {
+        if (getContext() == null)
+            return;
+
         //noinspection unchecked
         mAdapter = new LiveBindableAdapter<>(
                 new ModelItemIdDelegate<>(new ExSessionListActionHandler(),
@@ -150,8 +150,6 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
                     actionSelect(model);
                     break;
             }
-
-            Log.d(LOG_TAG, "Action fired: " + actionType);
         }
     }
 

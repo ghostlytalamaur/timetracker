@@ -71,10 +71,6 @@ public class DayItemViewModel extends BaseObservable implements BaseItemModel {
     }
 
     @Override
-    public void onCleared() {
-    }
-
-    @Override
     public void dataChanged() {
         notifyChange();
     }

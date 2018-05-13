@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class AppPreferencesImpl extends AppPreferences {
 
-    private SharedPreferences mPreferences;
+    private final SharedPreferences mPreferences;
 
     AppPreferencesImpl(SharedPreferences preferences) {
         mPreferences = preferences;

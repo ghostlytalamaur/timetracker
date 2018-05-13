@@ -7,7 +7,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import org.joda.time.Period;
@@ -31,24 +30,10 @@ public class SessionsWidgetService extends ExtService {
 
     public SessionsWidgetService() {
         super("SessionsWidgetService");
-        Log.d(LOGT, "SessionsWidgetService()");
-    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d(LOGT, "SessionsWidgetService.onCreate()");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(LOGT, "SessionsWidgetService.onDestroy()");
     }
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Log.d(LOGT, "SessionsWidgetService.onHandleIntent()");
         if (intent == null)
             return;
 
@@ -60,8 +45,6 @@ public class SessionsWidgetService extends ExtService {
     }
 
     private void updateWidget() {
-        Log.d(LOGT, "SessionsWidgetService.updateWidget()");
-
         AppWidgetManager widgetMan = AppWidgetManager.getInstance(this);
 
         int[] ids = widgetMan.getAppWidgetIds(new ComponentName(this, SessionsWidget.class));

@@ -15,7 +15,7 @@ public class LiveBindableAdapter<ListModel extends List<BaseItemModel>> extends
         BaseBindableAdapter<ListModel> {
 
     private LiveData<ListModel> mData;
-    private AsyncListDiffer<BaseItemModel> mDiffer;
+    private final AsyncListDiffer<BaseItemModel> mDiffer;
 
 
     public LiveBindableAdapter(AdapterDelegate<ListModel>... adapterDelegates) {

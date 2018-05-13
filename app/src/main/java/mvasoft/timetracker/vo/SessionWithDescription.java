@@ -4,7 +4,7 @@ import android.arch.persistence.room.Embedded;
 
 public class SessionWithDescription extends Session {
     @Embedded
-    private DayDescription mDayDescription;
+    private final DayDescription mDayDescription;
 
     public SessionWithDescription(long id, long startTime, long endTime, DayDescription dayDescription) {
         super(id, startTime, endTime);

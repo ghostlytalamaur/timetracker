@@ -108,18 +108,14 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
         ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
     }
 
-    private void restart() {
-
-    }
-
     /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
+    private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     /* Checks if external storage is available to at least read */
-    public boolean isExternalStorageReadable() {
+    private boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state) ||
                 Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
@@ -133,7 +129,10 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
         File file = null;
         try {
             file = FileUtils.createTempFileInputStream(getContentResolver().openInputStream(uri));
-            DatabaseHelper.importOldDb(file, mRepository.get());
+            if (DatabaseHelper.importOldDb(file, mRepository.get()))
+                showToast("Import completed");
+            else
+                showToast("Cannot import database");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } finally {

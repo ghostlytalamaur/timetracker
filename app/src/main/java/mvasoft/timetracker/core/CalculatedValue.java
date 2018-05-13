@@ -2,7 +2,7 @@ package mvasoft.timetracker.core;
 
 public class CalculatedValue<T> {
 
-    private ValueCalculator<T> mCalculator;
+    private final ValueCalculator<T> mCalculator;
     private boolean mIsValid;
     private T mValue;
 

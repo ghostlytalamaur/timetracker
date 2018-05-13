@@ -96,7 +96,8 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_clock_out" />
+                app:srcCompat="@drawable/ic_clock_out"
+                />
 
             <ImageView
                 android:id="@+id/imgStart"
@@ -108,7 +109,8 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_clock_in" />
+                app:srcCompat="@drawable/ic_clock_in"
+                />
 
             <ImageView
                 android:id="@+id/imgDuration"
@@ -120,7 +122,8 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/tvElapsed"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_clock_end" />
+                app:srcCompat="@drawable/ic_clock_end"
+                />
 
         </android.support.constraint.ConstraintLayout>
     </LinearLayout>

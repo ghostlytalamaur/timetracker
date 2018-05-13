@@ -53,7 +53,8 @@
                 app:layout_constraintEnd_toStartOf="@+id/guideline7"
                 app:layout_constraintStart_toStartOf="@+id/guideline7"
                 app:layout_constraintTop_toBottomOf="@+id/imgDuration"
-                app:srcCompat="@drawable/ic_to_target" />
+                app:srcCompat="@drawable/ic_to_target"
+                />
 
             <TextView
                 android:id="@+id/tvElapsed"
@@ -121,7 +122,8 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="@+id/imgStart"
                 app:layout_constraintTop_toBottomOf="@+id/imgStart"
-                app:srcCompat="@drawable/ic_clock_out" />
+                app:srcCompat="@drawable/ic_clock_out"
+                />
 
             <ImageView
                 android:id="@+id/imgStart"
@@ -132,7 +134,8 @@
                 app:layout_constraintEnd_toStartOf="@+id/guideline2"
                 app:layout_constraintStart_toStartOf="@+id/guideline2"
                 app:layout_constraintTop_toTopOf="@+id/guideline4"
-                app:srcCompat="@drawable/ic_clock_in" />
+                app:srcCompat="@drawable/ic_clock_in"
+                />
 
             <ImageView
                 android:id="@+id/imgDuration"
@@ -143,7 +146,8 @@
                 app:layout_constraintEnd_toStartOf="@+id/guideline7"
                 app:layout_constraintStart_toStartOf="@+id/guideline7"
                 app:layout_constraintTop_toTopOf="@+id/guideline4"
-                app:srcCompat="@drawable/ic_clock_end" />
+                app:srcCompat="@drawable/ic_clock_end"
+                />
 
             <android.support.constraint.Guideline
                 android:id="@+id/guideline7"

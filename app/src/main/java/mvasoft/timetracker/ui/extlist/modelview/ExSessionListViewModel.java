@@ -13,7 +13,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +35,6 @@ import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
 
-import static mvasoft.timetracker.common.Const.LOG_TAG;
-
 
 public class ExSessionListViewModel extends BaseViewModel {
 
@@ -46,10 +43,10 @@ public class ExSessionListViewModel extends BaseViewModel {
     private final ModelObserver mModelObserver;
     private final Lazy<AppPreferences> mAppPreferences;
     private ScheduledFuture<?> mUpdateFuture;
-    private DayGroupListModel mModel;
+    private final DayGroupListModel mModel;
     private final DateTimeFormatters mFormatter;
     private LiveData<List<BaseItemModel>> mListModel;
-    private ScheduledExecutorService mUpdateExecutor;
+    private final ScheduledExecutorService mUpdateExecutor;
 
     private CalculatedLiveData<List<DayGroup>, String> mSummaryTimeLiveData;
     private final CalculatedLiveData<List<DayGroup>, Long> mTargetDiffLiveData;
@@ -62,7 +59,6 @@ public class ExSessionListViewModel extends BaseViewModel {
     ExSessionListViewModel(@NonNull Application application, Lazy<DataRepository> repository,
                            Lazy<AppPreferences> appPreferences) {
         super(application);
-        Log.d(LOG_TAG, "creating ExSessionListViewModel");
 
         mFormatter = new DateTimeFormatters();
         mHandler = new Handler();
@@ -104,13 +100,11 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void resume() {
-        Log.d(LOG_TAG, "ExSessionListViewModel.resume()");
         updateTimer();
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     public void pause() {
-        Log.d(LOG_TAG, "ExSessionListViewModel.pause()");
 
         if (mUpdateFuture != null) {
             mUpdateFuture.cancel(true);
@@ -182,11 +176,6 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     @Override
     protected void onCleared() {
-        Log.d(LOG_TAG, "ExSessionListViewModel.onCleared()");
-        if (mListModel != null && mListModel.getValue() != null)
-            for (BaseItemModel item : mListModel.getValue())
-                item.onCleared();
-
         if (mUpdateFuture != null && !mUpdateFuture.isCancelled()) {
             mUpdateFuture.cancel(true);
             mUpdateFuture = null;

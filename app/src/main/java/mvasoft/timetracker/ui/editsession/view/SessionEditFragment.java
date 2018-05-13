@@ -156,7 +156,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         getViewModel().getModel().saveState(outState);
     }
 
-    public void saveSession() {
+    private void saveSession() {
         LiveData<Boolean> result = getViewModel().saveSession();
         result.observe(this, new Observer<Boolean>() {
             @Override

@@ -8,16 +8,16 @@ import android.arch.persistence.room.PrimaryKey;
 public class DayDescription {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "dayId")
-    private long mId;
+    private final long mId;
 
     @ColumnInfo(name = "dayDate")
-    private long mDate;
+    private final long mDate;
 
     @ColumnInfo(name = "targetDuration")
-    private long mTargetDuration;
+    private final long mTargetDuration;
 
     @ColumnInfo(name = "isWorkingDay")
-    private boolean mIsWorkingDay;
+    private final boolean mIsWorkingDay;
 
     public DayDescription(long id, long date, long targetDuration, boolean isWorkingDay) {
         mId = id;

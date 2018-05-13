@@ -57,10 +57,6 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
     }
 
     @Override
-    public void onCleared() {
-    }
-
-    @Override
     public void dataChanged() {
         notifyChange();
     }
