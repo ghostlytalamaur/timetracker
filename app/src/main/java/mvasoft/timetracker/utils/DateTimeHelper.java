@@ -34,6 +34,41 @@ public class DateTimeHelper {
         return res;
     }
 
+    /**
+     * calculate start of "monthly" week.
+     * monthly week always started at first day of month, not at monday
+     *
+     * @param unixSec second since unix epoch
+     * @return unix seconds according to startOfMonthWeek
+     */
+    public static long startOfMonthWeek(long unixSec) {
+        DateTime res = new DateTime(unixSec * 1000).dayOfWeek().withMinimumValue();
+        DateTime monthStart = new DateTime(unixSec * 1000).dayOfMonth().withMinimumValue();
+        if (res.getWeekOfWeekyear() == monthStart.getWeekOfWeekyear()) {
+            return monthStart.getMillis() / 1000;
+        }
+        else
+            return res.getMillis() / 1000;
+    }
+
+
+    /**
+     * calculate end of "monthly" week.
+     * monthly week always ended at last day of month, not at sunday
+     *
+     * @param unixSec second since unix epoch
+     * @return unix seconds according to startOfMonthWeek
+     */
+    public static long endOfMonthWeek(long unixSec) {
+        DateTime res = new DateTime(unixSec * 1000).dayOfWeek().withMaximumValue();
+        DateTime monthEnd = new DateTime(unixSec * 1000).dayOfMonth().withMaximumValue();
+        if (res.getWeekOfWeekyear() == monthEnd.getWeekOfWeekyear()) {
+            return monthEnd.getMillis() / 1000;
+        }
+        else
+            return res.getMillis() / 1000;
+    }
+
     public static long startOfWeek(long unixSec) {
         DateTime dt = new DateTime(unixSec * 1000);
         return dt.dayOfWeek().withMinimumValue().getMillis() / 1000;

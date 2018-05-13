@@ -135,7 +135,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     private Pair<Long, Long> getDateForFragment(int position) {
         switch (position) {
             case 1: // Week
-                return new Pair<>(DateTimeHelper.startOfWeek(mDate), DateTimeHelper.endOfWeek(mDate));
+                return new Pair<>(DateTimeHelper.startOfMonthWeek(mDate), DateTimeHelper.endOfMonthWeek(mDate));
             case 2: // Month
                 return new Pair<>(DateTimeHelper.startOfMonth(mDate), DateTimeHelper.endOfMonth(mDate));
             default: // Day
