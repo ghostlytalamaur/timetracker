@@ -20,12 +20,16 @@ import mvasoft.timetracker.vo.SessionWithDescription;
 @Dao
 public abstract class SessionsDao {
 
+    // perform any date/time comparison using 'localtime' modifier.
+    // unixTime always is number of second in GTM0 timezone.
+    // should adjust this unitTime to local time
+
     @Query("SELECT * FROM sessions ORDER BY startTime DESC")
     public abstract LiveData<List<Session>> getAll();
 
 //    @TypeConverters({RoomTypeConverters.class})
 //    @Transaction
-//    @Query("SELECT * FROM (SELECT min(_id) as groupId, datetime(min(StartTime), 'unixepoch') as groupStartTime, datetime(max(EndTime), 'unixepoch') as groupEndTime, group_concat(_id, ' ') as sessionIds FROM sessions GROUP BY date(StartTime, 'unixepoch', 'start of year'));")
+//    @Query("SELECT * FROM (SELECT min(_id) as groupId, datetime(min(StartTime), 'unixepoch', 'localtime') as groupStartTime, datetime(max(EndTime), 'unixepoch', 'localtime') as groupEndTime, group_concat(_id, ' ') as sessionIds FROM sessions GROUP BY date(StartTime, 'unixepoch', 'localtime', 'start of year'));")
 //    public abstract LiveData<List<SessionGroupEntity>> getYearGroups();
 
     @Query("SELECT _id FROM sessions WHERE EndTime = 0 or EndTime IS NULL")
@@ -34,7 +38,7 @@ public abstract class SessionsDao {
     @Query("DELETE FROM sessions WHERE _id in (:groupIds)")
     public abstract int deleteByIds(List<Long> groupIds);
 
-    @Query("UPDATE sessions SET EndTime = strftime('%s', 'now', 'localtime') WHERE EndTime = 0 OR EndTime IS NULL")
+    @Query("UPDATE sessions SET EndTime = strftime('%s', 'now') WHERE EndTime = 0 OR EndTime IS NULL")
     public abstract int closeOpenedSessions();
 
     @Query("SELECT * FROM sessions WHERE _id = :id")
@@ -46,20 +50,20 @@ public abstract class SessionsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract long appendSession(Session entity);
 
-//    LEFT JOIN days on date(startTime, 'unixepoch') = date(days.dayDate, 'unixepoch')
-    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
+//    LEFT JOIN days on date(startTime, 'unixepoch', 'localtime') = date(days.dayDate, 'unixepoch', 'localtime')
+    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch', 'localtime') = date(:date, 'unixepoch', 'localtime')")
     public abstract LiveData<List<Session>> getSessionForDate(long date);
-    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch') = date(:date, 'unixepoch')")
+    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch', 'localtime') = date(:date, 'unixepoch', 'localtime')")
     public abstract List<Session> getSessionForDateRaw(long date);
 
     @Query("SELECT _id from sessions ORDER BY startTime DESC")
     public abstract LiveData<List<Long>> getSessionsIds();
 
-    @Query("SELECT * from sessions LEFT JOIN days on date(startTime, 'unixepoch') = date(days.dayDate, 'unixepoch') WHERE startTime BETWEEN :dateStart AND :dateEnd")
+    @Query("SELECT * from sessions LEFT JOIN days on date(startTime, 'unixepoch', 'localtime') = date(days.dayDate, 'unixepoch', 'localtime') WHERE startTime BETWEEN :dateStart AND :dateEnd")
     public abstract LiveData<List<SessionWithDescription>> getSessionWithDescription(long dateStart, long dateEnd);
 
 
-    @Query("SELECT dayId from days WHERE date(:date, 'unixepoch') = date(dayDate, 'unixepoch')")
+    @Query("SELECT dayId from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract boolean hasDayDescription(long date);
 
     @Insert
@@ -68,9 +72,9 @@ public abstract class SessionsDao {
     @Update
     public abstract int updateDayDescription(DayDescription dayDescription);
 
-    @Query("SELECT * from days WHERE date(:date, 'unixepoch') = date(dayDate, 'unixepoch')")
+    @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract LiveData<DayDescription> getDayDescription(long date);
-    @Query("SELECT * from days WHERE date(:date, 'unixepoch') = date(dayDate, 'unixepoch')")
+    @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract DayDescription getDayDescriptionRaw(long date);
 
 

@@ -22,8 +22,6 @@ import android.widget.CalendarView;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
 
 import dagger.Lazy;
@@ -74,8 +72,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         getBinding().calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                DateTime dt = new DateTime(year, month + 1, dayOfMonth, 0, 0, 0);
-                mDate = dt.getMillis() / 1000;
+                mDate = DateTimeHelper.getUnixTime(year, month + 1, dayOfMonth);
                 updateFragmentDate();
                 getBinding().datePickerTitle.setText(mFormatter.formatDate(mDate));
             }
@@ -180,6 +177,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
                 intent = new Intent(this, EditDateActivity.class);
                 intent.putExtras(EditDateActivity.makeArgs(mDate));
                 startActivity(intent);
+                break;
             case R.id.action_import_export:
                 intent = new Intent(this, BackupActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);

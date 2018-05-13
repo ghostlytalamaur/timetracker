@@ -57,4 +57,9 @@ public class DateTimeHelper {
     public static int dayOfWeek(Long unixSec) {
         return new DateTime(unixSec * 1000).dayOfWeek().get();
     }
+
+    public static long getUnixTime(int year, int month, int dayOfMonth) {
+        DateTime dt = new DateTime(year, month, dayOfMonth, 0, 0, 0);
+        return dt.getMillis() / 1000;
+    }
 }

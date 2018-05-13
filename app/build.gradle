@@ -1,7 +1,23 @@
 apply plugin: 'com.android.application'
 
+// Create a variable called keystorePropertiesFile, and initialize it to your
+// keystore.properties file, in the rootProject folder.
+def keystorePropertiesFile = rootProject.file(".key/keystore.properties")
+
+// Initialize a new Properties() object called keystoreProperties.
+def keystoreProperties = new Properties()
+
+// Load your keystore.properties file into the keystoreProperties object.
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     signingConfigs {
+        signApk {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
     }
     compileSdkVersion build_versions.target_sdk
     buildToolsVersion build_versions.build_tools
@@ -9,8 +25,8 @@ android {
         applicationId "mvasoft.timetracker.new"
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         // Specify string resource: @string/app_name which used in AndroidManifest.xml
@@ -24,12 +40,13 @@ android {
     }
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
             resValue "string", "app_name", "TimeTracker Debug"
         }
-
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.signApk
         }
     }
     compileOptions {
@@ -54,36 +71,27 @@ dependencies {
     implementation deps.dagger.android_support
     annotationProcessor deps.dagger.compiler
     annotationProcessor deps.dagger.android_support_compiler
-
     implementation deps.support.app_compat
     implementation deps.support.support
     implementation deps.support.design
     implementation deps.support.constraint_layout
-
     implementation deps.lifecycle.extensions
     implementation deps.room.runtime
-
     testImplementation deps.room.testing
     testImplementation deps.arch_core.testing
-
     annotationProcessor deps.lifecycle.compiler
     annotationProcessor deps.room.compiler
-
     testImplementation deps.junit.junit
-
     androidTestImplementation(deps.espresso.core, {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
-
-
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-
     implementation 'joda-time:joda-time:2.9.9'
     implementation 'com.drextended.actionhandler:actionhandler:0.1.16'
     implementation project(path: ':datetimepicker')
     //    api project(':app:libs:rvdatabinding')
-//    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
-//    implementation 'com.applandeo:material-calendar-view:1.4.0'
+    //    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
+    //    implementation 'com.applandeo:material-calendar-view:1.4.0'
     implementation project(path: ':utils')
 }

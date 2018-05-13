@@ -1,10 +1,9 @@
 package mvasoft.timetracker.vo;
 
-import org.joda.time.DateTime;
-
 import java.util.List;
 
 import mvasoft.timetracker.preferences.AppPreferences;
+import mvasoft.timetracker.utils.DateTimeHelper;
 
 public class DayGroup implements TimeInfoProvider {
 
@@ -93,7 +92,7 @@ public class DayGroup implements TimeInfoProvider {
      */
     public long getTargetTime(final AppPreferences preferences) {
         boolean isWorkingDay = (mDayDescription != null && mDayDescription.isWorkingDay()) ||
-                preferences.isWorkingDay(new DateTime(mDay * 1000).getDayOfWeek());
+                preferences.isWorkingDay(DateTimeHelper.dayOfWeek(mDay));
 
         if (!isWorkingDay)
             return 0;

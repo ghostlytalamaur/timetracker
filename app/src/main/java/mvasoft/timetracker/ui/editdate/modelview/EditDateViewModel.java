@@ -9,13 +9,12 @@ import android.arch.lifecycle.Transformations;
 import android.databinding.Bindable;
 import android.support.annotation.NonNull;
 
-import org.joda.time.DateTime;
-
 import javax.inject.Inject;
 
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
+import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayDescription;
 
 public class EditDateViewModel extends BaseViewModel {
@@ -79,7 +78,7 @@ public class EditDateViewModel extends BaseViewModel {
         if (mDateLiveData.getValue() != null && mDateLiveData.getValue() == date)
             return;
 
-        Boolean isWorking = mPreferences.isWorkingDay(new DateTime(date * 1000).getDayOfWeek());
+        Boolean isWorking = mPreferences.isWorkingDay(DateTimeHelper.dayOfWeek(date));
         mIsWorkingDayLiveData.setValue(isWorking);
         mTargetTimeLiveData.setValue(isWorking ? mPreferences.getTargetTimeInMin() : 0);
         mDateLiveData.setValue(date);

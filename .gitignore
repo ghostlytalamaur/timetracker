@@ -18,3 +18,8 @@
 
 # Java class files
 *.class
+
+# keystore
+.key
+*.jks
+keystore.properties
