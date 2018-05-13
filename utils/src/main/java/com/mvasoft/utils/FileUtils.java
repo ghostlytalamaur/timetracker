@@ -1,9 +1,11 @@
-package mvasoft.timetracker.common;
+package com.mvasoft.utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.FileChannel;
 
 public abstract class FileUtils {
 
@@ -61,6 +63,41 @@ public abstract class FileUtils {
             } catch (IOException e) {
             }
             out.close();
+        }
+    }
+
+    public static boolean copyFile(File source, File dest) {
+        if (source == null || dest == null || !source.exists())
+            return false;
+
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            dest.getParentFile().mkdirs();
+
+            FileInputStream input = null;
+            FileOutputStream output = null;
+            try {
+                input = new FileInputStream(source);
+                output = new FileOutputStream(dest);
+
+                FileChannel src = input.getChannel();
+                FileChannel out = output.getChannel();
+
+                out.transferFrom(src, 0, src.size());
+            }
+            finally {
+                if (input != null) {
+                    input.close();
+                }
+                if (output != null) {
+                    output.close();
+                }
+            }
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

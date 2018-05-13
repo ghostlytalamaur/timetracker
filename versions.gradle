@@ -8,7 +8,7 @@
 
 def versions = [:]
 versions.dagger = '2.13'
-versions.room = '1.0.0'
+versions.room = '1.1.0'
 versions.lifecycle = '1.1.1'
 versions.arch_core = '1.1.1'
 versions.espresso = "3.0.1"

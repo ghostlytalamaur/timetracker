@@ -15,23 +15,7 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_fill_fake_sessions"
-        android:orderInCategory="100"
-        android:title="@string/action_fill_fake_sessions"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_import_db_old"
-        android:title="Import old database"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_import_db"
-        android:title="Import database"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_export_db"
-        android:title="Export database"
+        android:id="@+id/action_import_export"
+        android:title="Import/Export database"
         app:showAsAction="never" />
 </menu>

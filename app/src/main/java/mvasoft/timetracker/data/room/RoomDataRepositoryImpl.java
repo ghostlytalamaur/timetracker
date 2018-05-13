@@ -24,15 +24,22 @@ import mvasoft.timetracker.vo.Session;
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {
 
-    private final SessionsDao mGroupsModel;
-    private final AppDatabase mDatabase;
+    private SessionsDao mGroupsModel;
+    private AppDatabase mDatabase;
     private final AppExecutors mExecutors;
 
     @Inject
     RoomDataRepositoryImpl(Application application, AppExecutors executors) {
+        mExecutors = executors;
+        reinitDatabase(application);
+    }
+
+    public void reinitDatabase(Application application) {
+        if (mDatabase != null)
+            mDatabase.close();
+
         mDatabase = AppDatabase.getDatabase(application);
         mGroupsModel = mDatabase.groupsModel();
-        mExecutors = executors;
     }
 
     @Override
@@ -146,7 +153,10 @@ public class RoomDataRepositoryImpl implements DataRepository {
 
     @Override
     public void appendAll(ArrayList<Session> list) {
-        mExecutors.getDiskIO().execute(() ->mGroupsModel.appendAll(list));
+        mExecutors.getDiskIO().execute(() -> mGroupsModel.appendAll(list));
     }
 
+    public AppDatabase getDatabase() {
+        return mDatabase;
+    }
 }

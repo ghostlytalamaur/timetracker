@@ -49,6 +49,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.extlist.view.TabbedActivity" />
         </activity>
+        <activity android:name=".ui.backup.BackupActivity" />
     </application>
 
 </manifest>

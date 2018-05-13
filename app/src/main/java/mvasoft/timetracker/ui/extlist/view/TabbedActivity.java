@@ -1,19 +1,15 @@
 package mvasoft.timetracker.ui.extlist.view;
 
-import android.Manifest;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
 import android.support.v4.view.ViewCompat;
@@ -23,24 +19,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CalendarView;
-import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
 import org.joda.time.DateTime;
-
-import java.io.File;
-import java.io.FileNotFoundException;
 
 import javax.inject.Inject;
 
 import dagger.Lazy;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
-import mvasoft.timetracker.common.FileUtils;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.databinding.ActivityTabbedBinding;
-import mvasoft.timetracker.db.DatabaseHelper;
+import mvasoft.timetracker.ui.backup.BackupActivity;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
 import mvasoft.timetracker.ui.common.PagerAdapter;
 import mvasoft.timetracker.ui.editdate.view.EditDateActivity;
@@ -53,8 +44,6 @@ import mvasoft.timetracker.utils.DateTimeHelper;
 public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding,
         TabbedActivityViewModel> implements ExSessionListFragment.ISessionListCallbacks {
 
-    private static final int PERMISSION_REQUEST_STORAGE = 1;
-    private static final int ACTIVITY_REQUEST_IMPORT_DB = 1;
     private static final String STATE_DATE = "selected_date";
     private static final String STATE_TAB = "tab_num";
     private static final String PREF_DATE = "selected_date";
@@ -191,14 +180,17 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
                 intent = new Intent(this, EditDateActivity.class);
                 intent.putExtras(EditDateActivity.makeArgs(mDate));
                 startActivity(intent);
-            case R.id.action_import_db_old:
-                checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, PERMISSION_REQUEST_STORAGE);
+            case R.id.action_import_export:
+                intent = new Intent(this, BackupActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 break;
             default:
                 return super.onOptionsItemSelected(item);
         }
         return true;
     }
+
 
     @Override
     public void onSupportActionModeStarted(@NonNull ActionMode mode) {
@@ -212,62 +204,6 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         super.onSupportActionModeFinished(mode);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        switch (requestCode) {
-            case PERMISSION_REQUEST_STORAGE:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    selectDbToImport();
-                else
-                    Toast.makeText(this,
-                            "Cannot perform operation without appropriate permission",
-                            Toast.LENGTH_LONG).show();
-                break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
-    private void checkPermission(@NonNull String permission, int requestCode) {
-        ActivityCompat.requestPermissions(this, new String[] {permission}, requestCode);
-    }
-
-    private void selectDbToImport() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
-        intent = Intent.createChooser(intent, "Select db");
-        startActivityForResult(intent, ACTIVITY_REQUEST_IMPORT_DB);
-    }
-
-    private void importOldDb(Uri uri) {
-        File file = null;
-        try {
-            file = FileUtils.createTempFileInputStream(getContentResolver().openInputStream(uri));
-            DatabaseHelper.importOldDb(file, mRepository.get());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (file != null)
-                //noinspection ResultOfMethodCallIgnored
-                file.delete();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case ACTIVITY_REQUEST_IMPORT_DB:
-                if (resultCode == RESULT_OK && data != null && data.getData() != null)
-                    importOldDb(data.getData());
-                break;
-            default:
-                super.onActivityResult(requestCode, resultCode, data);
-                break;
-        }
-    }
 
     private void initViewPager() {
         mPagerAdapter = new PagerAdapter(getSupportFragmentManager()) {
