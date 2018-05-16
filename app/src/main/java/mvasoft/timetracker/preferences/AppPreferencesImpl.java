@@ -22,4 +22,9 @@ public class AppPreferencesImpl extends AppPreferences {
         Set<String> workingDays = mPreferences.getStringSet("pref_working_days", null);
         return (workingDays != null) && workingDays.contains(String.valueOf(dayNumber));
     }
+
+    @Override
+    public long roundDurationToMin() {
+        return 5;
+    }
 }

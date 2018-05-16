@@ -12,10 +12,14 @@ import java.util.List;
 public class ListViewModel {
 
     private final MutableLiveData<List<ItemViewModel>> mItemsLiveData;
+    private final MutableLiveData<Boolean> mPendingSelectionData;
+
 
     public ListViewModel() {
         mItemsLiveData = new MutableLiveData<>();
-    }    
+        mPendingSelectionData = new MutableLiveData<>();
+        mPendingSelectionData.setValue(false);
+    }
     
     public void setItemsList(List<ItemViewModel> list) {
         if (list != null) {
@@ -26,7 +30,6 @@ public class ListViewModel {
         }
         mItemsLiveData.postValue(list);
     }
-
 
     public LiveData<List<ItemViewModel>> getItemsData() {
         return mItemsLiveData;
@@ -64,6 +67,23 @@ public class ListViewModel {
         return res;
     }
 
+    public LiveData<Boolean> getIsPendingSelection() {
+        return mPendingSelectionData;
+    }
+
+    public boolean isPendingSelection() {
+        return mPendingSelectionData.getValue() != null && mPendingSelectionData.getValue();
+    }
+
+    public void startSelection() {
+        mPendingSelectionData.setValue(true);
+    }
+
+    public void endSelection() {
+        deselectAll();
+        mPendingSelectionData.setValue(false);
+    }
+
     private static class SelectedItemsIter implements Iterator<ItemViewModel> {
         private final List<? extends ItemViewModel> mList;
         int mCurrent = -1;
@@ -91,4 +111,5 @@ public class ListViewModel {
             return mList != null ? mList.get(mCurrent) : null;
         }
     }
+
 }

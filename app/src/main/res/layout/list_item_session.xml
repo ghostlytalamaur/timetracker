@@ -6,6 +6,10 @@
 
     <data>
         <variable
+            name="list_model"
+            type="mvasoft.recyclerbinding.viewmodel.ListViewModel"
+            />
+        <variable
             name="view_model"
             type="mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel"
             />
@@ -25,7 +29,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/ListSelectedBackground"
-        app:activated="@{view_model.isSelected}"
         app:actionHandler="@{actionHandler}"
         app:actionType="@{ActionType.CLICK}"
         app:actionTypeLongClick="@{ActionType.SELECT}"
@@ -90,14 +93,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:layout_marginStart="128dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:visibility="@{view_model.isRunning ? v.GONE : v.VISIBLE}"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/tvStartTime"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_clock_out"
-                />
+                app:srcCompat="@drawable/ic_clock_out" />
 
             <ImageView
                 android:id="@+id/imgStart"
@@ -107,10 +109,9 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/cbSelected"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_clock_in"
-                />
+                app:srcCompat="@drawable/ic_clock_in" />
 
             <ImageView
                 android:id="@+id/imgDuration"
@@ -124,6 +125,19 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_clock_end"
                 />
+
+            <CheckBox
+                android:id="@+id/cbSelected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:checked="@{view_model.isSelected}"
+                android:visibility="@{list_model.isPendingSelection ? v.VISIBLE : v.GONE}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </android.support.constraint.ConstraintLayout>
     </LinearLayout>

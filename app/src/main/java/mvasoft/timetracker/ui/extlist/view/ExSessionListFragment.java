@@ -110,14 +110,14 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
             return;
 
 
-        BindableListDelegate<ItemViewModel, ListItemSessionBinding> sessionDelegate =
+        BindableListDelegate<ListItemSessionBinding> sessionDelegate =
                 new BindableListDelegate<>(this, R.layout.list_item_session,
-                        BR.view_model, SessionItemViewModel.class);
+                        BR.list_model, BR.view_model, SessionItemViewModel.class);
         sessionDelegate.setActionHandler(BR.actionHandler, new ExSessionListActionHandler());
 
-        BindableListDelegate<ItemViewModel, ListItemDayBinding> dayDelegate =
+        BindableListDelegate<ListItemDayBinding> dayDelegate =
                 new BindableListDelegate<>(this, R.layout.list_item_day,
-                        BR.view_model, DayItemViewModel.class);
+                        BR.list_model, BR.view_model, DayItemViewModel.class);
         dayDelegate.setActionHandler(BR.actionHandler, new ExSessionListActionHandler());
         //noinspection unchecked
         mAdapter = new BindableListAdapter(this,
@@ -182,6 +182,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         if (!(model instanceof ItemViewModel))
             return;
 
+        getViewModel().getListModel().startSelection();
         ((ItemViewModel) model).setIsSelected(true);
         updateActionMode();
     }
@@ -191,7 +192,8 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
             return;
 
         int cnt = getViewModel().getListModel().getSelectedItemsCount();
-        if (cnt > 0) {
+//        if (cnt > 0) {
+        if (getViewModel().getListModel().isPendingSelection()) {
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
             if (mActionMode != null)
@@ -269,7 +271,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            getViewModel().deselectAll();
+            getViewModel().getListModel().endSelection();
         }
 
     }

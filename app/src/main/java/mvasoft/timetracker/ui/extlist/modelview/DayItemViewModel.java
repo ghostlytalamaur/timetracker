@@ -8,6 +8,7 @@ import java.util.List;
 
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.utils.DateTimeFormatters;
+import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
 
@@ -81,10 +82,11 @@ public class DayItemViewModel extends BaseItemViewModel {
     }
 
     public String asString() {
-        return String.format("%s - %s: %s\n",
-                mFormatter.formatDate(mDayGroup.getStartTime()),
-                mFormatter.formatDate(mDayGroup.getEndTime()),
-                mFormatter.formatDuration(mDayGroup.getDuration()));
+        // TODO: use custom formatter for clipboard data
+        return String.format("%s: %s\n",
+                mFormatter.formatDate(mDayGroup.getDay()),
+                mFormatter.formatDuration(DateTimeHelper.roundDateTime(mDayGroup.getDuration(),
+                        mPreferences.roundDurationToMin())));
     }
 
     @Override

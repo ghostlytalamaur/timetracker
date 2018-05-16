@@ -200,10 +200,13 @@ public class ExSessionListViewModel extends BaseViewModel {
         StringBuilder text = new StringBuilder();
 
         for (ItemViewModel item : mListModel.getSelectedItems())
-            if (item instanceof SessionItemViewModel)
-                text.append(((SessionItemViewModel) item).asString());
+            if (item instanceof BaseItemViewModel)
+                text.append(((BaseItemViewModel) item).asString());
 
-        clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", text.toString()));
+
+        String str = text.toString();
+        if (!str.isEmpty())
+            clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", str));
     }
 
     public void setDate(long dateStart, long dateEnd) {

@@ -6,6 +6,10 @@
 
     <data>
         <variable
+            name="list_model"
+            type="mvasoft.recyclerbinding.viewmodel.ListViewModel"
+            />
+        <variable
             name="view_model"
             type="mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel"
             />
@@ -26,7 +30,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/ListSelectedBackground"
-        app:activated="@{view_model.isSelected}"
         app:actionHandler="@{actionHandler}"
         app:actionType="@{ActionType.CLICK}"
         app:actionTypeLongClick="@{ActionType.SELECT}"
@@ -108,13 +111,6 @@
                 tools:text="end time" />
 
             <android.support.constraint.Guideline
-                android:id="@+id/guideline2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_begin="16dp" />
-
-            <android.support.constraint.Guideline
                 android:id="@+id/guideline4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -140,13 +136,11 @@
                 android:id="@+id/imgStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
                 app:layout_constraintBottom_toTopOf="@+id/guideline4"
-                app:layout_constraintEnd_toStartOf="@+id/guideline2"
-                app:layout_constraintStart_toStartOf="@+id/guideline2"
+                app:layout_constraintStart_toEndOf="@+id/cbSelected"
                 app:layout_constraintTop_toTopOf="@+id/guideline4"
-                app:srcCompat="@drawable/ic_clock_in"
-                />
+                app:srcCompat="@drawable/ic_clock_in" />
 
             <ImageView
                 android:id="@+id/imgDuration"
@@ -166,6 +160,19 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:layout_constraintGuide_end="80dp" />
+
+            <CheckBox
+                android:id="@+id/cbSelected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:checked="@{view_model.isSelected}"
+                android:visibility="@{list_model.isPendingSelection ? v.VISIBLE : v.GONE}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </android.support.constraint.ConstraintLayout>
     </LinearLayout>

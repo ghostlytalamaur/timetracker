@@ -97,4 +97,16 @@ public class DateTimeHelper {
         DateTime dt = new DateTime(year, month, dayOfMonth, 0, 0, 0);
         return dt.getMillis() / 1000;
     }
+
+    public static long roundDateTime(long unixSec, long roundToMin) {
+        if (roundToMin > 0) {
+            long roundToSec = roundToMin * 60;
+            long cnt = unixSec / roundToSec;
+            if ((unixSec % roundToSec) >= (roundToSec / 2))
+                cnt++;
+            return roundToMin * 60 * cnt;
+        }
+        else
+            return unixSec;
+    }
 }

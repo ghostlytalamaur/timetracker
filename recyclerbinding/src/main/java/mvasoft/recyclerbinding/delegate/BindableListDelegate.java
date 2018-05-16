@@ -9,32 +9,41 @@ import com.drextended.actionhandler.listener.ActionClickListener;
 import java.util.List;
 
 import mvasoft.recyclerbinding.adapter.BindableHolder;
+import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
+import mvasoft.recyclerbinding.viewmodel.ListViewModel;
 
-public class BindableListDelegate<T, VB extends ViewDataBinding>
-        extends BindableDelegate<List<T>, VB>  {
+public class BindableListDelegate<VB extends ViewDataBinding>
+        extends BindableDelegate<ListViewModel, VB>  {
 
     private final int mModelVariableId;
-    private final Class<? extends T> mClass;
+    private final int mItemModelVariableId;
+    private final Class<? extends ItemViewModel> mClass;
     private ActionClickListener mActionHandler;
     private int mActionHandlerId;
 
     public BindableListDelegate(LifecycleOwner lifecycleOwner, int layoutRes, int modelVariableId,
-                                Class<? extends T> itemViewModelClass) {
+                                int itemModelVariableId,
+                                Class<? extends ItemViewModel> itemViewModelClass) {
         super(lifecycleOwner, layoutRes);
         mModelVariableId = modelVariableId;
+        mItemModelVariableId = itemModelVariableId;
         mClass = itemViewModelClass;
     }
 
     @Override
-    protected void onBindVariables(BindableHolder<VB> bindableHolder, @NonNull List<T> items, int position) {
-        bindableHolder.getBinding().setVariable(mModelVariableId, items.get(position));
+    protected void onBindVariables(BindableHolder<VB> bindableHolder, @NonNull ListViewModel items, int position) {
+        List<ItemViewModel> list = items.getItemsData().getValue();
+        bindableHolder.getBinding().setVariable(mModelVariableId, items);
+        if (list != null)
+            bindableHolder.getBinding().setVariable(mItemModelVariableId, list.get(position));
         if (mActionHandler != null && mActionHandlerId > 0)
             bindableHolder.getBinding().setVariable(mActionHandlerId, mActionHandler);
     }
 
     @Override
-    protected boolean isForViewType(@NonNull List<T> items, int position) {
-        return mClass.isAssignableFrom(items.get(position).getClass());
+    protected boolean isForViewType(@NonNull ListViewModel items, int position) {
+        List<ItemViewModel> list = items.getItemsData().getValue();
+        return (list != null) &&  mClass.isAssignableFrom(list.get(position).getClass());
     }
 
     public void setActionHandler(int variableId, ActionClickListener handler) {

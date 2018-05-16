@@ -9,4 +9,5 @@ public abstract class AppPreferences {
      */
     public abstract long getTargetTimeInMin();
     public abstract boolean isWorkingDay(int dayNumber);
+    public abstract long roundDurationToMin();
 }
