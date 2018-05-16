@@ -38,6 +38,7 @@ support.support = 'com.android.support:support-v4:27.1.1'
 support.design = 'com.android.support:design:27.1.1'
 support.constraint_layout = 'com.android.support.constraint:constraint-layout:1.1.0'
 support.card_view = 'com.android.support:cardview-v7:27.1.1'
+support.recycler_view = 'com.android.support:recyclerview-v7:27.1.1'
 
 
 def room = [:]

@@ -45,7 +45,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     private static final String STATE_DATE = "selected_date";
     private static final String STATE_TAB = "tab_num";
     private static final String PREF_DATE = "selected_date";
-    private static final String PREF_TAB  = "tab_num";
+    private static final String PREF_TAB = "tab_num";
 
 
     private final ActionClickListener mActionHandler = new TabbedActivityActionHandler();

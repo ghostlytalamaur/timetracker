@@ -10,7 +10,6 @@ import android.arch.lifecycle.Transformations;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -24,10 +23,10 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import dagger.Lazy;
+import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
+import mvasoft.recyclerbinding.viewmodel.ListViewModel;
 import mvasoft.timetracker.common.CalculatedLiveData;
 import mvasoft.timetracker.data.DataRepository;
-import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
-import mvasoft.timetracker.databinding.recyclerview.ListItemHelper;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.extlist.model.DayGroupListModel;
@@ -39,13 +38,12 @@ import mvasoft.timetracker.vo.Session;
 public class ExSessionListViewModel extends BaseViewModel {
 
 
-    private final Handler mHandler;
     private final ModelObserver mModelObserver;
     private final Lazy<AppPreferences> mAppPreferences;
     private ScheduledFuture<?> mUpdateFuture;
     private final DayGroupListModel mModel;
     private final DateTimeFormatters mFormatter;
-    private LiveData<List<BaseItemModel>> mListModel;
+    private final ListViewModel mListModel;
     private final ScheduledExecutorService mUpdateExecutor;
 
     private CalculatedLiveData<List<DayGroup>, String> mSummaryTimeLiveData;
@@ -60,8 +58,9 @@ public class ExSessionListViewModel extends BaseViewModel {
                            Lazy<AppPreferences> appPreferences) {
         super(application);
 
+        mListModel = new ListViewModel();
+
         mFormatter = new DateTimeFormatters();
-        mHandler = new Handler();
         mAppPreferences = appPreferences;
         mModel = new DayGroupListModel(appPreferences, repository);
         mRepository = repository;
@@ -119,19 +118,18 @@ public class ExSessionListViewModel extends BaseViewModel {
             mUpdateFuture = null;
         }
         else if (hasOpened && (mUpdateFuture == null || mUpdateFuture.isCancelled()))
-            mUpdateFuture = mUpdateExecutor.scheduleWithFixedDelay(() ->
-                    mHandler.post(this::updateRunningItems), 0, 1, TimeUnit.SECONDS);
+            mUpdateFuture = mUpdateExecutor.scheduleWithFixedDelay(this::updateRunningItems,
+                    0, 1, TimeUnit.SECONDS);
     }
 
     private void updateRunningItems() {
-        if (mListModel == null || mListModel.getValue() == null)
+        List<ItemViewModel> list = mListModel.getItemsData().getValue();
+        if (list == null)
             return;
 
-        List<BaseItemModel> list = mListModel.getValue();
-        for (BaseItemModel item : list) {
-            if (item instanceof SessionItemViewModel && ((SessionItemViewModel) item).getIsRunning() ||
-                    item instanceof DayItemViewModel && ((DayItemViewModel) item).getIsRunning())
-                item.dataChanged();
+        for (ItemViewModel item : list) {
+            if (item instanceof BaseItemViewModel && ((BaseItemViewModel) item).getIsRunning())
+                ((BaseItemViewModel) item).updateDuration();
         }
 
         if (mSummaryTimeLiveData != null)
@@ -140,19 +138,16 @@ public class ExSessionListViewModel extends BaseViewModel {
             mTargetDiffLiveData.invalidateValue();
     }
 
-    public LiveData<List<BaseItemModel>> getListModel() {
-        if (mListModel == null) {
-            mListModel = Transformations.map(mModel.getItems(), list -> buildListItem());
-        }
+    public ListViewModel getListModel() {
         return mListModel;
     }
 
-    private List<BaseItemModel> buildListItem() {
+    private List<ItemViewModel> buildListItem() {
         List<DayGroup> list = mModel.getItems().getValue();
         if (list == null ||  list.isEmpty())
             return null;
 
-        ArrayList<BaseItemModel> res = new ArrayList<>();
+        ArrayList<ItemViewModel> res = new ArrayList<>();
         if (mModel.isSingleDay()) {
             DayGroup group = list.get(0);
             if (group.hasSessions())
@@ -164,13 +159,7 @@ public class ExSessionListViewModel extends BaseViewModel {
                 if (item.hasSessions())
                     res.add(new DayItemViewModel(mFormatter, item, mAppPreferences.get()));
         }
-        return res;
-    }
 
-    public int getSelectedItemsCount() {
-        int res = 0;
-        for (BaseItemModel ignored : ListItemHelper.getSelectedItemsIter(mListModel.getValue()))
-            res++;
         return res;
     }
 
@@ -186,13 +175,21 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     public void deselectAll() {
-        ListItemHelper.deselectAll(getListModel().getValue());
+        mListModel.deselectAll();
+    }
+
+    private List<Long> getSelectedSessionsIds() {
+        ArrayList<Long> ids = new ArrayList<>();
+        for (ItemViewModel item : mListModel.getSelectedItems()) {
+            if (item instanceof BaseItemViewModel)
+                ((BaseItemViewModel) item).appendSessionIds(ids);
+        }
+        return ids;
     }
 
     public LiveData<Integer> deleteSelected() {
-        return mRepository.get().deleteSessions(ListItemHelper.getSelectedItemsIds(mListModel.getValue()));
+        return mRepository.get().deleteSessions(getSelectedSessionsIds());
     }
-
 
     public void copySelectedToClipboard() {
         final ClipboardManager clipboard = (ClipboardManager)
@@ -202,7 +199,7 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         StringBuilder text = new StringBuilder();
 
-        for (BaseItemModel item : ListItemHelper.getSelectedItemsIter(getListModel().getValue()))
+        for (ItemViewModel item : mListModel.getSelectedItems())
             if (item instanceof SessionItemViewModel)
                 text.append(((SessionItemViewModel) item).asString());
 
@@ -217,7 +214,9 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         @Override
         public void onChanged(@Nullable List<DayGroup> list) {
+            mListModel.setItemsList(buildListItem());
             updateTimer();
         }
     }
+
 }

@@ -1,22 +1,26 @@
 package mvasoft.timetracker.ui.extlist.modelview;
 
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+import android.support.annotation.NonNull;
 
-import mvasoft.timetracker.BR;
-import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
+import java.util.List;
+import java.util.Objects;
+
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.vo.TimeInfoProvider;
 
-public class SessionItemViewModel extends BaseObservable implements BaseItemModel {
+public class SessionItemViewModel extends BaseItemViewModel {
 
-    private boolean mIsSelected;
     private final DateTimeFormatters mFormatter;
     private final TimeInfoProvider mTimeInfo;
+    private final MutableLiveData<String> mDurationLiveData;
 
     SessionItemViewModel(DateTimeFormatters formatter, TimeInfoProvider timeInfo) {
         mFormatter = formatter;
         mTimeInfo = timeInfo;
+        mDurationLiveData = new MutableLiveData<>();
+        updateDuration();
     }
 
     public String getStartTime() {
@@ -33,32 +37,25 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
             return "End date";
     }
 
-    public String getDuration() {
-        if (mTimeInfo != null)
-            return mFormatter.formatDuration(mTimeInfo.getDuration());
-        else
-            return "Duration";
+    public LiveData<String> getDuration() {
+        return mDurationLiveData;
     }
 
+    @Override
+    void updateDuration() {
+        if (mTimeInfo != null)
+            mDurationLiveData.postValue(mFormatter.formatDuration(mTimeInfo.getDuration()));
+    }
+
+    @Override
     public boolean getIsRunning() {
         return (mTimeInfo != null) && mTimeInfo.isRunning();
     }
 
-    @Bindable
-    @Override
-    public boolean getIsSelected() {
-        return mIsSelected;
-    }
-
-    @Override
-    public void setIsSelected(boolean selected) {
-        mIsSelected = selected;
-        notifyPropertyChanged(BR.isSelected);
-    }
 
     @Override
     public void dataChanged() {
-        notifyChange();
+        //notifyChange();
     }
 
     @Override
@@ -77,11 +74,18 @@ public class SessionItemViewModel extends BaseObservable implements BaseItemMode
     }
 
     @Override
+    void appendSessionIds(@NonNull List<Long> destList) {
+        if (mTimeInfo != null)
+            destList.add(mTimeInfo.getId());
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof SessionItemViewModel))
             return false;
+
         SessionItemViewModel to = (SessionItemViewModel) obj;
-        return getIsSelected() == to.getIsSelected() &&
-                (mTimeInfo != null && mTimeInfo.equals(to.mTimeInfo));
+        return Objects.equals(getIsSelected().getValue(), to.getIsSelected().getValue()) &&
+                Objects.equals(mTimeInfo, to.mTimeInfo);
     }
 }

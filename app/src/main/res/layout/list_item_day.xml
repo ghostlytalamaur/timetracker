@@ -10,6 +10,13 @@
             type="mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel"
             />
 
+        <variable
+            name="actionHandler"
+            type="com.drextended.actionhandler.listener.ActionClickListener"/>
+        <import
+            alias="ActionType"
+            type="mvasoft.timetracker.ui.extlist.view.ExSessionListFragment.ExSessionListActionType" />
+
         <import
             alias="v"
             type="android.view.View" />
@@ -20,6 +27,10 @@
         android:layout_height="wrap_content"
         style="@style/ListSelectedBackground"
         app:activated="@{view_model.isSelected}"
+        app:actionHandler="@{actionHandler}"
+        app:actionType="@{ActionType.CLICK}"
+        app:actionTypeLongClick="@{ActionType.SELECT}"
+        app:model="@{view_model}"
         >
 
         <android.support.constraint.ConstraintLayout

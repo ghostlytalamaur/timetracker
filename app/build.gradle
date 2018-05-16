@@ -94,4 +94,5 @@ dependencies {
     //    api 'com.drextended.rvdatabinding:rvdatabinding:1.1.0'
     //    implementation 'com.applandeo:material-calendar-view:1.4.0'
     implementation project(path: ':utils')
+    implementation project(path: ':recyclerbinding')
 }

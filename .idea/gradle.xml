@@ -10,6 +10,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/datetimepicker" />
+            <option value="$PROJECT_DIR$/recyclerbinding" />
             <option value="$PROJECT_DIR$/utils" />
           </set>
         </option>

@@ -6,7 +6,7 @@
 
     <data>
         <variable
-            name="SessionGroup"
+            name="view_model"
             type="mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel"
             />
 
@@ -25,11 +25,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/ListSelectedBackground"
-        app:activated="@{SessionGroup.isSelected}"
+        app:activated="@{view_model.isSelected}"
         app:actionHandler="@{actionHandler}"
         app:actionType="@{ActionType.CLICK}"
         app:actionTypeLongClick="@{ActionType.SELECT}"
-        app:model="@{SessionGroup}">
+        app:model="@{view_model}">
 
         <android.support.constraint.ConstraintLayout
             style="@style/ListSelectedBackground"
@@ -47,7 +47,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginTop="8dp"
                 android:gravity="end|center_vertical"
-                android:text="@{SessionGroup.duration}"
+                android:text="@{view_model.duration}"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/imgDuration"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -65,7 +65,7 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:text="@{SessionGroup.startTime}"
+                android:text="@{view_model.startTime}"
                 app:layout_constraintBottom_toBottomOf="@+id/imgStart"
                 app:layout_constraintStart_toEndOf="@+id/imgStart"
                 app:layout_constraintTop_toTopOf="@+id/imgStart"
@@ -78,8 +78,8 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:text="@{SessionGroup.endTime}"
-                android:visibility="@{SessionGroup.isRunning ? v.GONE : v.VISIBLE}"
+                android:text="@{view_model.endTime}"
+                android:visibility="@{view_model.isRunning ? v.GONE : v.VISIBLE}"
                 app:layout_constraintBottom_toBottomOf="@+id/imgEnd"
                 app:layout_constraintStart_toEndOf="@+id/imgEnd"
                 app:layout_constraintTop_toTopOf="@+id/imgEnd"
@@ -92,7 +92,7 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="128dp"
                 android:layout_marginTop="8dp"
-                android:visibility="@{SessionGroup.isRunning ? v.GONE : v.VISIBLE}"
+                android:visibility="@{view_model.isRunning ? v.GONE : v.VISIBLE}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"

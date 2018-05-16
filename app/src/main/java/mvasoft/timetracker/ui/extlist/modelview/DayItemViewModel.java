@@ -1,25 +1,29 @@
 package mvasoft.timetracker.ui.extlist.modelview;
 
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+import android.support.annotation.NonNull;
 
-import mvasoft.timetracker.BR;
-import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
+import java.util.List;
+
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.vo.DayGroup;
+import mvasoft.timetracker.vo.Session;
 
-public class DayItemViewModel extends BaseObservable implements BaseItemModel {
+public class DayItemViewModel extends BaseItemViewModel {
 
-    private boolean mIsSelected;
     private final DateTimeFormatters mFormatter;
     private final DayGroup mDayGroup;
     private final AppPreferences mPreferences;
+    private final MutableLiveData<String> mDurationLiveData;
 
     DayItemViewModel(DateTimeFormatters formatter, DayGroup dayGroup, AppPreferences preferences) {
         mFormatter = formatter;
         mDayGroup = dayGroup;
         mPreferences = preferences;
+        mDurationLiveData = new MutableLiveData<>();
+        updateDuration();
     }
 
     public String getStartTime() {
@@ -36,11 +40,14 @@ public class DayItemViewModel extends BaseObservable implements BaseItemModel {
             return "End date";
     }
 
-    public String getDuration() {
+    public LiveData<String> getDuration() {
+        return mDurationLiveData;
+    }
+
+    @Override
+    void updateDuration() {
         if (mDayGroup != null)
-            return mFormatter.formatDuration(mDayGroup.getDuration());
-        else
-            return "Duration";
+            mDurationLiveData.postValue(mFormatter.formatDuration(mDayGroup.getDuration()));
     }
 
     public String getTargetTimeDiff() {
@@ -54,25 +61,15 @@ public class DayItemViewModel extends BaseObservable implements BaseItemModel {
         return mDayGroup != null && mDayGroup.getTargetTimeDiff(mPreferences) >= 0;
     }
 
+    @Override
     public boolean getIsRunning() {
         return (mDayGroup != null) && mDayGroup.isRunning();
     }
 
-    @Bindable
-    @Override
-    public boolean getIsSelected() {
-        return mIsSelected;
-    }
-
-    @Override
-    public void setIsSelected(boolean selected) {
-        mIsSelected = selected;
-        notifyPropertyChanged(BR.isSelected);
-    }
 
     @Override
     public void dataChanged() {
-        notifyChange();
+//        notifyChange();
     }
 
     @Override
@@ -88,6 +85,13 @@ public class DayItemViewModel extends BaseObservable implements BaseItemModel {
                 mFormatter.formatDate(mDayGroup.getStartTime()),
                 mFormatter.formatDate(mDayGroup.getEndTime()),
                 mFormatter.formatDuration(mDayGroup.getDuration()));
+    }
+
+    @Override
+    void appendSessionIds(@NonNull List<Long> destList) {
+        if (mDayGroup != null && mDayGroup.getSessions() != null)
+            for (Session s : mDayGroup.getSessions())
+                destList.add(s.getId());
     }
 
     @Override

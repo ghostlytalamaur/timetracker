@@ -28,16 +28,16 @@ import android.widget.Toast;
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.rvdatabinding.ListConfig;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
+import mvasoft.recyclerbinding.adapter.BindableListAdapter;
+import mvasoft.recyclerbinding.delegate.BindableListDelegate;
+import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
-import mvasoft.timetracker.databinding.recyclerview.BaseItemModel;
-import mvasoft.timetracker.databinding.recyclerview.LiveBindableAdapter;
-import mvasoft.timetracker.databinding.recyclerview.ModelItemIdDelegate;
+import mvasoft.timetracker.databinding.ListItemDayBinding;
+import mvasoft.timetracker.databinding.ListItemSessionBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
@@ -50,7 +50,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     private static final String ARGS_DATE_END = "args_date_MAX";
 
     @SuppressWarnings("FieldCanBeLocal")
-    private LiveBindableAdapter<List<BaseItemModel>> mAdapter;
+    private BindableListAdapter mAdapter;
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
     private long mDateStart;
@@ -109,17 +109,23 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         if (getContext() == null)
             return;
 
+
+        BindableListDelegate<ItemViewModel, ListItemSessionBinding> sessionDelegate =
+                new BindableListDelegate<>(this, R.layout.list_item_session,
+                        BR.view_model, SessionItemViewModel.class);
+        sessionDelegate.setActionHandler(BR.actionHandler, new ExSessionListActionHandler());
+
+        BindableListDelegate<ItemViewModel, ListItemDayBinding> dayDelegate =
+                new BindableListDelegate<>(this, R.layout.list_item_day,
+                        BR.view_model, DayItemViewModel.class);
+        dayDelegate.setActionHandler(BR.actionHandler, new ExSessionListActionHandler());
         //noinspection unchecked
-        mAdapter = new LiveBindableAdapter<>(
-                new ModelItemIdDelegate<>(new ExSessionListActionHandler(),
-                        SessionItemViewModel.class,
-                        R.layout.list_item_session, BR.SessionGroup, BR.actionHandler),
-                new ModelItemIdDelegate<>(null,
-                        DayItemViewModel.class,
-                        R.layout.list_item_day, BR.view_model, 0)
+        mAdapter = new BindableListAdapter(this,
+                getViewModel().getListModel(),
+                sessionDelegate, dayDelegate
         );
         mAdapter.setHasStableIds(true);
-        mAdapter.setData(this, getViewModel().getListModel());
+
         ListConfig listConfig = new ListConfig.Builder(mAdapter)
                 .addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL))
                 .build(getContext());
@@ -154,16 +160,16 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     private void actionClick(Object model) {
-        if (!(model instanceof SessionItemViewModel))
+        if (!(model instanceof ItemViewModel))
             return;
 
-        SessionItemViewModel groupModel = (SessionItemViewModel) model;
-        if ((mActionMode == null) &&
+        ItemViewModel groupModel = (ItemViewModel) model;
+        if ((mActionMode == null) && (groupModel instanceof SessionItemViewModel) &&
                 (getActivity() instanceof ISessionListCallbacks))
             // TODO: update for groups
             ((ISessionListCallbacks) getActivity()).editSession(groupModel.getId());
         else if (mActionMode != null) {
-            groupModel.setIsSelected(!groupModel.getIsSelected());
+            ((ItemViewModel) model).toggleSelection();
             updateActionMode();
         }
 
@@ -173,12 +179,10 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         if (getActivity() == null)
             return;
 
-        if (!(model instanceof SessionItemViewModel))
+        if (!(model instanceof ItemViewModel))
             return;
 
-        SessionItemViewModel groupModel = (SessionItemViewModel) model;
-
-        groupModel.setIsSelected(true);
+        ((ItemViewModel) model).setIsSelected(true);
         updateActionMode();
     }
 
@@ -186,7 +190,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         if (getActivity() == null)
             return;
 
-        int cnt = getViewModel().getSelectedItemsCount();
+        int cnt = getViewModel().getListModel().getSelectedItemsCount();
         if (cnt > 0) {
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
