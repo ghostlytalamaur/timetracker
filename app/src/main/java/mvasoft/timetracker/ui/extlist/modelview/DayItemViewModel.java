@@ -3,6 +3,7 @@ package mvasoft.timetracker.ui.extlist.modelview;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.List;
 
@@ -27,19 +28,13 @@ public class DayItemViewModel extends BaseItemViewModel {
         updateDuration();
     }
 
-    public String getStartTime() {
+    public String getDayText() {
         if (mDayGroup != null)
-            return mFormatter.formatDate(mDayGroup.getStartTime()) + " " + mFormatter.formatTime(mDayGroup.getStartTime());
+            return mFormatter.formatDate(mDayGroup.getStartTime());
         else
             return "Start date";
     }
 
-    public String getEndTime() {
-         if (mDayGroup != null)
-             return mFormatter.formatDate(mDayGroup.getEndTime()) + " " + mFormatter.formatTime(mDayGroup.getEndTime());
-        else
-            return "End date";
-    }
 
     public LiveData<String> getDuration() {
         return mDurationLiveData;
@@ -69,11 +64,6 @@ public class DayItemViewModel extends BaseItemViewModel {
 
 
     @Override
-    public void dataChanged() {
-//        notifyChange();
-    }
-
-    @Override
     public long getId() {
         if (mDayGroup != null)
             return mDayGroup.getId();
@@ -81,11 +71,13 @@ public class DayItemViewModel extends BaseItemViewModel {
             return 0;
     }
 
-    public String asString() {
-        // TODO: use custom formatter for clipboard data
+    @Override
+    public String getClipboardString(@Nullable DateTimeFormatters formatter) {
+        if (formatter == null)
+            formatter = mFormatter;
         return String.format("%s: %s\n",
-                mFormatter.formatDate(mDayGroup.getDay()),
-                mFormatter.formatDuration(DateTimeHelper.roundDateTime(mDayGroup.getDuration(),
+                formatter.formatDate(mDayGroup.getDay()),
+                formatter.formatDuration(DateTimeHelper.roundDateTime(mDayGroup.getDuration(),
                         mPreferences.roundDurationToMin())));
     }
 

@@ -65,7 +65,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/imageView"
             app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/ic_to_target"
+            app:srcCompat="@{view_model.isTargetAchieved ? @drawable/ic_timer : @drawable/ic_timer_off}"
             />
 
         <android.support.constraint.Guideline

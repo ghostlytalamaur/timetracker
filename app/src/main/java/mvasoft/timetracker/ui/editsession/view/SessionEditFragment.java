@@ -19,7 +19,7 @@ import android.widget.Toast;
 
 import javax.inject.Inject;
 
-import mvasoft.datetimepicker.DatePickerFragment;
+import mvasoft.datetimepicker.DateTimePickerFragment;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentSessionEditBinding;
@@ -52,14 +52,14 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
             long newDateTime;
             switch (requestCode) {
                 case REQUEST_START_TIME:
-                    newDateTime = data.getLongExtra(DatePickerFragment.ARGS_DATE,
+                    newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE,
                             getViewModel().getModel().getStartTime() / 1000) / 1000;
                     if (newDateTime != getViewModel().getModel().getStartTime()) {
                         getViewModel().getModel().setStartTime(newDateTime);
                     }
                     break;
                 case REQUEST_END_TIME:
-                    newDateTime = data.getLongExtra(DatePickerFragment.ARGS_DATE,
+                    newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE,
                             getViewModel().getModel().getEndTime() / 1000) / 1000;
                     if (newDateTime != getViewModel().getModel().getEndTime()) {
                         getViewModel().getModel().setEndTime(newDateTime);
@@ -175,7 +175,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
 
         if (dateTime == 0)
             dateTime = System.currentTimeMillis() / 1000L;
-        DatePickerFragment dlg = DatePickerFragment.newInstance(dateTime * 1000, "");
+        DateTimePickerFragment dlg = DateTimePickerFragment.newInstance(dateTime * 1000, "");
         dlg.setTargetFragment(this, requestCode);
         dlg.show(getFragmentManager(), "dialog_date");
     }

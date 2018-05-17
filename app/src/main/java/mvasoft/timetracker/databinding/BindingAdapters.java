@@ -6,6 +6,7 @@ import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
@@ -19,7 +20,12 @@ public class BindingAdapters {
             ((Animatable) fab.getDrawable()).start();
     }
 
-
+    @BindingAdapter("srcCompat")
+    public static void setSrcCompat(ImageView view, Drawable drawable) {
+        view.setImageDrawable(drawable);
+        if (view.getDrawable() instanceof Animatable)
+            ((Animatable) view.getDrawable()).start();
+    }
 
     /**
      * Binding adapter to assign an action to a view using android data binding approach.

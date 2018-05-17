@@ -9,13 +9,22 @@ import org.joda.time.format.PeriodFormatterBuilder;
 
 public class DateTimeFormatters {
 
+    private final DateTimeFormattersType mType;
     private PeriodFormatter mPeriodFormatter;
     private DateTimeFormatter mDateFormatter;
     private DateTimeFormatter mTimeFormatter;
 
+    public DateTimeFormatters() {
+        this(DateTimeFormattersType.dtft_Default);
+    }
+
+    public DateTimeFormatters(DateTimeFormattersType type) {
+        mType = type;
+    }
+
     private PeriodFormatter getPeriodFormatter() {
         if (mPeriodFormatter == null) {
-            mPeriodFormatter = new PeriodFormatterBuilder()
+            PeriodFormatterBuilder builder = new PeriodFormatterBuilder()
                     .printZeroAlways()
                     .minimumPrintedDigits(2)
                     .appendHours()
@@ -25,9 +34,10 @@ public class DateTimeFormatters {
                     .appendMinutes()
                     .appendSeparator(":")
                     .printZeroAlways()
-                    .minimumPrintedDigits(2)
-                    .appendSeconds()
-                    .toFormatter();
+                    .minimumPrintedDigits(2);
+            if (mType == DateTimeFormattersType.dtft_Default)
+                builder.appendSeconds();
+            mPeriodFormatter = builder.toFormatter();
         }
         return mPeriodFormatter;
     }
@@ -35,7 +45,7 @@ public class DateTimeFormatters {
     private DateTimeFormatter getDateFormatter() {
         if (mDateFormatter == null) {
             mDateFormatter = new DateTimeFormatterBuilder().
-                    appendDayOfWeekText().
+                    appendDayOfWeekShortText().
                     appendLiteral(", ").
                     appendDayOfMonth(2).
                     appendLiteral(" ").
@@ -72,4 +82,8 @@ public class DateTimeFormatters {
     }
 
 
+    public enum DateTimeFormattersType {
+        dtft_Default,
+        dtft_Clipboard
+    }
 }

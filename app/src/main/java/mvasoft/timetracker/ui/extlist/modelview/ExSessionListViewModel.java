@@ -199,9 +199,10 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         StringBuilder text = new StringBuilder();
 
+        DateTimeFormatters formatter = new DateTimeFormatters(DateTimeFormatters.DateTimeFormattersType.dtft_Clipboard);
         for (ItemViewModel item : mListModel.getSelectedItems())
             if (item instanceof BaseItemViewModel)
-                text.append(((BaseItemViewModel) item).asString());
+                text.append(((BaseItemViewModel) item).getClipboardString(formatter));
 
 
         String str = text.toString();

@@ -3,6 +3,7 @@ package mvasoft.timetracker.ui.extlist.modelview;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -52,12 +53,6 @@ public class SessionItemViewModel extends BaseItemViewModel {
         return (mTimeInfo != null) && mTimeInfo.isRunning();
     }
 
-
-    @Override
-    public void dataChanged() {
-        //notifyChange();
-    }
-
     @Override
     public long getId() {
         if (mTimeInfo != null)
@@ -66,11 +61,14 @@ public class SessionItemViewModel extends BaseItemViewModel {
             return 0;
     }
 
-    public String asString() {
+    @Override
+    public String getClipboardString(@Nullable DateTimeFormatters formatter) {
+        if (formatter == null)
+            formatter = mFormatter;
         return String.format("%s - %s: %s\n",
-                mFormatter.formatDate(mTimeInfo.getStartTime()),
-                mFormatter.formatDate(mTimeInfo.getEndTime()),
-                mFormatter.formatDuration(mTimeInfo.getDuration()));
+                formatter.formatDate(mTimeInfo.getStartTime()),
+                formatter.formatDate(mTimeInfo.getEndTime()),
+                formatter.formatDuration(mTimeInfo.getDuration()));
     }
 
     @Override

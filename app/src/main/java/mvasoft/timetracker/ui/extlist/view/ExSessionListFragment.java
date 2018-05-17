@@ -166,7 +166,6 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         ItemViewModel groupModel = (ItemViewModel) model;
         if ((mActionMode == null) && (groupModel instanceof SessionItemViewModel) &&
                 (getActivity() instanceof ISessionListCallbacks))
-            // TODO: update for groups
             ((ISessionListCallbacks) getActivity()).editSession(groupModel.getId());
         else if (mActionMode != null) {
             ((ItemViewModel) model).toggleSelection();
