@@ -27,9 +27,9 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:text="@{String.format(@string/caption_summary, view_model.summaryTime)}"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView"
-            app:layout_constraintStart_toEndOf="@+id/imageView"
-            app:layout_constraintTop_toTopOf="@+id/imageView"
+            app:layout_constraintBottom_toBottomOf="@+id/imgSummary"
+            app:layout_constraintStart_toEndOf="@+id/imgSummary"
+            app:layout_constraintTop_toTopOf="@+id/imgSummary"
             tools:text="TextView" />
 
         <TextView
@@ -37,36 +37,40 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
+            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:text="@{String.format(@string/caption_target, view_model.targetDiff)}"
             android:textColor="@{safeUnbox(view_model.isTargetAchieved) ? @color/colorTextPositive : @color/colorTextNegative}"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView2"
-            app:layout_constraintStart_toStartOf="@+id/tvSummary"
-            app:layout_constraintTop_toTopOf="@+id/imageView2"
-            tools:text="TextView" />
+            app:layout_constraintBottom_toBottomOf="@+id/imgTarget"
+            app:layout_constraintStart_toEndOf="@+id/imgTarget"
+            app:layout_constraintTop_toTopOf="@+id/imgTarget"
+            tools:text="TextView"
+            />
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/imgSummary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="16dp"
-            app:layout_constraintBottom_toTopOf="@+id/imageView2"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_today"
             />
 
         <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/imgTarget"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginStart="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/imageView"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:srcCompat="@drawable/ic_timer"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/imgSummary"
+            app:layout_constraintEnd_toStartOf="@+id/guideline8"
+            app:layout_constraintStart_toStartOf="@+id/guideline8"
+            app:layout_constraintTop_toTopOf="@+id/imgSummary"
+            app:layout_constraintVertical_bias="0.0"
             app:srcCompat="@{safeUnbox(view_model.isTargetAchieved) ? @drawable/ic_timer : @drawable/ic_timer_off}"
+            tools:srcCompat="@drawable/ic_timer"
             />
 
         <android.support.constraint.Guideline
@@ -74,22 +78,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintGuide_end="88dp" />
+            app:layout_constraintGuide_percent="0.5"
+            />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/items_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginBottom="16dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
+            android:clipToPadding="false"
+            android:paddingBottom="66dp"
             android:scrollbars="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/tvSummary"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imgTarget"
             tools:listitem="@layout/list_item_session"
             />
 
