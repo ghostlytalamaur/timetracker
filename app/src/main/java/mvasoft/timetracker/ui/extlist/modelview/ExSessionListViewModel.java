@@ -174,10 +174,6 @@ public class ExSessionListViewModel extends BaseViewModel {
         super.onCleared();
     }
 
-    public void deselectAll() {
-        mListModel.deselectAll();
-    }
-
     private List<Long> getSelectedSessionsIds() {
         ArrayList<Long> ids = new ArrayList<>();
         for (ItemViewModel item : mListModel.getSelectedItems()) {
@@ -187,8 +183,8 @@ public class ExSessionListViewModel extends BaseViewModel {
         return ids;
     }
 
-    public LiveData<Integer> deleteSelected() {
-        return mRepository.get().deleteSessions(getSelectedSessionsIds());
+    public void deleteSelected() {
+        mRepository.get().deleteSessions(getSelectedSessionsIds());
     }
 
     public void copySelectedToClipboard() {

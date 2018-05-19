@@ -1,33 +1,36 @@
 package mvasoft.timetracker.ui.extlist.view;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CalendarView;
+import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import javax.inject.Inject;
 
 import dagger.Lazy;
+import mvasoft.datetimepicker.DatePickerFragment;
+import mvasoft.datetimepicker.event.DatePickerDateSelectedEvent;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.data.event.SessionToggledEvent;
+import mvasoft.timetracker.data.event.SessionsDeletedEvent;
 import mvasoft.timetracker.databinding.ActivityTabbedBinding;
 import mvasoft.timetracker.ui.backup.BackupActivity;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
@@ -58,7 +61,6 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     @Inject
     public Lazy<DataRepository> mRepository;
     private PagerAdapter mPagerAdapter;
-    private boolean mIsExpanded;
     private long mDate;
 
     @Override
@@ -68,40 +70,20 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         getBinding().setVariable(BR.actionHandler, mActionHandler);
         setSupportActionBar(getBinding().toolbar);
         initViewPager();
-
-        getBinding().calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                mDate = DateTimeHelper.getUnixTime(year, month + 1, dayOfMonth);
-                updateFragmentDate();
-                getBinding().datePickerTitle.setText(mFormatter.formatDate(mDate));
-            }
-        });
-        getBinding().appBarLayout.addOnOffsetChangedListener(
-                (appBarLayout, verticalOffset) -> mIsExpanded = verticalOffset == 0);
-
-        getBinding().datePickerButton.setOnClickListener(v -> {
-            float rotation = mIsExpanded ? 0 : 180;
-            ViewCompat.animate(getBinding().datePickerArrow).rotation(rotation).start();
-
-            getBinding().appBarLayout.setExpanded(!mIsExpanded, true);
-        });
         restoreState(savedInstanceState);
     }
 
     private void restoreState(Bundle savedInstanceState) {
         int currentTab = 0;
         if (savedInstanceState != null) {
-            mDate = savedInstanceState.getLong(STATE_DATE, System.currentTimeMillis() / 1000);
+            setCurrentDate(savedInstanceState.getLong(STATE_DATE, System.currentTimeMillis() / 1000));
             currentTab = savedInstanceState.getInt(STATE_TAB, currentTab);
         }
         else {
             SharedPreferences pref = getPreferences(MODE_PRIVATE);
-            mDate = pref.getLong(PREF_DATE, getBinding().calendarView.getDate() / 1000);
+            setCurrentDate(pref.getLong(PREF_DATE, System.currentTimeMillis() / 1000));
             currentTab = pref.getInt(PREF_TAB, currentTab);
         }
-        getBinding().calendarView.setDate(mDate * 1000);
-        getBinding().datePickerTitle.setText(mFormatter.formatDate(mDate));
         getBinding().viewPager.setCurrentItem(currentTab);
     }
 
@@ -114,11 +96,11 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
     @Override
     protected void onStop() {
-        super.onStop();
         SharedPreferences pref = getPreferences(MODE_PRIVATE);
         pref.edit().putLong(PREF_DATE, mDate)
                 .putInt(PREF_TAB, getBinding().viewPager.getCurrentItem())
                 .apply();
+        super.onStop();
     }
 
     private void updateFragmentDate() {
@@ -165,6 +147,12 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         return super.onCreateOptionsMenu(menu);
     }
 
+    private void selectDate() {
+        TabbedActivityDatePickerFragment f = new TabbedActivityDatePickerFragment();
+        f.setArguments(TabbedActivityDatePickerFragment.makeArgs(mDate));
+        f.show(getSupportFragmentManager(), "TabbedActivityDatePickerFragment");
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
@@ -182,6 +170,9 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
                 intent = new Intent(this, BackupActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                break;
+            case R.id.action_select_date:
+                selectDate();
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -268,32 +259,60 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         public void onActionClick(View view, String actionType, Object model) {
             switch (actionType) {
                 case TabbedActivityActionType.TOGGLE:
-                    actionToggle();
+                    getViewModel().toggleSession();
                     break;
             }
         }
     }
 
-    private void actionToggle() {
-        // TODO: move fab action handler to fragment
-        final LiveData<DataRepository.ToggleSessionResult> toggleResult = getViewModel().toggleSession();
-        toggleResult.observe(this, new Observer<DataRepository.ToggleSessionResult>() {
-            @Override
-            public void onChanged(@Nullable DataRepository.ToggleSessionResult toggleSessionResult) {
-                if (toggleSessionResult != null) {
-                    switch (toggleSessionResult) {
-                        case tgs_Started:
-                            Snackbar.make(getBinding().fab, R.string.msg_session_started, Snackbar.LENGTH_LONG).show();
-                            break;
-
-                        case tgs_Stopped:
-                            Snackbar.make(getBinding().fab, R.string.msg_session_stopped, Snackbar.LENGTH_LONG).show();
-                            break;
-                    }
-                }
-                toggleResult.removeObserver(this);
-            }
-        });
-
+    @Override
+    protected boolean shouldRegisterToEventBus() {
+        return true;
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onSessionToggled(SessionToggledEvent e) {
+        switch (e.toggleResult) {
+            case tgs_Started:
+                Snackbar.make(getBinding().fab, R.string.msg_session_started, Snackbar.LENGTH_LONG).show();
+                break;
+
+            case tgs_Stopped:
+                Snackbar.make(getBinding().fab, R.string.msg_session_stopped, Snackbar.LENGTH_LONG).show();
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onSessionsDeletedEvent(SessionsDeletedEvent e) {
+        Toast.makeText(this, e.deletedSessionsCount + " session was removed.", Toast.LENGTH_LONG).show();
+    }
+
+    @Subscribe
+    public void onDateSelected(TabbedActivityDateSelectedEvent e) {
+        setCurrentDate(e.unixTime);
+    }
+
+    private void setCurrentDate(long date) {
+        if (date == mDate)
+            return;
+
+        mDate = date;
+        updateFragmentDate();
+        setTitle(mFormatter.formatDate(mDate));
+    }
+
+    public static class TabbedActivityDateSelectedEvent extends DatePickerDateSelectedEvent {
+        TabbedActivityDateSelectedEvent(long unixTime) {
+            super(unixTime);
+        }
+    }
+
+    public static class TabbedActivityDatePickerFragment extends DatePickerFragment<TabbedActivityDateSelectedEvent> {
+        @Override
+        protected TabbedActivityDateSelectedEvent createEvent(long unixTime) {
+            return new TabbedActivityDateSelectedEvent(unixTime);
+        }
+    }
+
 }

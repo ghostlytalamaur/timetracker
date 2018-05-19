@@ -57,13 +57,13 @@ public abstract class ExtService extends Service {
         mServiceHandler = new ServiceHandler(mServiceLooper);
     }
 
-    @Override
-    public void onStart(@Nullable Intent intent, int startId) {
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = startId;
-        msg.obj = intent;
-        mServiceHandler.sendMessage(msg);
-    }
+//    @Override
+//    public void onStart(@Nullable Intent intent, int startId) {
+//        Message msg = mServiceHandler.obtainMessage();
+//        msg.arg1 = startId;
+//        msg.obj = intent;
+//        mServiceHandler.sendMessage(msg);
+//    }
 
     /**
      * You should not override this method for your IntentService. Instead,
@@ -73,7 +73,7 @@ public abstract class ExtService extends Service {
      */
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
-        onStart(intent, startId);
+//        onStart(intent, startId);
         return mRedelivery ? START_REDELIVER_INTENT : START_NOT_STICKY;
     }
 

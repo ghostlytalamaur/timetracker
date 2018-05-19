@@ -22,8 +22,8 @@ public class TabbedActivityViewModel extends BaseViewModel {
         mRepository = repository;
     }
 
-    public LiveData<DataRepository.ToggleSessionResult> toggleSession() {
-        return mRepository.get().toggleSession();
+    public void toggleSession() {
+        mRepository.get().toggleSession();
     }
 
     public LiveData<Long> getOpenedSessionsId() {

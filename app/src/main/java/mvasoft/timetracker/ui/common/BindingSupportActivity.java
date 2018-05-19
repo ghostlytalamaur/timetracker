@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 
+import org.greenrobot.eventbus.EventBus;
+
 import dagger.android.support.DaggerAppCompatActivity;
 
 public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
@@ -24,6 +26,24 @@ public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
         bindVariables();
         mBinding.setLifecycleOwner(this);
         mBinding.executePendingBindings();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (shouldRegisterToEventBus())
+            EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        if (shouldRegisterToEventBus())
+            EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    protected boolean shouldRegisterToEventBus() {
+        return false;
     }
 
     protected void bindVariables() {

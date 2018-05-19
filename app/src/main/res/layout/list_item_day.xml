@@ -55,7 +55,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:text="@{view_model.targetTimeDiff}"
-                android:textColor="@{view_model.isTargetAchieved ? @color/colorTextPositive : @color/colorTextNegative}"
+                android:textColor="@{safeUnbox(view_model.isTargetAchieved) ? @color/colorTextPositive : @color/colorTextNegative}"
                 app:layout_constraintBottom_toBottomOf="@+id/imgTarget"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/imgTarget"
@@ -74,7 +74,9 @@
                 app:layout_constraintEnd_toEndOf="@+id/imgDuration"
                 app:layout_constraintStart_toStartOf="@+id/imgDuration"
                 app:layout_constraintTop_toBottomOf="@+id/imgDuration"
-                app:srcCompat="@{view_model.isTargetAchieved ? @drawable/ic_timer : @drawable/ic_timer_off}" />
+                app:srcCompat="@{safeUnbox(view_model.isTargetAchieved) ? @drawable/ic_timer : @drawable/ic_timer_off}"
+                tools:srcCompat="@drawable/ic_timer"
+                />
 
             <TextView
                 android:id="@+id/tvElapsed"
@@ -132,8 +134,8 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:checked="@{view_model.isSelected}"
-                android:visibility="@{list_model.isPendingSelection ? v.VISIBLE : v.GONE}"
+                android:checked="@{safeUnbox(view_model.isSelected)}"
+                android:visibility="@{safeUnbox(list_model.isPendingSelection) ? v.VISIBLE : v.GONE}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

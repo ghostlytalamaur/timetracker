@@ -1,6 +1,5 @@
 package mvasoft.timetracker.ui.editsession.view;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -15,7 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import javax.inject.Inject;
 
@@ -157,16 +155,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     }
 
     private void saveSession() {
-        LiveData<Boolean> result = getViewModel().saveSession();
-        result.observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(@Nullable Boolean isSaved) {
-                if (isSaved != null && isSaved)
-                    Toast.makeText(getContext(),  R.string.session_saved, Toast.LENGTH_SHORT).show();
-                else
-                    Toast.makeText(getContext(),  R.string.session_unable_save, Toast.LENGTH_SHORT).show();
-            }
-        });
+        getViewModel().saveSession();
     }
 
     private void editDateTime(long dateTime, int requestCode) {

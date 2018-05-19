@@ -12,15 +12,33 @@ import mvasoft.timetracker.vo.Session;
 public interface DataRepository {
 
     LiveData<List<Session>> getSessions();
-    LiveData<Integer> deleteSessions(List<Long> ids);
+
+
+    /**
+     * Delete session with id in ids list.
+     * Post number of deleted rows as event {@link mvasoft.timetracker.data.event.SessionsDeletedEvent}
+     * @param ids session ids to delete
+     */
+    void deleteSessions(List<Long> ids);
 
     LiveData<Long> getOpenedSessionId();
-    LiveData<ToggleSessionResult> toggleSession();
 
-    LiveData<Boolean> updateSession(Session session);
+    /**
+     * Close opened session if it exists. <p>
+     * Start new session if no opened sessions was found. <p>
+     * Post result as event {@link mvasoft.timetracker.data.event.SessionToggledEvent}.
+     */
+    void toggleSession();
+
+    /**
+     * Save session to repository.
+     * Post event {@link mvasoft.timetracker.data.event.SessionSavedEvent}
+     * @param session - session to update
+     */
+    void updateSession(Session session);
     LiveData<Session> getSessionById(long id);
 
-    LiveData<List<Session>> getSessionForDate(long date);
+//    LiveData<List<Session>> getSessionForDate(long date);
 
     LiveData<List<Long>> getSessionsIds();
 

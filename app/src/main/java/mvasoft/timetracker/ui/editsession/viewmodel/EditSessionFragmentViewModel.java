@@ -74,14 +74,9 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
         return mIsChangedLiveData;
     }
 
-    public LiveData<Boolean> saveSession() {
+    public void saveSession() {
         if (getModel().getSession() != null)
-            return mRepository.updateSession(getModel().getSessionForUpdate());
-        else {
-            MutableLiveData<Boolean> res = new MutableLiveData<>();
-            res.setValue(false);
-            return res;
-        }
+            mRepository.updateSession(getModel().getSessionForUpdate());
     }
 
     private class SessionDataChangedListener implements SessionEditModel.ISessionDataChangedListener {

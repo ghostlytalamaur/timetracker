@@ -6,6 +6,11 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
+import android.widget.Toast;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
@@ -13,6 +18,7 @@ import javax.inject.Inject;
 
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.data.event.SessionSavedEvent;
 import mvasoft.timetracker.databinding.ActivityEditSessionBinding;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
 import mvasoft.timetracker.ui.common.PagerAdapter;
@@ -136,4 +142,19 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
         };
         getBinding().viewPager.setAdapter(mAdapter);
     }
+
+    @Override
+    protected boolean shouldRegisterToEventBus() {
+        return true;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onSessionSavedEvent(SessionSavedEvent e) {
+        if (e.wasSaved)
+            Toast.makeText(this,  R.string.session_saved, Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(this,  R.string.session_unable_save, Toast.LENGTH_SHORT).show();
+        Log.d("mvasoft.timetracker.log", "EditSessionActivity.onSessionSavedEvent(SessionSavedEvent e)");
+    }
+
 }

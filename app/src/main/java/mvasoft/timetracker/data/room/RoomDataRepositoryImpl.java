@@ -2,9 +2,10 @@ package mvasoft.timetracker.data.room;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.arch.persistence.room.InvalidationTracker;
 import android.support.annotation.NonNull;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,9 @@ import javax.inject.Singleton;
 
 import mvasoft.timetracker.core.AppExecutors;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.data.event.SessionSavedEvent;
+import mvasoft.timetracker.data.event.SessionToggledEvent;
+import mvasoft.timetracker.data.event.SessionsDeletedEvent;
 import mvasoft.timetracker.db.AppDatabase;
 import mvasoft.timetracker.db.SessionsDao;
 import mvasoft.timetracker.vo.DayDescription;
@@ -48,15 +52,14 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public LiveData<Integer> deleteSessions(List<Long> ids) {
-        MutableLiveData<Integer> resData = new MutableLiveData<>();
+    public void deleteSessions(List<Long> ids) {
         mExecutors.getDiskIO().execute(new Runnable() {
             @Override
             public void run() {
-                resData.postValue(mDatabase.groupsModel().deleteByIds(ids));
+                EventBus.getDefault().post(
+                        new SessionsDeletedEvent(mDatabase.groupsModel().deleteByIds(ids)));
             }
         });
-        return resData;
     }
 
     @Override
@@ -65,46 +68,44 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public LiveData<ToggleSessionResult> toggleSession() {
-        MutableLiveData<ToggleSessionResult> resData = new MutableLiveData<>();
+    public void toggleSession() {
         mExecutors.getDiskIO().execute(new Runnable() {
             @Override
             public void run() {
                 int updatedRows = mGroupsModel.closeOpenedSessions();
+                ToggleSessionResult res;
                 if (updatedRows != 0)
-                    resData.postValue(ToggleSessionResult.tgs_Stopped);
+                    res = ToggleSessionResult.tgs_Stopped;
                 else {
                     Session session = new Session(0, System.currentTimeMillis() / 1000L, 0);
                     if (mGroupsModel.appendSession(session) > 0)
-                        resData.postValue(ToggleSessionResult.tgs_Started);
+                        res = ToggleSessionResult.tgs_Started;
                     else
-                        resData.postValue(ToggleSessionResult.tgs_Error);
+                        res = ToggleSessionResult.tgs_Error;
                 }
 
+                EventBus.getDefault().post(new SessionToggledEvent(res));
             }
         });
 
-        return resData;
     }
 
     @Override
-    public LiveData<Boolean> updateSession(Session session) {
-        MutableLiveData<Boolean> resData = new MutableLiveData<>();
+    public void updateSession(Session session) {
         mExecutors.getDiskIO().execute(new Runnable() {
             @Override
             public void run() {
-                resData.postValue(mGroupsModel.updateSession(session) > 0);
+                EventBus.getDefault().post(
+                        new SessionSavedEvent(mGroupsModel.updateSession(session) > 0));
             }
         });
-
-        return resData;
     }
 
     public LiveData<Session> getSessionById(long id) {
         return mGroupsModel.getSessionById(id);
     }
 
-    @Override
+//    @Override
     public LiveData<List<Session>> getSessionForDate(long date) {
         return mGroupsModel.getSessionForDate(date);
     }

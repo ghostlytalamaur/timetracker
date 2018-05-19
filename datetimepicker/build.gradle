@@ -11,7 +11,11 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [eventBusIndex : 'mvasoft.timetracker.DateTimePickersEventBusIndex']
+            }
+        }
     }
     buildTypes {
         release {
@@ -30,7 +34,13 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
     })
+    implementation deps.support.support
     implementation deps.support.app_compat
+
+    implementation deps.eventbus.eventbus
+    annotationProcessor deps.eventbus.compiler
+
     testImplementation deps.junit.junit
     api fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
 }

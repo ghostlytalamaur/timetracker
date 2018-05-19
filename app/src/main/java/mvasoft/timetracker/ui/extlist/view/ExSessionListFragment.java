@@ -1,7 +1,5 @@
 package mvasoft.timetracker.ui.extlist.view;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
@@ -23,7 +21,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.rvdatabinding.ListConfig;
@@ -202,20 +199,11 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
             mActionMode.finish();
     }
 
-
-
     private void deleteSelected() {
         showDialog(R.string.msg_selected_session_will_removed, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                LiveData<Integer> result = getViewModel().deleteSelected();
-                result.observe(ExSessionListFragment.this, new Observer<Integer>() {
-                    @Override
-                    public void onChanged(@Nullable Integer cnt) {
-                        Toast.makeText(getContext(), cnt + " session was removed.", Toast.LENGTH_LONG).show();
-                        result.removeObserver(this);
-                    }
-                });
+                getViewModel().deleteSelected();
                 if (mActionMode != null)
                     mActionMode.finish();
             }

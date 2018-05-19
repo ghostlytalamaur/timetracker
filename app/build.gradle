@@ -34,7 +34,9 @@ android {
 
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString(),
+                             eventBusIndex : 'mvasoft.timetracker.TimeTrackerEventBusIndex'
+                ]
             }
         }
     }
@@ -81,6 +83,9 @@ dependencies {
     testImplementation deps.arch_core.testing
     annotationProcessor deps.lifecycle.compiler
     annotationProcessor deps.room.compiler
+    implementation deps.eventbus.eventbus
+    annotationProcessor deps.eventbus.compiler
+
     testImplementation deps.junit.junit
     androidTestImplementation(deps.espresso.core, {
         exclude group: 'com.android.support', module: 'support-annotations'

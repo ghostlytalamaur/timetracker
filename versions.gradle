@@ -64,6 +64,10 @@ espresso.core = "com.android.support.test.espresso:espresso-core:$versions.espre
 espresso.contrib = "com.android.support.test.espresso:espresso-contrib:$versions.espresso"
 espresso.intents = "com.android.support.test.espresso:espresso-intents:$versions.espresso"
 
+def eventbus = [:]
+eventbus.eventbus = 'org.greenrobot:eventbus:3.1.1'
+eventbus.compiler = 'org.greenrobot:eventbus-annotation-processor:3.1.1'
+
 def deps = [:]
 deps.dagger = dagger
 deps.support = support
@@ -72,6 +76,7 @@ deps.lifecycle = lifecycle
 deps.arch_core = arch_core
 deps.junit = junit
 deps.espresso = espresso
+deps.eventbus = eventbus
 ext.deps = deps
 
 static def addRepos(RepositoryHandler handler) {

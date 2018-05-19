@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.greenrobot.eventbus.EventBus;
+
 import dagger.android.support.DaggerFragment;
 
 public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
@@ -29,6 +31,26 @@ public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
         mBinding.setLifecycleOwner(this);
         mBinding.executePendingBindings();
         return mBinding.getRoot();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (shouldRegisterToEventBus())
+            EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        if (shouldRegisterToEventBus())
+            EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    protected boolean shouldRegisterToEventBus() {
+        // Note: registered fragment, that contains in FragmentStatePagerAdapter
+        // will receive events even then when it not visible to user,
+        return false;
     }
 
     protected ViewModel getViewModel() {
