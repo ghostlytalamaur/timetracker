@@ -1,208 +1,253 @@
 package mvasoft.timetracker.ui.editsession.model;
 
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MediatorLiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.util.EventListener;
+import java.util.Objects;
 
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.vo.Session;
-import mvasoft.utils.Announcer;
 
 // TODO: 04.05.2018 recator this class
 public class SessionEditModel {
-    private static final String STATE_ID         = "session_id";
-    private static final String STATE_START_TIME = "start_time";
-    private static final String STATE_END_TIME   = "end_time";
-    private static final String STATE_ORIGINAL_START_TIME = "original_start";
-    private static final String STATE_ORIGINAL_END_TIME = "original_end";
-    private static final String STATE_ORIGINAL_IS_CLOSED = "is_changed";
-    private static final int FLAGS_FALSE = 0;
-    private static final int FLAGS_TRUE = 1;
-    private static final int FLAGS_UNDEF = -1;
 
-    private final Announcer<ISessionDataChangedListener> mAnnouncer;
     private final DataRepository mRepository;
     private long mSessionId;
-    private long mStartTime;
-    private long mEndTime;
-    private long mOriginalStartTime;
-    private long mOriginalEndTime;
-    private int mIsClosed;
     private LiveData<Session> mSessionLiveData;
+    private MediatorLiveData<Long> mStartTimeData;
+    private MediatorLiveData<Long> mEndTimeData;
+    private MediatorLiveData<Long> mDurationData;
+    private MediatorLiveData<Boolean> mIsRunningData;
+    private MediatorLiveData<Boolean> mIsChangedData;
+    private boolean mInRestoreState = false;
 
     public SessionEditModel(DataRepository repository) {
         super();
         mRepository = repository;
-        mAnnouncer = new Announcer<>(ISessionDataChangedListener.class);
-        mIsClosed = FLAGS_UNDEF;
+
+        mStartTimeData = new MediatorLiveData<>();
+        mEndTimeData = new MediatorLiveData<>();
+        mDurationData = new MediatorLiveData<>();
+        mIsRunningData = new MediatorLiveData<>();
+        mIsChangedData = new MediatorLiveData<>();
+
+        mDurationData.addSource(mStartTimeData, start -> {
+            if (start != null && mEndTimeData.getValue() != null)
+                mDurationData.setValue(mEndTimeData.getValue() - start);
+            else
+                mDurationData.setValue((long) 0);
+        });
+        mDurationData.addSource(mEndTimeData, end -> {
+            if (end != null && mStartTimeData.getValue() != null)
+                mDurationData.setValue(end - mStartTimeData.getValue());
+            else
+                mDurationData.setValue((long) 0);
+        });
+
+        mIsChangedData.addSource(mStartTimeData, aStartTime -> {
+            mIsChangedData.setValue(calculatedIsChanged());
+        });
+
+        mIsChangedData.addSource(mEndTimeData, aEndTime -> {
+            mIsChangedData.setValue(calculatedIsChanged());
+        });
+
+        mIsChangedData.addSource(mIsRunningData, aIsRunning -> {
+            mIsChangedData.setValue(calculatedIsChanged());
+        });
     }
 
-    public long getId() {
-        return mSessionId;
+    private boolean calculatedIsChanged() {
+        Session s = mSessionLiveData.getValue();
+        if (s == null)
+            return true;
+
+        long start = mStartTimeData.getValue() != null ? mStartTimeData.getValue() : s.getStartTime();
+        long end = mEndTimeData.getValue() != null ? mEndTimeData.getValue() : s.getEndTime();
+        boolean isRunning = mIsRunningData.getValue() != null ? mIsRunningData.getValue() : s.isRunning();
+        return (s.getStartTime() != start) ||
+                (s.getEndTime() != end) ||
+                (s.isRunning() != isRunning);
     }
 
     public void setId(long id) {
         if (id == mSessionId)
             return;
 
+        if (mSessionId != 0) {
+            mStartTimeData.setValue(null);
+            mEndTimeData.setValue(null);
+            mIsRunningData.setValue(null);
+        }
+
         mSessionId = id;
         mSessionLiveData = mRepository.getSessionById(mSessionId);
-        mSessionLiveData.observeForever(new SessionObserver());
+        mStartTimeData.addSource(mSessionLiveData, session -> {
+            if (!isChanged() || mStartTimeData.getValue() == null)
+                mStartTimeData.setValue(session != null ? session.getStartTime() : 0);
+        });
+        mEndTimeData.addSource(mSessionLiveData, session -> {
+            if (!isChanged() || mEndTimeData.getValue() == null) {
+                mEndTimeData.setValue(session != null ? session.getEndTime() : 0);
+//                mIsRunningData.setValue(session != null && session.getEndTime() == 0);
+            }
+        });
+        mIsRunningData.addSource(mSessionLiveData, session -> {
+            if (!isChanged() || mIsRunningData.getValue() == null)
+                mIsRunningData.setValue(session == null || session.getEndTime() == 0);
+        });
+        mIsChangedData.addSource(mSessionLiveData, session ->
+                mIsChangedData.setValue(calculatedIsChanged()));
     }
 
-    public long getStartTime() {
-        if (mStartTime > 0)
-            return mStartTime;
-        else
-            return mOriginalStartTime;
+    public LiveData<Long> getStartData() {
+        return mStartTimeData;
+    }
+
+    public LiveData<Long> getEndData() {
+        return mEndTimeData;
+    }
+
+    public LiveData<Long> getDurationData() {
+        return mDurationData;
+    }
+
+    public LiveData<Boolean> getIsChangedData() {
+        return mIsChangedData;
+    }
+
+    public MutableLiveData<Boolean> getIsRunningData() {
+        return mIsRunningData;
     }
 
     public void setStartTime(long start) {
-        if (getStartTime() == start)
+        if (mStartTimeData.getValue() != null && mStartTimeData.getValue() == start)
             return;
 
-        mStartTime = start;
-        mAnnouncer.announce().dataChanged(SessionDataType.sdtStartTime);
-    }
-
-    public long getEndTime() {
-        if (mEndTime > 0)
-            return mEndTime;
-        else
-            return mOriginalEndTime;
+        mStartTimeData.setValue(start);
     }
 
     public void setEndTime(long end) {
-        if (getEndTime() == end)
+        if (mEndTimeData.getValue() != null && mEndTimeData.getValue() == end)
             return;
 
-        mEndTime = end;
-        mAnnouncer.announce().dataChanged(SessionDataType.sdtEndTime);
+        mEndTimeData.setValue(end);
     }
 
-    public void restoreState(Bundle state) {
-        // TODO: check is data changed
-        mSessionId = state.getLong(STATE_ID, mSessionId);
-        mOriginalStartTime = state.getLong(STATE_ORIGINAL_START_TIME, mOriginalStartTime);
-        mOriginalEndTime = state.getLong(STATE_ORIGINAL_END_TIME, mOriginalEndTime);
-        mStartTime = state.getLong(STATE_START_TIME, mStartTime);
-        mEndTime = state.getLong(STATE_END_TIME, mEndTime);
-        mIsClosed = state.getInt(STATE_ORIGINAL_IS_CLOSED, mIsClosed);
-
-        mAnnouncer.announce().dataChanged(SessionDataType.sdtAll);
+    private boolean isChanged() {
+        return mIsChangedData.getValue() != null && mIsChangedData.getValue();
     }
 
-    public void saveState(Bundle outState) {
-        outState.putLong(STATE_ID, mSessionId);
-        outState.putLong(STATE_ORIGINAL_START_TIME, mOriginalStartTime);
-        outState.putLong(STATE_ORIGINAL_END_TIME, mOriginalEndTime);
-        outState.putLong(STATE_START_TIME, mStartTime);
-        outState.putLong(STATE_END_TIME, mEndTime);
-        outState.putInt(STATE_ORIGINAL_IS_CLOSED, mIsClosed);
-    }
-
-    private long getOriginalEndTime() {
-        return mOriginalEndTime;
-    }
-
-    private void setOriginalEndTime(long end) {
-        if (mOriginalEndTime == end)
-            return;
-
-        mOriginalEndTime = end;
-        mIsClosed = mOriginalEndTime > 0 ? FLAGS_TRUE : FLAGS_FALSE;
-
-        mAnnouncer.announce().dataChanged(SessionDataType.sdtStartTime);
-        mAnnouncer.announce().dataChanged(SessionDataType.sdtClosed);
-    }
-
-    private long getOriginalStartTime() {
-        return mOriginalStartTime;
-    }
-
-    private void setOriginalStartTime(long start) {
-        if (mOriginalStartTime == start)
-            return;
-
-        mOriginalStartTime = start;
-
-        mAnnouncer.announce().dataChanged(SessionDataType.sdtStartTime);
-    }
-
-    public long getDuration() {
-        if (getEndTime() > 0)
-            return getEndTime() - getStartTime();
-        else
-            return 0;
-    }
-
-    public boolean isClosed() {
-        return mIsClosed == FLAGS_TRUE;
-    }
-
-    public void setIsClosed(boolean aIsClosed) {
-        if (isClosed() == aIsClosed)
-            return;
-
-        mIsClosed = aIsClosed ? FLAGS_TRUE : FLAGS_FALSE;
-        if (isClosed()) {
-            if (getEndTime() == 0)
-                setEndTime(System.currentTimeMillis() / 1000L);
-        }
-        else if (getOriginalEndTime() == 0)
-            setEndTime(0);
-
-        mAnnouncer.announce().dataChanged(SessionDataType.sdtClosed);
-    }
-
-    public boolean isChanged() {
-        return (getOriginalStartTime() != getStartTime()) ||
-                (getOriginalEndTime() != getEndTime()) ||
-                ((mOriginalEndTime > 0) != isClosed());
-    }
-
-    public void addDataChangedListener(ISessionDataChangedListener listener) {
-        mAnnouncer.addListener(listener);
-    }
 
     public LiveData<Session> getSession() {
         return mSessionLiveData;
     }
 
-    public Session getSessionForUpdate() {
+    private boolean isRunning() {
+        return mIsRunningData.getValue() == null || mIsRunningData.getValue();
+    }
+
+    public void safeSession() {
         Session s = mSessionLiveData.getValue();
-        if (s != null)
-            return new Session(s.getId(),getStartTime(), isClosed() ? getEndTime() : 0);
-        else
-            return null;
+        if (s == null)
+            return;
+
+        long start = mStartTimeData.getValue() != null ? mStartTimeData.getValue() : System.currentTimeMillis() / 1000;
+        long end = 0;
+        if (!isRunning())  {
+            if (mEndTimeData.getValue() != null)
+                end = mEndTimeData.getValue();
+            else
+                end = System.currentTimeMillis() / 1000;
+        }
+
+
+        mRepository.updateSession(new Session(s.getId(), start, end));
     }
 
-    public enum SessionDataType {
-        sdtAll,
-        sdtStartTime,
-        sdtEndTime,
-        sdtClosed
-    }
-    
-    public interface ISessionDataChangedListener extends EventListener {
-        void dataChanged(SessionDataType SessionDataType);
+    public void restoreState(Bundle state) {
+        // TODO: check is data changed
+
+        SavedState data = state.getParcelable("SESSION_EDIT_MODEL_SAVED_STATE");
+        Objects.requireNonNull(data).restore(this);
     }
 
-    private class SessionObserver implements android.arch.lifecycle.Observer<Session> {
-        @Override
-        public void onChanged(@Nullable Session session) {
-            if (session != null) {
-                setOriginalStartTime(session.getStartTime());
-                setOriginalEndTime(session.getEndTime());
-                mSessionId = session.getId();
+    public void saveState(Bundle outState) {
+        outState.putParcelable("SESSION_EDIT_MODEL_SAVED_STATE", new SavedState(this));
+    }
+
+    public long getSessionId() {
+        return mSessionId;
+    }
+
+
+    static class SavedState implements Parcelable {
+        public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
+            @Override
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
             }
-            else {
-                setOriginalStartTime(0);
-                setOriginalEndTime(0);
-                mSessionId = -1;
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+        private long sessionId;
+        private long startTime;
+        private long endTime;
+        private byte isRunning;
+
+        SavedState(SessionEditModel data) {
+            sessionId = data.mSessionId;
+            startTime = data.mStartTimeData.getValue() != null ? data.mStartTimeData.getValue() : -1;
+            endTime = data.mEndTimeData.getValue() != null ? data.mEndTimeData.getValue() : -1;
+            if (data.mIsRunningData.getValue() != null)
+                isRunning = (byte) (data.mIsRunningData.getValue() ? 1 : 0);
+            else
+                isRunning = 3;
+        }
+
+        private SavedState(Parcel in) {
+            sessionId = in.readLong();
+            startTime = in.readLong();
+            endTime = in.readLong();
+            isRunning = in.readByte();
+        }
+
+        void restore(SessionEditModel dest) {
+            dest.mInRestoreState = true;
+            try {
+                dest.mStartTimeData.setValue(startTime > 0 ? startTime : null);
+                dest.mEndTimeData.setValue(endTime > 0 ? endTime : null);
+                if (isRunning == 3)
+                    dest.mIsRunningData.setValue(null);
+                else
+                    dest.mIsRunningData.setValue(isRunning == 1);
+                dest.mIsChangedData.setValue(false);
+                dest.setId(sessionId);
+            } finally {
+                dest.mInRestoreState = false;
             }
         }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeLong(sessionId);
+            dest.writeLong(startTime);
+            dest.writeLong(endTime);
+            dest.writeByte(isRunning);
+        }
     }
+
+
 }

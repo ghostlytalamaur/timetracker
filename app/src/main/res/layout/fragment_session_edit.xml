@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:enabled="@{view_model.isClosed}"
+            android:enabled="@{!view_model.isRunning}"
             android:text="End time"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -51,8 +51,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:enabled="@{view_model.isClosed}"
-            android:text="@{view_model.isClosed ? view_model.duration : null}"
+            android:enabled="@{!view_model.isRunning}"
+            android:text="@{!view_model.isRunning ? view_model.duration : null}"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintBaseline_toBaselineOf="@+id/textView6"
             app:layout_constraintEnd_toEndOf="parent"
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:enabled="@{view_model.isClosed}"
+            android:enabled="@{!view_model.isRunning}"
             android:text="Duration"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -89,27 +89,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:enabled="@{view_model.isClosed}"
-            android:text="@{view_model.isClosed ? view_model.endTime : null}"
+            android:enabled="@{!view_model.isRunning}"
+            android:text="@{!view_model.isRunning ? view_model.endTime : null}"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintBaseline_toBaselineOf="@+id/textView4"
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="--:--:--:--:--:--:--" />
 
         <Switch
-            android:id="@+id/swIsClosed"
+            android:id="@+id/swIsRunning"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:checked="@={view_model.isClosed}"
+            android:checked="@={view_model.isRunning}"
 
-            android:text="Closed"
+            android:text="Running"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView6" />
+            app:layout_constraintTop_toBottomOf="@+id/textView6"
+            />
 
     </android.support.constraint.ConstraintLayout>
 </layout>

@@ -4,6 +4,8 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -33,6 +35,7 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
     private long mCurrentId;
     private PagerAdapter mAdapter;
     private LiveData<List<Long>> mSessionIds;
+    private List<Long> mPreviousIds;
 
     @Inject
     ViewModelProvider.Factory mViewModelFactory;
@@ -76,9 +79,12 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
         if (mSessionIds.getValue() != null) {
             int newPos = mSessionIds.getValue().indexOf(mCurrentId);
             if (newPos > 0 && getBinding().viewPager.getCurrentItem() != newPos) {
-                getBinding().viewPager.setCurrentItem(newPos);
+                getBinding().viewPager.setCurrentItem(newPos, false);
             }
         }
+
+        // store ids to calculate position changes on next call in adapter
+        mPreviousIds = mSessionIds.getValue();
     }
 
     @Override
@@ -124,6 +130,38 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
 
         mAdapter = new PagerAdapter(getSupportFragmentManager()) {
 
+            @Nullable
+            @Override
+            public CharSequence getPageTitle(int position) {
+                if (mSessionIds.getValue() != null)
+                    return String.valueOf(mSessionIds.getValue().get(position));
+                else
+                    return "";
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return mSessionIds.getValue() != null ? mSessionIds.getValue().get(position) : -1;
+            }
+
+            @Override
+            public int getItemPosition(@NonNull Object object) {
+                if (!(object instanceof SessionEditFragment) || (mSessionIds.getValue() == null))
+                    return super.getItemPosition(object);
+
+                SessionEditFragment f = (SessionEditFragment) object;
+                long sessionId = f.getSessionId();
+                int newIdx = mSessionIds.getValue().indexOf(sessionId);
+                if (newIdx < 0)
+                    return POSITION_NONE;
+
+                int oldIdx = (mPreviousIds != null ? mPreviousIds.indexOf(sessionId) : -1);
+                if (oldIdx == newIdx)
+                    return POSITION_UNCHANGED;
+                else
+                    return newIdx;
+            }
+
             @Override
             public Fragment getItem(int position) {
                 if (mSessionIds.getValue() != null)
@@ -141,6 +179,7 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
             }
         };
         getBinding().viewPager.setAdapter(mAdapter);
+        getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
     }
 
     @Override

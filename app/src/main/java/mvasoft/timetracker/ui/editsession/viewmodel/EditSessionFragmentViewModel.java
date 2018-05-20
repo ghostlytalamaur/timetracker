@@ -3,12 +3,11 @@ package mvasoft.timetracker.ui.editsession.viewmodel;
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
-import android.databinding.Bindable;
+import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
 
 import javax.inject.Inject;
 
-import mvasoft.timetracker.BR;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.editsession.model.SessionEditModel;
@@ -19,89 +18,64 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
 
     private final DateTimeFormatters mFormatter;
     private final SessionEditModel mData;
-    private MutableLiveData<Boolean> mIsChangedLiveData;
-
-    private final DataRepository mRepository;
+    private final LiveData<String> mStartTimeData;
+    private final LiveData<String> mEndTimeData;
+    private final LiveData<String> mDurationData;
 
     @Inject
     EditSessionFragmentViewModel(@NonNull Application application, DataRepository repository) {
         super(application);
-        mRepository = repository;
 
         mFormatter = new DateTimeFormatters();
-        mData = new SessionEditModel(mRepository);
-        mData.addDataChangedListener(new SessionDataChangedListener());
+        mData = new SessionEditModel(repository);
+        mStartTimeData = Transformations.map(mData.getStartData(), start -> {
+            if (start != null)
+                return mFormatter.formatDate(start) + " " + mFormatter.formatTime(start);
+            else
+                return "";
+        });
+
+        mEndTimeData = Transformations.map(mData.getEndData(), end -> {
+            if (end != null)
+                return "id = " + mData.getSessionId() + " " + mFormatter.formatDate(end) + " " + mFormatter.formatTime(end);
+            else
+                return "id = " + mData.getSessionId();
+        });
+
+        mDurationData = Transformations.map(mData.getDurationData(), duration -> {
+            if (duration != null)
+                return mFormatter.formatDuration(duration);
+            else
+                return "";
+        });
     }
 
     public SessionEditModel getModel() {
         return mData;
     }
 
-    @Bindable
-    public String getStartTime() {
-        return mFormatter.formatDate(mData.getStartTime()) + " " + mFormatter.formatTime(mData.getStartTime());
+    public LiveData<String> getStartTime() {
+        return mStartTimeData;
     }
 
-    @Bindable
-    public String getEndTime() {
-        return mFormatter.formatDate(mData.getEndTime()) + " " + mFormatter.formatTime(mData.getEndTime());
+    public LiveData<String> getEndTime() {
+        return mEndTimeData;
     }
 
-    @Bindable
-    public String getDuration() {
-        return mFormatter.formatDuration(mData.getDuration());
+    public LiveData<String> getDuration() {
+        return mDurationData;
     }
 
-    @Bindable
-    public boolean getIsChanged() {
-        return mData.isChanged();
+    public LiveData<Boolean> getIsChanged() {
+        return mData.getIsChangedData();
     }
 
-    @Bindable
-    public boolean getIsClosed() {
-        return mData.isClosed();
-    }
-
-    public void setIsClosed(boolean isClosed) {
-        mData.setIsClosed(isClosed);
-    }
-
-    public LiveData<Boolean> getIsChangedLiveData() {
-        if (mIsChangedLiveData == null) {
-            mIsChangedLiveData = new MutableLiveData<>();
-            mIsChangedLiveData.setValue(getIsChanged());
-        }
-        return mIsChangedLiveData;
+    public MutableLiveData<Boolean> getIsRunning() {
+        return mData.getIsRunningData();
     }
 
     public void saveSession() {
-        if (getModel().getSession() != null)
-            mRepository.updateSession(getModel().getSessionForUpdate());
+        mData.safeSession();
     }
 
-    private class SessionDataChangedListener implements SessionEditModel.ISessionDataChangedListener {
-
-        @Override
-        public void dataChanged(SessionEditModel.SessionDataType dataType) {
-            switch (dataType) {
-                case sdtAll:
-                    notifyPropertyChanged(BR._all);
-                    break;
-                case sdtStartTime:
-                    notifyPropertyChanged(BR.startTime);
-                    break;
-                case sdtEndTime:
-                    notifyPropertyChanged(BR.endTime);
-                    break;
-                case sdtClosed:
-                    notifyPropertyChanged(BR.isClosed);
-                    ((MutableLiveData<Boolean>) getIsChangedLiveData()).setValue(getIsChanged());
-                    break;
-            }
-
-            notifyPropertyChanged(BR.isChanged);
-            if (mIsChangedLiveData != null)
-                mIsChangedLiveData.setValue(getIsChanged());
-        }
-    }
 }

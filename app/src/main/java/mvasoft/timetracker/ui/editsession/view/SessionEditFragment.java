@@ -1,6 +1,5 @@
 package mvasoft.timetracker.ui.editsession.view;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -29,16 +28,16 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
 
     private static final String ARGS_SESSION_ID = "session_id";
     private static final int REQUEST_START_TIME = 1;
-    private static final int REQUEST_END_TIME   = 2;
+    private static final int REQUEST_END_TIME = 2;
 
     @Inject
     ViewModelProvider.Factory mFactory;
 
     static public SessionEditFragment newInstance(long sessionId) {
-        
+
         Bundle args = new Bundle();
         args.putLong(ARGS_SESSION_ID, sessionId);
-        
+
         SessionEditFragment fragment = new SessionEditFragment();
         fragment.setArguments(args);
         return fragment;
@@ -50,18 +49,14 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
             long newDateTime;
             switch (requestCode) {
                 case REQUEST_START_TIME:
-                    newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE,
-                            getViewModel().getModel().getStartTime() / 1000) / 1000;
-                    if (newDateTime != getViewModel().getModel().getStartTime()) {
-                        getViewModel().getModel().setStartTime(newDateTime);
-                    }
+                    newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE, -1);
+                    if (newDateTime > 0)
+                        getViewModel().getModel().setStartTime(newDateTime / 1000);
                     break;
                 case REQUEST_END_TIME:
-                    newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE,
-                            getViewModel().getModel().getEndTime() / 1000) / 1000;
-                    if (newDateTime != getViewModel().getModel().getEndTime()) {
-                        getViewModel().getModel().setEndTime(newDateTime);
-                    }
+                    newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE, -1);
+                    if (newDateTime > 0)
+                        getViewModel().getModel().setEndTime(newDateTime / 1000);
                     break;
             }
 
@@ -74,9 +69,13 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
             getViewModel().getModel().restoreState(savedInstanceState);
-         if (getArguments() != null) {
-            getViewModel().getModel().setId(getArguments().getLong(ARGS_SESSION_ID, getViewModel().getModel().getId()));
+
+        if (getArguments() != null) {
+            long id = getArguments().getLong(ARGS_SESSION_ID, -1);
+            if (id >= 0)
+                getViewModel().getModel().setId(id);
         }
+
         setHasOptionsMenu(true);
     }
 
@@ -89,14 +88,22 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         getBinding().tvStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editDateTime(getViewModel().getModel().getStartTime(), REQUEST_START_TIME);
+                Long dt = getViewModel().getModel().getStartData().getValue();
+                if (dt == null)
+                    dt = System.currentTimeMillis() / 1000;
+
+                editDateTime(dt, REQUEST_START_TIME);
             }
         });
 
         getBinding().tvEnd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editDateTime(getViewModel().getModel().getEndTime(), REQUEST_END_TIME);
+                Long dt = getViewModel().getModel().getEndData().getValue();
+                if (dt == null)
+                    dt = System.currentTimeMillis() / 1000;
+
+                editDateTime(dt, REQUEST_END_TIME);
             }
         });
 
@@ -107,7 +114,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_edit_session, menu);
         MenuItem item = menu.findItem(R.id.menu_save);
-        item.setEnabled(getViewModel().getIsChanged());
+        item.setEnabled(getViewModel().getIsChanged().getValue() == null || getViewModel().getIsChanged().getValue());
 
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -116,7 +123,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_save:
-                saveSession();
+                getViewModel().saveSession();
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -128,12 +135,8 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Override
     protected EditSessionFragmentViewModel onCreateViewModel() {
         EditSessionFragmentViewModel vm = ViewModelProviders.of(this, mFactory).get(EditSessionFragmentViewModel.class);
-//        vm.setSessionId(mSe)
-        vm.getIsChangedLiveData().observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(@Nullable Boolean aBoolean) {
-                if (getActivity() != null) getActivity().invalidateOptionsMenu();
-            }
+        vm.getIsChanged().observe(this, aBoolean -> {
+            if (getActivity() != null) getActivity().invalidateOptionsMenu();
         });
         return vm;
     }
@@ -154,8 +157,9 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         getViewModel().getModel().saveState(outState);
     }
 
-    private void saveSession() {
-        getViewModel().saveSession();
+
+    long getSessionId() {
+        return getViewModel().getModel().getSessionId();
     }
 
     private void editDateTime(long dateTime, int requestCode) {
