@@ -1,17 +1,18 @@
 /**
  * append following code to project build.gradle
  *    buildscript {
- *       apply from: 'versions.gradle'
+ *       apply from: "versions.gradle"
  *    }
  *
  */
 
 def versions = [:]
-versions.dagger = '2.13'
-versions.room = '1.1.0'
-versions.lifecycle = '1.1.1'
-versions.arch_core = '1.1.1'
+versions.dagger = "2.13"
+versions.room = "1.1.0"
+versions.lifecycle = "1.1.1"
+versions.arch_core = "1.1.1"
 versions.espresso = "3.0.1"
+versions.support = "27.1.1"
 
 ext.versions = versions
 
@@ -33,12 +34,15 @@ dagger.compiler = "com.google.dagger:dagger-compiler:$versions.dagger"
 dagger.android_support_compiler = "com.google.dagger:dagger-android-processor:$versions.dagger"
 
 def support = [:]
-support.app_compat ='com.android.support:appcompat-v7:27.1.1'
-support.support = 'com.android.support:support-v4:27.1.1'
-support.design = 'com.android.support:design:27.1.1'
-support.constraint_layout = 'com.android.support.constraint:constraint-layout:1.1.0'
-support.card_view = 'com.android.support:cardview-v7:27.1.1'
-support.recycler_view = 'com.android.support:recyclerview-v7:27.1.1'
+support.app_compat ="com.android.support:appcompat-v7:$versions.support"
+support.support = "com.android.support:support-v4:$versions.support"
+support.design = "com.android.support:design:$versions.support"
+support.constraint_layout = "com.android.support.constraint:constraint-layout:1.1.0"
+support.card_view = "com.android.support:cardview-v7:$versions.support"
+support.recycler_view = "com.android.support:recyclerview-v7:$versions.support"
+support.preferencev7 = "com.android.support:preference-v7:$versions.support"
+support.preferencev14 = "com.android.support:preference-v14:$versions.support"
+
 
 
 def room = [:]
@@ -57,7 +61,7 @@ def arch_core = [:]
 arch_core.testing = "android.arch.core:core-testing:$versions.arch_core"
 
 def junit = [:]
-junit.junit = 'junit:junit:4.12'
+junit.junit = "junit:junit:4.12"
 
 def espresso = [:]
 espresso.core = "com.android.support.test.espresso:espresso-core:$versions.espresso"
@@ -65,8 +69,8 @@ espresso.contrib = "com.android.support.test.espresso:espresso-contrib:$versions
 espresso.intents = "com.android.support.test.espresso:espresso-intents:$versions.espresso"
 
 def eventbus = [:]
-eventbus.eventbus = 'org.greenrobot:eventbus:3.1.1'
-eventbus.compiler = 'org.greenrobot:eventbus-annotation-processor:3.1.1'
+eventbus.eventbus = "org.greenrobot:eventbus:3.1.1"
+eventbus.compiler = "org.greenrobot:eventbus-annotation-processor:3.1.1"
 
 def deps = [:]
 deps.dagger = dagger

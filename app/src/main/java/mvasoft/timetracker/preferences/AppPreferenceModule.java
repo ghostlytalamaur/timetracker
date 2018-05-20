@@ -1,7 +1,7 @@
 package mvasoft.timetracker.preferences;
 
 import android.content.Context;
-import android.preference.PreferenceManager;
+import android.support.v7.preference.PreferenceManager;
 
 import dagger.Module;
 import dagger.Provides;
@@ -12,7 +12,11 @@ public class AppPreferenceModule {
 
     @Provides
     AppPreferences appPreferencesProvider(Context context) {
-        PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
+        try {
+            PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
+        } catch (Throwable e){
+            PreferenceManager.setDefaultValues(context, R.xml.preferences, true);
+        }
         return new AppPreferencesImpl(PreferenceManager.getDefaultSharedPreferences(context));
     }
 

@@ -9,9 +9,17 @@
     <string name="caption_start">Start: %s</string>
     <string name="caption_stop">Stop: %s</string>
     <string name="caption_duration">Duration: %s</string>
-    <string name="caption_working_days">Working days</string>
     <string name="caption_tabs_empty">None</string>
     <string name="caption_tabs_day">Day</string>
+
+
+    <string name="prefs_caption_working_days">Working days</string>
+    <string name="prefs_summary_working_days">Default working days of week</string>
+    <string name="prefs_caption_target_min">Target time</string>
+    <string name="prefs_summary_target_min">Default target time for one day in minutes</string>
+    <string name="prefs_caption_round_to">Round duration</string>
+    <string name="prefs_summary_round_to">Round duration to specified value in minutes when copy to clipboard</string>
+
 
     <string name="text_today_empty">Today: --:--:--</string>
     <string name="query_invalid_uri">Invalid query uri.</string>
