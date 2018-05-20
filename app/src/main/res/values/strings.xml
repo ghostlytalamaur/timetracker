@@ -1,17 +1,9 @@
 <resources>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-    <string name="caption_today">Today: %s</string>
     <string name="caption_summary">Summary: %s</string>
     <string name="caption_target">Target: %s</string>
-    <string name="caption_start">Start: %s</string>
-    <string name="caption_stop">Stop: %s</string>
-    <string name="caption_duration">Duration: %s</string>
-    <string name="caption_tabs_empty">None</string>
     <string name="caption_tabs_day">Day</string>
-
 
     <string name="prefs_caption_working_days">Working days</string>
     <string name="prefs_summary_working_days">Default working days of week</string>
@@ -20,45 +12,21 @@
     <string name="prefs_caption_round_to">Round duration</string>
     <string name="prefs_summary_round_to">Round duration to specified value in minutes when copy to clipboard</string>
 
-
-    <string name="text_today_empty">Today: --:--:--</string>
-    <string name="query_invalid_uri">Invalid query uri.</string>
-    <string name="text_week">Week: %s</string>
-    <string name="text_week_empty">Week: --:--:--</string>
-    <string name="group_by">Group by...</string>
     <string name="menu_delete_selected">Delete selected</string>
-    <string name="action_fill_fake_sessions">Fill with fake sessions</string>
     <string name="title_session_selected">%d sessions selected</string>
     <string name="msg_session_started">Session started.</string>
     <string name="msg_session_stopped">Session stopped.</string>
     <string name="session_saved">Session saved.</string>
     <string name="session_unable_save">Unable to save session.</string>
-    <string name="nav_title_session_list">Session list</string>
 
-    <string-array name="group_types">
-        <item>None</item>
-        <item>Day</item>
-        <item>Week</item>
-        <item>Month</item>
-        <item>Year</item>
-    </string-array>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
     <string name="appwidget_text_current_empty">Current:</string>
     <string name="appwidget_text_today_empty">Today:</string>
     <string name="appwidget_text_today">Today: %s</string>
     <string name="appwidget_text_current">Current: %s</string>
     <string name="appwidget_text_state_opened">Opened</string>
     <string name="appwidget_text_state_closed">Closed</string>
-    <string name="msg_all_data_will_removed">All data will be removed.</string>
-    <string name="button_ok">OK</string>
-    <string name="button_cancel">Cancel</string>
     <string name="msg_selected_session_will_removed">Selected sessions will be removed.</string>
     <string name="menu_copy_to_clipboard">Copy to clipboard</string>
-    <string name="backup_succeeded">Backing up completed</string>
-    <string name="backup_failed">Cannot backup database</string>
-    <string name="import_succeeded">Import completed</string>
-    <string name="import_failed">Cannot import database</string>
     <string name="action_save">Save</string>
     <string name="caption_tabs_week">Week</string>
     <string name="caption_tabs_month">Month</string>

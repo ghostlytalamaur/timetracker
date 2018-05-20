@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="prefs_key_working_days"><xliff:g id="preference_key">
+        pref_working_days
+    </xliff:g></string>
+    <string name="prefs_key_target_time_min"><xliff:g id="preference_key">
+        pref_target_time_min
+    </xliff:g></string>
+    <string name="prefs_key_round_duration_to_min"><xliff:g id="preference_key">
+        pref_round_duration_to_min
+    </xliff:g></string>
+
+    <string-array name="prefs_values_day_of_week_numbers">
+        <item><xliff:g id="preference_value">1</xliff:g></item>
+        <item><xliff:g id="preference_value">2</xliff:g></item>
+        <item><xliff:g id="preference_value">3</xliff:g></item>
+        <item><xliff:g id="preference_value">4</xliff:g></item>
+        <item><xliff:g id="preference_value">5</xliff:g></item>
+        <item><xliff:g id="preference_value">6</xliff:g></item>
+        <item><xliff:g id="preference_value">7</xliff:g></item>
+    </string-array>
+    <string-array name="prefs_values_default_working_days">
+        <item><xliff:g id="preference_value">1</xliff:g></item>
+        <item><xliff:g id="preference_value">2</xliff:g></item>
+        <item><xliff:g id="preference_value">3</xliff:g></item>
+        <item><xliff:g id="preference_value">4</xliff:g></item>
+        <item><xliff:g id="preference_value">5</xliff:g></item>
+    </string-array>
+</resources>

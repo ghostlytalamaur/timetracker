@@ -216,8 +216,8 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(msgId);
-        builder.setPositiveButton(R.string.button_ok, onOkListener);
-        builder.setNegativeButton(R.string.button_cancel, null);
+        builder.setPositiveButton(android.R.string.ok, onOkListener);
+        builder.setNegativeButton(android.R.string.cancel, null);
         builder.show();
     }
 

@@ -16,10 +16,10 @@ to use this ensure that support.14 preference library added to build.gradle:
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <MultiSelectListPreference
-        android:defaultValue="@array/working_days_default"
+        android:defaultValue="@array/prefs_values_default_working_days"
         android:entries="@array/day_of_week_names"
-        android:entryValues="@array/day_of_week_numbers"
-        android:key="pref_working_days"
+        android:entryValues="@array/prefs_values_day_of_week_numbers"
+        android:key="@string/prefs_key_working_days"
         android:summary="@string/prefs_summary_working_days"
         android:title="@string/prefs_caption_working_days" />
 
@@ -27,7 +27,7 @@ to use this ensure that support.14 preference library added to build.gradle:
     <!--suppress AndroidElementNotAllowed -->
     <mvasoft.timetracker.ui.preferences.SliderPreference
         android:defaultValue="480"
-        android:key="pref_target_time_min"
+        android:key="@string/prefs_key_target_time_min"
         android:summary="@string/prefs_summary_target_min"
         android:title="@string/prefs_caption_target_min"
         app:adjustable="true"
@@ -39,7 +39,7 @@ to use this ensure that support.14 preference library added to build.gradle:
     <!--suppress AndroidElementNotAllowed -->
     <mvasoft.timetracker.ui.preferences.SliderPreference
         android:defaultValue="5"
-        android:key="pref_round_duration_to_min"
+        android:key="@string/prefs_key_round_duration_to_min"
         android:summary="@string/prefs_summary_round_to"
         android:title="@string/prefs_caption_round_to"
         app:adjustable="true"
