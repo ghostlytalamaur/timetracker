@@ -18,7 +18,9 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
 
     private final DateTimeFormatters mFormatter;
     private final SessionEditModel mData;
+    private final LiveData<String> mStartDateData;
     private final LiveData<String> mStartTimeData;
+    private final LiveData<String> mEndDateData;
     private final LiveData<String> mEndTimeData;
     private final LiveData<String> mDurationData;
 
@@ -30,16 +32,16 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
         mData = new SessionEditModel(repository);
         mStartTimeData = Transformations.map(mData.getStartData(), start -> {
             if (start != null)
-                return mFormatter.formatDate(start) + " " + mFormatter.formatTime(start);
+                return mFormatter.formatTime(start);
             else
                 return "";
         });
 
         mEndTimeData = Transformations.map(mData.getEndData(), end -> {
             if (end != null)
-                return "id = " + mData.getSessionId() + " " + mFormatter.formatDate(end) + " " + mFormatter.formatTime(end);
+                return mFormatter.formatTime(end);
             else
-                return "id = " + mData.getSessionId();
+                return "";
         });
 
         mDurationData = Transformations.map(mData.getDurationData(), duration -> {
@@ -48,10 +50,32 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
             else
                 return "";
         });
+
+        mStartDateData = Transformations.map(mData.getStartData(), start -> {
+            if (start != null)
+                return mFormatter.formatDate(start);
+            else
+                return "";
+        });
+
+        mEndDateData = Transformations.map(mData.getEndData(), end -> {
+            if (end != null)
+                return mFormatter.formatDate(end);
+            else
+                return "";
+        });
     }
 
     public SessionEditModel getModel() {
         return mData;
+    }
+
+    public LiveData<String> getStartDate() {
+        return mStartDateData;
+    }
+
+    public LiveData<String> getEndDate() {
+        return mEndDateData;
     }
 
     public LiveData<String> getStartTime() {

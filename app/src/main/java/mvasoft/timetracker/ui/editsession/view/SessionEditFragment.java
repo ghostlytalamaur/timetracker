@@ -13,10 +13,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+
+import org.greenrobot.eventbus.Subscribe;
 
 import javax.inject.Inject;
 
+import mvasoft.datetimepicker.DatePickerFragment;
 import mvasoft.datetimepicker.DateTimePickerFragment;
+import mvasoft.datetimepicker.TimePickerFragment;
+import mvasoft.datetimepicker.event.DatePickerDateSelectedEvent;
+import mvasoft.datetimepicker.event.TimePickerTimeSelectedEvent;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentSessionEditBinding;
@@ -51,12 +58,12 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
                 case REQUEST_START_TIME:
                     newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE, -1);
                     if (newDateTime > 0)
-                        getViewModel().getModel().setStartTime(newDateTime / 1000);
+                        getViewModel().getModel().setStartTime(newDateTime);
                     break;
                 case REQUEST_END_TIME:
                     newDateTime = data.getLongExtra(DateTimePickerFragment.ARGS_DATE, -1);
                     if (newDateTime > 0)
-                        getViewModel().getModel().setEndTime(newDateTime / 1000);
+                        getViewModel().getModel().setEndTime(newDateTime);
                     break;
             }
 
@@ -85,33 +92,57 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         View v = super.onCreateView(inflater, container, savedInstanceState);
 
         // TODO: 04.05.2018 refactor this. Use actionHandler as in other places
-        getBinding().tvStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Long dt = getViewModel().getModel().getStartData().getValue();
-                if (dt == null)
-                    dt = System.currentTimeMillis() / 1000;
+        getBinding().edtStartTime.setOnClickListener(view -> {
+            Long dt = getViewModel().getModel().getStartData().getValue();
+            if (dt == null)
+                dt = System.currentTimeMillis() / 1000;
 
-                editDateTime(dt, REQUEST_START_TIME);
-            }
+            editTime(dt, true);
         });
 
-        getBinding().tvEnd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Long dt = getViewModel().getModel().getEndData().getValue();
-                if (dt == null)
-                    dt = System.currentTimeMillis() / 1000;
+        getBinding().edtEndTime.setOnClickListener(view -> {
+            Long dt = getViewModel().getModel().getEndData().getValue();
+            if (dt == null)
+                dt = System.currentTimeMillis() / 1000;
 
-                editDateTime(dt, REQUEST_END_TIME);
-            }
+            editTime(dt, false);
         });
+
+        getBinding().edtStartDate.setOnClickListener(view -> {
+            Long dt = getViewModel().getModel().getStartData().getValue();
+            if (dt == null)
+                dt = System.currentTimeMillis() / 1000;
+            editDate(dt, true);
+        });
+
+        getBinding().edtEndDate.setOnClickListener(view -> {
+            Long dt = getViewModel().getModel().getEndData().getValue();
+            if (dt == null)
+                dt = System.currentTimeMillis() / 1000;
+            editDate(dt, false);
+        });
+
+        makeEditNotEditable(getBinding().edtStartDate);
+        makeEditNotEditable(getBinding().edtStartTime);
+        makeEditNotEditable(getBinding().edtEndDate);
+        makeEditNotEditable(getBinding().edtEndTime);
 
         return v;
     }
 
+    private void makeEditNotEditable(EditText edit) {
+        if (edit == null)
+            return;
+
+        edit.setKeyListener(null);
+        edit.setFocusable(false);
+        edit.setFocusableInTouchMode(false);
+        edit.setClickable(true);
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // TODO: fix blinking action
         inflater.inflate(R.menu.menu_edit_session, menu);
         MenuItem item = menu.findItem(R.id.menu_save);
         item.setEnabled(getViewModel().getIsChanged().getValue() == null || getViewModel().getIsChanged().getValue());
@@ -162,16 +193,64 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         return getViewModel().getModel().getSessionId();
     }
 
-    private void editDateTime(long dateTime, int requestCode) {
+    private String makeTimePickerTag(boolean forStart) {
+        return "SessionEditFragment: id = " + getViewModel().getModel().getSessionId() +
+                "; forStart = " + forStart;
+    }
+
+    @Override
+    protected boolean shouldRegisterToEventBus() {
+        return true;
+    }
+
+    @Subscribe
+    public void onDatePickerDateSelectedEvent(DatePickerDateSelectedEvent e) {
+        boolean isStart = e.tag.equals(makeTimePickerTag(true));
+        if (!isStart && !e.tag.equals(makeTimePickerTag(false)))
+            return;
+
+        if (isStart) {
+            getViewModel().getModel().setStartDate(e.year, e.month, e.dayOfMonth);
+        }
+        else {
+            getViewModel().getModel().setEndDate(e.year, e.month, e.dayOfMonth);
+        }
+    }
+
+    @Subscribe
+    public void onTimePickerTimeSelectedEvent(TimePickerTimeSelectedEvent e) {
+        boolean isStart = e.tag.equals(makeTimePickerTag(true));
+        if (!isStart && !e.tag.equals(makeTimePickerTag(false)))
+            return;
+
+        if (isStart) {
+            getViewModel().getModel().setStartTime(e.hourOfDay, e.minute);
+        }
+        else {
+            getViewModel().getModel().setEndTime(e.hourOfDay, e.minute);
+        }
+    }
+
+
+    private void editDate(long unixTime, boolean isStart) {
         if (getFragmentManager() == null)
             return;
 
-        if (dateTime == 0)
-            dateTime = System.currentTimeMillis() / 1000L;
-        DateTimePickerFragment dlg = DateTimePickerFragment.newInstance(dateTime * 1000, "");
-        dlg.setTargetFragment(this, requestCode);
-        dlg.show(getFragmentManager(), "dialog_date");
+        String eventTag = makeTimePickerTag(isStart);
+        DatePickerFragment f = DatePickerFragment.newInstante(eventTag, unixTime);
+        f.show(getFragmentManager(), eventTag + "date");
     }
+
+
+    private void editTime(long unixTime, boolean isStart) {
+        if (getFragmentManager() == null)
+            return;
+
+        String eventTag = makeTimePickerTag(isStart);
+        TimePickerFragment f = TimePickerFragment.newInstante(eventTag, unixTime);
+        f.show(getFragmentManager(), eventTag + "time");
+    }
+
 
     public void setSessionId(long sessionId) {
         getViewModel().getModel().setId(sessionId);

@@ -37,5 +37,9 @@
 
     </style>
 
+    <style name="NotEditableEditTextStyle" parent="TextAppearance.AppCompat.Small">
+        <item name="android:textDirection">rtl</item>
+    </style>
+
 </resources>
 

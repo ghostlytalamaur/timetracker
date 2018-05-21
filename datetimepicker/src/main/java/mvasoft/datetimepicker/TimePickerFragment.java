@@ -1,31 +1,32 @@
 package mvasoft.datetimepicker;
 
-import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.widget.DatePicker;
+import android.text.format.DateFormat;
+import android.widget.TimePicker;
 
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.Calendar;
 
-import mvasoft.datetimepicker.event.DatePickerDateSelectedEvent;
+import mvasoft.datetimepicker.event.TimePickerTimeSelectedEvent;
 
-public class DatePickerFragment extends DialogFragment {
+public class TimePickerFragment extends DialogFragment {
 
     private static final String STATE_TAG = "TimePickerFragment_DialogState";
 
-    private DatePickerDialog.OnDateSetListener mDateListener;
+    private TimePickerDialog.OnTimeSetListener mTimeSetListener;
     private DialogConfig mState;
 
 
-    public static DatePickerFragment newInstante(String eventTag, long unixTime) {
-        DatePickerFragment f = new DatePickerFragment();
+    public static TimePickerFragment newInstante(String eventTag, long unixTime) {
+        TimePickerFragment f = new TimePickerFragment();
         f.setArguments(makeArgs(eventTag, unixTime));
         return f;
     }
@@ -36,8 +37,7 @@ public class DatePickerFragment extends DialogFragment {
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(initUnixTime * 1000);
         bundle.putParcelable(STATE_TAG,
-                new DialogConfig(eventTag, c.get(Calendar.YEAR), c.get(Calendar.MONTH),
-                        c.get(Calendar.DAY_OF_MONTH)));
+                new DialogConfig(eventTag, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
         return bundle;
     }
 
@@ -50,20 +50,14 @@ public class DatePickerFragment extends DialogFragment {
         else if (getArguments() != null)
             mState = getArguments().getParcelable(STATE_TAG);
         else
-            mState = new DialogConfig("", 0, 0, 0);
+            mState = new DialogConfig("", 0, 0);
 
-        mDateListener = new DatePickerDialog.OnDateSetListener() {
+        mTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
             @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                EventBus.getDefault().post(createEvent(mState.eventTag, year, month + 1, dayOfMonth));
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                EventBus.getDefault().post(createEvent(mState.eventTag, hourOfDay, minute));
             }
         };
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelable(STATE_TAG, mState);
     }
 
     @NonNull
@@ -73,43 +67,44 @@ public class DatePickerFragment extends DialogFragment {
             return super.onCreateDialog(savedInstanceState);
 
         //noinspection UnnecessaryLocalVariable
-        DatePickerDialog dlg = new DatePickerDialog(getActivity(), mDateListener,
-                mState.initYear, mState.initMonth, mState.initDayOfMonth);
+        TimePickerDialog dlg = new TimePickerDialog(getActivity(), mTimeSetListener,
+                mState.initDayOfHour, mState.initMinute, DateFormat.is24HourFormat(getContext()));
         return dlg;
     }
 
-    protected DatePickerDateSelectedEvent createEvent(String eventTag,
-                                                      int year, int month, int dayOfMonth) {
-        return new DatePickerDateSelectedEvent(eventTag, year, month, dayOfMonth);
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(STATE_TAG, mState);
+    }
+
+    protected TimePickerTimeSelectedEvent createEvent(String eventTag, int hourOfDay, int minute) {
+        return new TimePickerTimeSelectedEvent(eventTag, hourOfDay, minute);
     }
 
 
     private static class DialogConfig implements Parcelable {
         String eventTag;
-        int initYear;
-        int initMonth;
-        int initDayOfMonth;
+        int initDayOfHour;
+        int initMinute;
 
-        DialogConfig(String eventTag, int year, int month, int dayOfMonth) {
+        DialogConfig(String eventTag, int initDayOfHour, int initMinute) {
             this.eventTag = eventTag;
-            this.initYear = year;
-            this.initMonth = month;
-            this.initDayOfMonth = dayOfMonth;
+            this.initDayOfHour = initDayOfHour;
+            this.initMinute = initMinute;
         }
 
         DialogConfig(Parcel in) {
             eventTag = in.readString();
-            initYear = in.readInt();
-            initMonth = in.readInt();
-            initDayOfMonth = in.readInt();
+            initDayOfHour = in.readInt();
+            initMinute = in.readInt();
         }
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
             dest.writeString(eventTag);
-            dest.writeInt(initYear);
-            dest.writeInt(initMonth);
-            dest.writeInt(initDayOfMonth);
+            dest.writeInt(initDayOfHour);
+            dest.writeInt(initMinute);
         }
 
         @Override

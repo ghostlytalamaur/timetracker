@@ -49,6 +49,7 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     private static final String STATE_TAB = "tab_num";
     private static final String PREF_DATE = "selected_date";
     private static final String PREF_TAB = "tab_num";
+    private static final String DATE_PICKER_TAG = "TabbedActivitySelectDateTag";
 
 
     private final ActionClickListener mActionHandler = new TabbedActivityActionHandler();
@@ -145,12 +146,6 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
-    }
-
-    private void selectDate() {
-        TabbedActivityDatePickerFragment f = new TabbedActivityDatePickerFragment();
-        f.setArguments(TabbedActivityDatePickerFragment.makeArgs(mDate));
-        f.show(getSupportFragmentManager(), "TabbedActivityDatePickerFragment");
     }
 
     @Override
@@ -289,8 +284,11 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     }
 
     @Subscribe
-    public void onDateSelected(TabbedActivityDateSelectedEvent e) {
-        setCurrentDate(e.unixTime);
+    public void onDateSelected(DatePickerDateSelectedEvent e) {
+        if (!e.tag.equals("TabbedActivitySelectDateTag"))
+            return;
+
+        setCurrentDate(DateTimeHelper.getUnixTime(e.year, e.month, e.dayOfMonth));
     }
 
     private void setCurrentDate(long date) {
@@ -302,17 +300,9 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         setTitle(mFormatter.formatDate(mDate));
     }
 
-    public static class TabbedActivityDateSelectedEvent extends DatePickerDateSelectedEvent {
-        TabbedActivityDateSelectedEvent(long unixTime) {
-            super(unixTime);
-        }
-    }
-
-    public static class TabbedActivityDatePickerFragment extends DatePickerFragment<TabbedActivityDateSelectedEvent> {
-        @Override
-        protected TabbedActivityDateSelectedEvent createEvent(long unixTime) {
-            return new TabbedActivityDateSelectedEvent(unixTime);
-        }
+    private void selectDate() {
+        DatePickerFragment f = DatePickerFragment.newInstante(DATE_PICKER_TAG, mDate);
+        f.show(getSupportFragmentManager(), DATE_PICKER_TAG + "frag");
     }
 
 }

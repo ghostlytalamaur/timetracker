@@ -109,4 +109,14 @@ public class DateTimeHelper {
         else
             return unixSec;
     }
+
+    public static long withTime(long unixTime, int hourOfDay, int minute) {
+        DateTime dt = new DateTime(unixTime * 1000);
+        return dt.withHourOfDay(hourOfDay).withMinuteOfHour(minute).getMillis() / 1000;
+    }
+
+    public static long withDate(long unixTime, int year, int month, int dayOfMonth) {
+        DateTime dt = new DateTime(unixTime * 1000);
+        return dt.withYear(year).withMonthOfYear(month).withDayOfMonth(dayOfMonth).getMillis() / 1000;
+    }
 }

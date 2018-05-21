@@ -10,6 +10,7 @@ import android.os.Parcelable;
 import java.util.Objects;
 
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.Session;
 
 // TODO: 04.05.2018 recator this class
@@ -131,11 +132,40 @@ public class SessionEditModel {
         mStartTimeData.setValue(start);
     }
 
+    public void setStartTime(int hourOfDay, int minute) {
+        // TODO: thinking: set values using current date?
+        if (mStartTimeData.getValue() == null)
+            return;
+
+        setStartTime(DateTimeHelper.withTime(mStartTimeData.getValue(), hourOfDay, minute));
+    }
+
     public void setEndTime(long end) {
         if (mEndTimeData.getValue() != null && mEndTimeData.getValue() == end)
             return;
 
         mEndTimeData.setValue(end);
+    }
+
+    public void setEndTime(int hourOfDay, int minute) {
+        if (mEndTimeData.getValue() == null)
+            return;
+
+        setEndTime(DateTimeHelper.withTime(mEndTimeData.getValue(), hourOfDay, minute));
+    }
+
+    public void setStartDate(int year, int month, int dayOfMonth) {
+        if (mStartTimeData.getValue() == null)
+            return;
+
+        setEndTime(DateTimeHelper.withDate(mStartTimeData.getValue(), year, month, dayOfMonth));
+    }
+
+    public void setEndDate(int year, int month, int dayOfMonth) {
+        if (mEndTimeData.getValue() == null)
+            return;
+
+        setEndTime(DateTimeHelper.withDate(mEndTimeData.getValue(), year, month, dayOfMonth));
     }
 
     private boolean isChanged() {
@@ -183,7 +213,6 @@ public class SessionEditModel {
     public long getSessionId() {
         return mSessionId;
     }
-
 
     static class SavedState implements Parcelable {
         public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
