@@ -8,14 +8,22 @@ import android.util.SparseArray;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class PagerAdapter extends FragmentStatePagerAdapterEx {
 
     private final SparseArray<WeakReference<Fragment>> mFragments;
 
+    private final List<Long> mPreviousIds;
+    private final List<Long> mCurrentIds;
+
+
     protected PagerAdapter(FragmentManager fm) {
         super(fm);
         mFragments = new SparseArray<>();
+        mPreviousIds = new ArrayList<>();
+        mCurrentIds = new ArrayList<>();
     }
 
     @NonNull
@@ -41,4 +49,47 @@ public abstract class PagerAdapter extends FragmentStatePagerAdapterEx {
             return null;
     }
 
+    @Override
+    public int getItemPosition(@NonNull Object object) {
+        if (!hasIds())
+            return super.getItemPosition(object);
+
+        if (mCurrentIds == null)
+            return POSITION_NONE;
+
+        long newId = getItemId(object);
+        int newIdx = mCurrentIds.indexOf(newId);
+        if (newIdx < 0)
+            return POSITION_NONE;
+
+        if (mPreviousIds != null && mPreviousIds.indexOf(newId) == newIdx)
+            return POSITION_UNCHANGED;
+        else
+            return newIdx;
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        if (hasIds()) {
+            mCurrentIds.clear();
+            for (int i = 0; i < getCount(); i++)
+                mCurrentIds.add(getItemId(i));
+        }
+
+        super.notifyDataSetChanged();
+
+        if (hasIds()) {
+            mPreviousIds.clear();
+            for (int i = 0; i < getCount(); i++)
+                mPreviousIds.add(getItemId(i));
+        }
+    }
+
+    protected long getItemId(@NonNull Object object) {
+        return -1;
+    }
+
+    protected boolean hasIds() {
+        return false;
+    }
 }

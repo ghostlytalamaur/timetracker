@@ -13,7 +13,7 @@ import mvasoft.timetracker.ui.backup.BackupActivity;
 import mvasoft.timetracker.ui.editdate.view.EditDateActivity;
 import mvasoft.timetracker.ui.editdate.view.EditDateFragment;
 import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
-import mvasoft.timetracker.ui.editsession.view.SessionEditFragment;
+import mvasoft.timetracker.ui.editsession.view.EditSessionFragment;
 import mvasoft.timetracker.ui.extlist.view.ExSessionListFragment;
 import mvasoft.timetracker.ui.extlist.view.TabbedActivity;
 
@@ -38,7 +38,7 @@ abstract class AppModule {
     abstract EditSessionActivity EditSessionActivityInjector();
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
-    abstract SessionEditFragment SessionEditFragmentInjector();
+    abstract EditSessionFragment EditSessionFragmentInjector();
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
     abstract EditDateActivity EditDateActivityInjector();

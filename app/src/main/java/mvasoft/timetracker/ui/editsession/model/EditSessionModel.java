@@ -14,7 +14,7 @@ import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.Session;
 
 // TODO: 04.05.2018 recator this class
-public class SessionEditModel {
+public class EditSessionModel {
 
     private final DataRepository mRepository;
     private long mSessionId;
@@ -22,32 +22,35 @@ public class SessionEditModel {
     private MediatorLiveData<Long> mStartTimeData;
     private MediatorLiveData<Long> mEndTimeData;
     private MediatorLiveData<Long> mDurationData;
-    private MediatorLiveData<Boolean> mIsRunningData;
+    private LoggedLiveData<Boolean> mIsRunningData;
     private MediatorLiveData<Boolean> mIsChangedData;
-    private boolean mInRestoreState = false;
 
-    public SessionEditModel(DataRepository repository) {
+    public EditSessionModel(DataRepository repository) {
         super();
         mRepository = repository;
 
         mStartTimeData = new MediatorLiveData<>();
         mEndTimeData = new MediatorLiveData<>();
         mDurationData = new MediatorLiveData<>();
-        mIsRunningData = new MediatorLiveData<>();
+        mIsRunningData = new LoggedLiveData<>();
         mIsChangedData = new MediatorLiveData<>();
 
-        mDurationData.addSource(mStartTimeData, start -> {
-            if (start != null && mEndTimeData.getValue() != null)
-                mDurationData.setValue(mEndTimeData.getValue() - start);
-            else
-                mDurationData.setValue((long) 0);
-        });
-        mDurationData.addSource(mEndTimeData, end -> {
-            if (end != null && mStartTimeData.getValue() != null)
-                mDurationData.setValue(end - mStartTimeData.getValue());
-            else
-                mDurationData.setValue((long) 0);
-        });
+        mDurationData.addSource(mStartTimeData, start -> updateDuration());
+        mDurationData.addSource(mEndTimeData, end -> updateDuration());
+
+//        mEndTimeData.addSource(mIsRunningData, bIsRunning -> {
+//            if (bIsRunning == null)
+//                return;
+//
+//            Long cur = mEndTimeData.getValue();
+//            if (bIsRunning) {
+//                if (cur != null && cur == mIsRunningData.mLastChangedAtUnixTime)
+//                    mEndTimeData.setValue(null);
+//                return;
+//            }
+//            if (cur == null || cur == 0)
+//                mEndTimeData.setValue(mIsRunningData.mLastChangedAtUnixTime);
+//        });
 
         mIsChangedData.addSource(mStartTimeData, aStartTime -> {
             mIsChangedData.setValue(calculatedIsChanged());
@@ -65,7 +68,7 @@ public class SessionEditModel {
     private boolean calculatedIsChanged() {
         Session s = mSessionLiveData.getValue();
         if (s == null)
-            return true;
+            return false;
 
         long start = mStartTimeData.getValue() != null ? mStartTimeData.getValue() : s.getStartTime();
         long end = mEndTimeData.getValue() != null ? mEndTimeData.getValue() : s.getEndTime();
@@ -97,12 +100,14 @@ public class SessionEditModel {
 //                mIsRunningData.setValue(session != null && session.getEndTime() == 0);
             }
         });
+
         mIsRunningData.addSource(mSessionLiveData, session -> {
             if (!isChanged() || mIsRunningData.getValue() == null)
                 mIsRunningData.setValue(session == null || session.getEndTime() == 0);
         });
         mIsChangedData.addSource(mSessionLiveData, session ->
                 mIsChangedData.setValue(calculatedIsChanged()));
+
     }
 
     public LiveData<Long> getStartData() {
@@ -177,7 +182,7 @@ public class SessionEditModel {
         return mSessionLiveData;
     }
 
-    private boolean isRunning() {
+    public boolean isRunning() {
         return mIsRunningData.getValue() == null || mIsRunningData.getValue();
     }
 
@@ -214,6 +219,20 @@ public class SessionEditModel {
         return mSessionId;
     }
 
+    public void updateDuration() {
+        if (mStartTimeData.getValue() == null)
+            return;
+
+        long start = mStartTimeData.getValue();
+        long end = 0;
+        if (isRunning() || mEndTimeData.getValue() == null)
+            end = System.currentTimeMillis() / 1000;
+        else
+            end = mEndTimeData.getValue();
+
+        mDurationData.postValue(end - start);
+    }
+
     static class SavedState implements Parcelable {
         public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
             @Override
@@ -231,7 +250,7 @@ public class SessionEditModel {
         private long endTime;
         private byte isRunning;
 
-        SavedState(SessionEditModel data) {
+        SavedState(EditSessionModel data) {
             sessionId = data.mSessionId;
             startTime = data.mStartTimeData.getValue() != null ? data.mStartTimeData.getValue() : -1;
             endTime = data.mEndTimeData.getValue() != null ? data.mEndTimeData.getValue() : -1;
@@ -248,20 +267,15 @@ public class SessionEditModel {
             isRunning = in.readByte();
         }
 
-        void restore(SessionEditModel dest) {
-            dest.mInRestoreState = true;
-            try {
-                dest.mStartTimeData.setValue(startTime > 0 ? startTime : null);
-                dest.mEndTimeData.setValue(endTime > 0 ? endTime : null);
-                if (isRunning == 3)
-                    dest.mIsRunningData.setValue(null);
-                else
-                    dest.mIsRunningData.setValue(isRunning == 1);
-                dest.mIsChangedData.setValue(false);
-                dest.setId(sessionId);
-            } finally {
-                dest.mInRestoreState = false;
-            }
+        void restore(EditSessionModel dest) {
+            dest.mStartTimeData.setValue(startTime > 0 ? startTime : null);
+            dest.mEndTimeData.setValue(endTime > 0 ? endTime : null);
+            if (isRunning == 3)
+                dest.mIsRunningData.setValue(null);
+            else
+                dest.mIsRunningData.setValue(isRunning == 1);
+            dest.mIsChangedData.setValue(false);
+            dest.setId(sessionId);
         }
 
         @Override
@@ -278,5 +292,16 @@ public class SessionEditModel {
         }
     }
 
+
+    private static class LoggedLiveData<T> extends MediatorLiveData<T> {
+
+        public long mLastChangedAtUnixTime = -1;
+
+        @Override
+        public void setValue(T value) {
+            mLastChangedAtUnixTime = System.currentTimeMillis() / 1000;
+            super.setValue(value);
+        }
+    }
 
 }

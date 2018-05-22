@@ -1,35 +1,46 @@
 package mvasoft.timetracker.ui.editsession.viewmodel;
 
 import android.app.Application;
+import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.common.BaseViewModel;
-import mvasoft.timetracker.ui.editsession.model.SessionEditModel;
+import mvasoft.timetracker.ui.editsession.model.EditSessionModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 
 
 public class EditSessionFragmentViewModel extends BaseViewModel {
 
     private final DateTimeFormatters mFormatter;
-    private final SessionEditModel mData;
+    private final EditSessionModel mData;
     private final LiveData<String> mStartDateData;
     private final LiveData<String> mStartTimeData;
     private final LiveData<String> mEndDateData;
     private final LiveData<String> mEndTimeData;
     private final LiveData<String> mDurationData;
-
+    private final Observer<Boolean> mIsChangedObserver;
+    private final ScheduledExecutorService mUpdateExecutor;
+    private ScheduledFuture<?> mUpdateFuture;
     @Inject
     EditSessionFragmentViewModel(@NonNull Application application, DataRepository repository) {
         super(application);
 
+        mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
         mFormatter = new DateTimeFormatters();
-        mData = new SessionEditModel(repository);
+        mData = new EditSessionModel(repository);
         mStartTimeData = Transformations.map(mData.getStartData(), start -> {
             if (start != null)
                 return mFormatter.formatTime(start);
@@ -64,9 +75,11 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
             else
                 return "";
         });
+
+        mIsChangedObserver = isChanged -> updateTimer();
     }
 
-    public SessionEditModel getModel() {
+    public EditSessionModel getModel() {
         return mData;
     }
 
@@ -100,6 +113,35 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
 
     public void saveSession() {
         mData.safeSession();
+    }
+
+    private void updateTimer() {
+        boolean isRunning = mData.isRunning();
+        if (!isRunning) {
+            if (mUpdateFuture != null)
+                mUpdateFuture.cancel(true);
+            mUpdateFuture = null;
+            mData.updateDuration();
+        }
+        else if (mUpdateFuture == null) {
+            mUpdateFuture = mUpdateExecutor.scheduleWithFixedDelay(mData::updateDuration,
+                    0, 1, TimeUnit.SECONDS);
+
+        }
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    public void resume() {
+        mData.getIsChangedData().observeForever(mIsChangedObserver);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    public void pause() {
+        mData.getIsChangedData().removeObserver(mIsChangedObserver);
+        if (mUpdateFuture != null) {
+            mUpdateFuture.cancel(true);
+            mUpdateFuture = null;
+        }
     }
 
 }

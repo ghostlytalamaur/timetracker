@@ -30,7 +30,7 @@ import mvasoft.timetracker.databinding.FragmentSessionEditBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionFragmentViewModel;
 
-public class SessionEditFragment extends BindingSupportFragment<FragmentSessionEditBinding,
+public class EditSessionFragment extends BindingSupportFragment<FragmentSessionEditBinding,
         EditSessionFragmentViewModel> {
 
     private static final String ARGS_SESSION_ID = "session_id";
@@ -40,12 +40,12 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     @Inject
     ViewModelProvider.Factory mFactory;
 
-    static public SessionEditFragment newInstance(long sessionId) {
+    static public EditSessionFragment newInstance(long sessionId) {
 
         Bundle args = new Bundle();
         args.putLong(ARGS_SESSION_ID, sessionId);
 
-        SessionEditFragment fragment = new SessionEditFragment();
+        EditSessionFragment fragment = new EditSessionFragment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -76,8 +76,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null)
             getViewModel().getModel().restoreState(savedInstanceState);
-
-        if (getArguments() != null) {
+        else if (getArguments() != null) {
             long id = getArguments().getLong(ARGS_SESSION_ID, -1);
             if (id >= 0)
                 getViewModel().getModel().setId(id);
@@ -145,7 +144,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
         // TODO: fix blinking action
         inflater.inflate(R.menu.menu_edit_session, menu);
         MenuItem item = menu.findItem(R.id.menu_save);
-        item.setEnabled(getViewModel().getIsChanged().getValue() == null || getViewModel().getIsChanged().getValue());
+        item.setEnabled(getViewModel().getIsChanged().getValue() != null && getViewModel().getIsChanged().getValue());
 
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -194,7 +193,7 @@ public class SessionEditFragment extends BindingSupportFragment<FragmentSessionE
     }
 
     private String makeTimePickerTag(boolean forStart) {
-        return "SessionEditFragment: id = " + getViewModel().getModel().getSessionId() +
+        return "EditSessionFragment: id = " + getViewModel().getModel().getSessionId() +
                 "; forStart = " + forStart;
     }
 
