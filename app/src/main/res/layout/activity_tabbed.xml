@@ -11,16 +11,6 @@
             name="view_model"
             type="mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel"
             />
-
-        <variable
-            name="actionHandler"
-            type="com.drextended.actionhandler.listener.ActionClickListener"
-            />
-
-        <import
-            alias="ActionType"
-            type="mvasoft.timetracker.ui.extlist.view.TabbedActivity.TabbedActivityActionType"
-            />
     </data>
 
 
@@ -90,8 +80,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
-            app:actionHandler="@{actionHandler}"
-            app:actionType="@{ActionType.TOGGLE}"
             app:backgroundTint="@color/colorPrimaryDark"
             app:layout_anchorGravity="bottom|right|end"
             app:srcCompat="@{safeUnbox(view_model.openedSessionsId) > 0 ? @drawable/animated_minus : @drawable/animated_plus}"

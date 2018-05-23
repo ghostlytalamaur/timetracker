@@ -3,6 +3,7 @@ package mvasoft.timetracker.ui.extlist.view;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
@@ -15,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,7 +25,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
-import com.drextended.rvdatabinding.ListConfig;
 
 import javax.inject.Inject;
 
@@ -36,6 +37,7 @@ import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
 import mvasoft.timetracker.databinding.ListItemDayBinding;
 import mvasoft.timetracker.databinding.ListItemSessionBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
+import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
 import mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel;
@@ -50,8 +52,6 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     private BindableListAdapter mAdapter;
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
-    private long mDateStart;
-    private long mDateEnd;
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
@@ -69,9 +69,11 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            mDateStart = getArguments().getLong(ARGS_DATE_START);
-            mDateEnd = getArguments().getLong(ARGS_DATE_END);
+        // TODO: save viewModel state
+        if (savedInstanceState == null && getArguments() != null) {
+            long now = System.currentTimeMillis() / 1000;
+            getViewModel().setDate(getArguments().getLong(ARGS_DATE_START, now),
+                    getArguments().getLong(ARGS_DATE_END, now));
         }
 
         mActionModeCallbacks = new ActionModeCallbacks();
@@ -88,17 +90,17 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     protected ExSessionListViewModel onCreateViewModel() {
-        ExSessionListViewModel vm = ViewModelProviders.of(this, viewModelFactory)
+        return ViewModelProviders.of(this, viewModelFactory)
                 .get(ExSessionListViewModel.class);
-        vm.setDate(mDateStart, mDateEnd);
-        return vm;
     }
 
-    protected @LayoutRes int getLayoutId() {
+    protected @LayoutRes
+    int getLayoutId() {
         return R.layout.fragment_session_list_ex;
     }
 
-    protected @IdRes int getModelVariableId() {
+    protected @IdRes
+    int getModelVariableId() {
         return BR.view_model;
     }
 
@@ -106,16 +108,16 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         if (getContext() == null)
             return;
 
-
         BindableListDelegate<ListItemSessionBinding> sessionDelegate =
                 new BindableListDelegate<>(this, R.layout.list_item_session,
                         BR.list_model, BR.view_model, SessionItemViewModel.class);
-        sessionDelegate.setActionHandler(BR.actionHandler, new ExSessionListActionHandler());
+        ExSessionListActionHandler actionHandler = new ExSessionListActionHandler();
+        sessionDelegate.setActionHandler(BR.actionHandler, actionHandler);
 
         BindableListDelegate<ListItemDayBinding> dayDelegate =
                 new BindableListDelegate<>(this, R.layout.list_item_day,
                         BR.list_model, BR.view_model, DayItemViewModel.class);
-        dayDelegate.setActionHandler(BR.actionHandler, new ExSessionListActionHandler());
+        dayDelegate.setActionHandler(BR.actionHandler, actionHandler);
         //noinspection unchecked
         mAdapter = new BindableListAdapter(this,
                 getViewModel().getListModel(),
@@ -123,20 +125,18 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         );
         mAdapter.setHasStableIds(true);
 
-        ListConfig listConfig = new ListConfig.Builder(mAdapter)
-                .addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL))
-                .build(getContext());
-        listConfig.applyConfig(getContext(), getBinding().itemsView);
-        if (getBinding().itemsView.getLayoutManager() instanceof LinearLayoutManager) {
-            ((LinearLayoutManager) getBinding().itemsView.getLayoutManager()).setStackFromEnd(true);
-            ((LinearLayoutManager) getBinding().itemsView.getLayoutManager()).setReverseLayout(true);
-        }
+        LinearLayoutManager lm = new LinearLayoutManager(getContext());
+        lm.setStackFromEnd(true);
+        lm.setReverseLayout(true);
 
+        RecyclerView recyclerView = getBinding().itemsView;
+        recyclerView.setHasFixedSize(true);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        recyclerView.setLayoutManager(lm);
+        recyclerView.setAdapter(mAdapter);
     }
 
     public void setDate(long dateStart, long dateEnd) {
-        mDateStart = dateStart;
-        mDateEnd = dateEnd;
         getViewModel().setDate(dateStart, dateEnd);
     }
 
@@ -161,14 +161,19 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
             return;
 
         ItemViewModel groupModel = (ItemViewModel) model;
-        if ((mActionMode == null) && (groupModel instanceof SessionItemViewModel) &&
-                (getActivity() instanceof ISessionListCallbacks))
-            ((ISessionListCallbacks) getActivity()).editSession(groupModel.getId());
+        if ((mActionMode == null) && (groupModel instanceof SessionItemViewModel))
+            editSession(groupModel.getId());
         else if (mActionMode != null) {
             ((ItemViewModel) model).toggleSelection();
             updateActionMode();
         }
 
+    }
+
+    private void editSession(long sessionId) {
+        Intent intent = new Intent(getContext(), EditSessionActivity.class);
+        intent.putExtras(EditSessionActivity.makeArgs(sessionId));
+        startActivity(intent);
     }
 
     private void actionSelect(Object model) {
@@ -188,25 +193,21 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
             return;
 
         int cnt = getViewModel().getListModel().getSelectedItemsCount();
-//        if (cnt > 0) {
         if (getViewModel().getListModel().isPendingSelection()) {
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
             if (mActionMode != null)
                 mActionMode.setTitle(String.format(getString(R.string.title_session_selected), cnt));
-        }
-        else if (mActionMode != null)
+        } else if (mActionMode != null)
             mActionMode.finish();
     }
 
     private void deleteSelected() {
-        showDialog(R.string.msg_selected_session_will_removed, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                getViewModel().deleteSelected();
-                if (mActionMode != null)
-                    mActionMode.finish();
-            }
+        // TODO: make undo on delete
+        showDialog(R.string.msg_selected_session_will_removed, (dialog, which) -> {
+            getViewModel().deleteSelected();
+            if (mActionMode != null)
+                mActionMode.finish();
         });
     }
 
@@ -219,10 +220,6 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         builder.setPositiveButton(android.R.string.ok, onOkListener);
         builder.setNegativeButton(android.R.string.cancel, null);
         builder.show();
-    }
-
-    interface ISessionListCallbacks {
-        void editSession(long sessionId);
     }
 
     private class ActionModeCallbacks implements ActionMode.Callback {
