@@ -3,7 +3,6 @@ package mvasoft.timetracker.ui.editsession.viewmodel;
 import android.app.Application;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.arch.lifecycle.Transformations;
@@ -22,7 +21,7 @@ import mvasoft.timetracker.ui.editsession.model.EditSessionModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 
 
-public class EditSessionFragmentViewModel extends BaseViewModel {
+public class EditSessionViewModel extends BaseViewModel {
 
     private final DateTimeFormatters mFormatter;
     private final EditSessionModel mData;
@@ -35,7 +34,7 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
     private final ScheduledExecutorService mUpdateExecutor;
     private ScheduledFuture<?> mUpdateFuture;
     @Inject
-    EditSessionFragmentViewModel(@NonNull Application application, DataRepository repository) {
+    EditSessionViewModel(@NonNull Application application, DataRepository repository) {
         super(application);
 
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -48,33 +47,17 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
                 return "";
         });
 
-        mEndTimeData = Transformations.map(mData.getEndData(), end -> {
-            if (end != null)
-                return mFormatter.formatTime(end);
-            else
-                return "";
-        });
+        mEndTimeData = Transformations.map(mData.getEndData(), end ->
+                end != null ? mFormatter.formatTime(end) : "");
 
-        mDurationData = Transformations.map(mData.getDurationData(), duration -> {
-            if (duration != null)
-                return mFormatter.formatDuration(duration);
-            else
-                return "";
-        });
+        mDurationData = Transformations.map(mData.getDurationData(), duration ->
+                duration != null ?  mFormatter.formatDuration(duration) : "");
 
-        mStartDateData = Transformations.map(mData.getStartData(), start -> {
-            if (start != null)
-                return mFormatter.formatDate(start);
-            else
-                return "";
-        });
+        mStartDateData = Transformations.map(mData.getStartData(), start ->
+                start != null ? mFormatter.formatDate(start) : "");
 
-        mEndDateData = Transformations.map(mData.getEndData(), end -> {
-            if (end != null)
-                return mFormatter.formatDate(end);
-            else
-                return "";
-        });
+        mEndDateData = Transformations.map(mData.getEndData(), end ->
+                end != null ? mFormatter.formatDate(end) : "");
 
         mIsChangedObserver = isChanged -> updateTimer();
     }
@@ -107,8 +90,12 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
         return mData.getIsChangedData();
     }
 
-    public MutableLiveData<Boolean> getIsRunning() {
+    public LiveData<Boolean> getIsRunning() {
         return mData.getIsRunningData();
+    }
+
+    public void setIsRunning(boolean isRunning) {
+        mData.setIsRunning(isRunning);
     }
 
     public void saveSession() {
@@ -131,12 +118,12 @@ public class EditSessionFragmentViewModel extends BaseViewModel {
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    public void resume() {
+    public void onStart() {
         mData.getIsChangedData().observeForever(mIsChangedObserver);
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    public void pause() {
+    public void onStop() {
         mData.getIsChangedData().removeObserver(mIsChangedObserver);
         if (mUpdateFuture != null) {
             mUpdateFuture.cancel(true);

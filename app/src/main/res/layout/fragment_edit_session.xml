@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <data>
+        <variable
+            name="view_model"
+            type="mvasoft.timetracker.ui.editsession.viewmodel.EditSessionViewModel"
+            />
+        <import
+            alias="v"
+            type="android.view.View" />
+    </data>
+        
+    
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:ignore="HardcodedText">
+
+        <EditText
+            android:id="@+id/edtStartDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:ems="10"
+            android:labelFor="@id/lblStart"
+            android:text="@{view_model.startDate}"
+            style="@style/NotEditableEditTextStyle"
+            app:layout_constraintBaseline_toBaselineOf="@+id/lblStart"
+            app:layout_constraintEnd_toStartOf="@+id/edtStartTime"
+            tools:text="Mon, 12 September 2018" />
+
+        <TextView
+            android:id="@+id/lblStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="24dp"
+            android:text="Start"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/lvlEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="24dp"
+            android:enabled="@{!view_model.isRunning}"
+            android:text="End"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/lblStart" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@{view_model.duration}"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintBaseline_toBaselineOf="@+id/lblDuration"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            tools:text="--:--:--:--:--:--:--" />
+
+        <TextView
+            android:id="@+id/lblDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="24dp"
+            android:text="Duration"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/lvlEnd" />
+
+        <Switch
+            android:id="@+id/swIsRunning"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="24dp"
+            android:checked="@{view_model.isRunning}"
+            android:text="Running"
+            style="@style/TextAppearance.AppCompat.Small"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/lblDuration" />
+
+        <EditText
+            android:id="@+id/edtEndDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:visibility="@{!view_model.isRunning ? v.VISIBLE : v.GONE}"
+            android:enabled="@{!view_model.isRunning}"
+            android:ems="10"
+            android:text="@{view_model.endDate}"
+            android:labelFor="@id/lvlEnd"
+            style="@style/NotEditableEditTextStyle"
+            app:layout_constraintBaseline_toBaselineOf="@+id/lvlEnd"
+            app:layout_constraintEnd_toEndOf="@+id/edtStartDate"
+            app:layout_constraintStart_toStartOf="@+id/edtStartDate"
+            tools:text="Mon, 12 September 2018" />
+
+        <EditText
+            android:id="@+id/edtStartTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:ems="3"
+            android:text="@{view_model.startTime}"
+            android:labelFor="@id/lblStart"
+            style="@style/NotEditableEditTextStyle"
+            app:layout_constraintBaseline_toBaselineOf="@+id/edtStartDate"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="08:10" />
+
+        <EditText
+            android:id="@+id/edtEndTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:visibility="@{!view_model.isRunning ? v.VISIBLE : v.GONE}"
+            android:enabled="@{!view_model.isRunning}"
+            android:ems="3"
+            android:text="@{view_model.endTime}"
+            android:labelFor="@id/lvlEnd"
+            style="@style/NotEditableEditTextStyle"
+            app:layout_constraintBaseline_toBaselineOf="@+id/edtEndDate"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="10:10" />
+
+    </android.support.constraint.ConstraintLayout>
+</layout>

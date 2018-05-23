@@ -61,15 +61,22 @@ public class AppPreferencesImpl extends AppPreferences {
         return mPreferences.getInt(mKeys.roundDuration, 0);
     }
 
+    @Override
+    public boolean syncStartEndDate() {
+        return mPreferences.getBoolean(mKeys.syncStartEndDate, true);
+    }
+
     private static class Keys {
         final String workingDay;
         final String targetMin;
         final String roundDuration;
+        final String syncStartEndDate;
 
         Keys(@NonNull Context context) {
             workingDay = context.getString(R.string.prefs_key_working_days);
             targetMin = context.getString(R.string.prefs_key_target_time_min);
             roundDuration = context.getString(R.string.prefs_key_round_duration_to_min);
+            syncStartEndDate = context.getString(R.string.prefs_key_sync_start_end_date);
         }
     }
 }

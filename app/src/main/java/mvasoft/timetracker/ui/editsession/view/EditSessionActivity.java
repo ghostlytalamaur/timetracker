@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -113,7 +112,6 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
             Toast.makeText(this,  R.string.session_saved, Toast.LENGTH_SHORT).show();
         else
             Toast.makeText(this,  R.string.session_unable_save, Toast.LENGTH_SHORT).show();
-        Log.d("mvasoft.timetracker.log", "EditSessionActivity.onSessionSavedEvent(SessionSavedEvent e)");
     }
 
     private static class SessionsPagerAdapter extends PagerAdapter {
@@ -126,18 +124,12 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
         @Nullable
         @Override
         public CharSequence getPageTitle(int position) {
-            if (mIds != null)
-                return String.valueOf(mIds.get(position));
-            else
-                return "";
+            return mIds != null ? String.valueOf(mIds.get(position)) : "";
         }
 
         @Override
         public Fragment getItem(int position) {
-            if (mIds != null)
-                return EditSessionFragment.newInstance(mIds.get(position));
-            else
-                return null;
+            return mIds != null ? EditSessionFragment.newInstance(mIds.get(position)) : null;
         }
 
         @Override
