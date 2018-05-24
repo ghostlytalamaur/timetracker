@@ -11,11 +11,6 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments = [eventBusIndex : 'mvasoft.timetracker.DateTimePickersEventBusIndex']
-            }
-        }
     }
     buildTypes {
         release {
@@ -24,8 +19,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility build_versions.source_compatibility
+        targetCompatibility build_versions.target_compatibility
     }
 }
 
@@ -36,9 +31,6 @@ dependencies {
     })
     implementation deps.support.support
     implementation deps.support.app_compat
-
-    implementation deps.eventbus.eventbus
-    annotationProcessor deps.eventbus.compiler
 
     testImplementation deps.junit.junit
     api fileTree(include: ['*.jar'], dir: 'libs')

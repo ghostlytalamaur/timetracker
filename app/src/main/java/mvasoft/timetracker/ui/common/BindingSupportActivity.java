@@ -69,10 +69,12 @@ public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
         return null;
     }
 
-    protected @IdRes int getModelVariableId() {
+    protected @IdRes
+    int getModelVariableId() {
         return 0;
     }
 
-    protected abstract @LayoutRes int getLayoutId();
+    protected abstract @LayoutRes
+    int getLayoutId();
 
 }

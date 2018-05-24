@@ -14,14 +14,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import org.greenrobot.eventbus.Subscribe;
-
 import javax.inject.Inject;
 
-import mvasoft.datetimepicker.DatePickerFragment;
-import mvasoft.datetimepicker.TimePickerFragment;
-import mvasoft.datetimepicker.event.DatePickerDateSelectedEvent;
-import mvasoft.datetimepicker.event.TimePickerTimeSelectedEvent;
+import mvasoft.dialogs.DatePickerFragment;
+import mvasoft.dialogs.DialogResultData;
+import mvasoft.dialogs.DialogResultListener;
+import mvasoft.dialogs.TimePickerFragment;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentEditSessionBinding;
@@ -30,7 +28,12 @@ import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionViewModel;
 
 public class EditSessionFragment extends BindingSupportFragment<FragmentEditSessionBinding,
-        EditSessionViewModel> {
+        EditSessionViewModel> implements DialogResultListener {
+
+    private static final int DLG_REQUEST_START_DATE = 1;
+    private static final int DLG_REQUEST_END_DATE = 2;
+    private static final int DLG_REQUEST_START_TIME = 3;
+    private static final int DLG_REQUEST_END_TIME = 4;
 
     private static final String ARGS_SESSION_ID = "session_id";
 
@@ -161,72 +164,59 @@ public class EditSessionFragment extends BindingSupportFragment<FragmentEditSess
         return getViewModel().getModel().getSessionId();
     }
 
-    private String makeTimePickerTag(boolean forStart) {
+    private String makeDialogFragmentTag(boolean forStart) {
         return "EditSessionFragment: id = " + getViewModel().getModel().getSessionId() +
                 "; forStart = " + forStart;
     }
 
-    @Override
-    protected boolean shouldRegisterToEventBus() {
-        return true;
-    }
-
-    @Subscribe
-    public void onDatePickerDateSelectedEvent(DatePickerDateSelectedEvent e) {
-        boolean isStart = e.tag.equals(makeTimePickerTag(true));
-        if (!isStart && !e.tag.equals(makeTimePickerTag(false)))
-            return;
-
-        if (isStart) {
-            getViewModel().getModel().setStartDate(e.year, e.month, e.dayOfMonth);
+    public void onDatePickerDateSelectedEvent(@NonNull DatePickerFragment.DatePickerDialogResultData data) {
+        if (data.requestCode == DLG_REQUEST_START_DATE) {
+            getViewModel().getModel().setStartDate(data.year, data.month, data.dayOfMonth);
             if (mPreferences.syncStartEndDate())
-                getViewModel().getModel().setEndDate(e.year, e.month, e.dayOfMonth);
-        }
-        else {
-            getViewModel().getModel().setEndDate(e.year, e.month, e.dayOfMonth);
+                getViewModel().getModel().setEndDate(data.year, data.month, data.dayOfMonth);
+        } else {
+            getViewModel().getModel().setEndDate(data.year, data.month, data.dayOfMonth);
             if (mPreferences.syncStartEndDate())
-                getViewModel().getModel().setStartDate(e.year, e.month, e.dayOfMonth);
+                getViewModel().getModel().setStartDate(data.year, data.month, data.dayOfMonth);
         }
     }
 
-    @Subscribe
-    public void onTimePickerTimeSelectedEvent(TimePickerTimeSelectedEvent e) {
-        boolean isStart = e.tag.equals(makeTimePickerTag(true));
-        if (!isStart && !e.tag.equals(makeTimePickerTag(false)))
-            return;
-
-        if (isStart) {
-            getViewModel().getModel().setStartTime(e.hourOfDay, e.minute);
-        }
-        else {
-            getViewModel().getModel().setEndTime(e.hourOfDay, e.minute);
+    public void onTimePickerTimeSelectedEvent(@NonNull TimePickerFragment.TimePickerDialogResultData data) {
+        if (data.requestCode == DLG_REQUEST_START_TIME) {
+            getViewModel().getModel().setStartTime(data.hourOfDay, data.minute);
+        } else {
+            getViewModel().getModel().setEndTime(data.hourOfDay, data.minute);
         }
     }
-
 
     private void editDate(long unixTime, boolean isStart) {
-        if (getFragmentManager() == null)
-            return;
-
-        String eventTag = makeTimePickerTag(isStart);
-        if (getFragmentManager().findFragmentByTag(eventTag + "date") != null)
-            return;
-
-        DatePickerFragment f = DatePickerFragment.newInstante(eventTag, unixTime);
-        f.show(getFragmentManager(), eventTag + "date");
+        String tag = makeDialogFragmentTag(isStart) + "date";
+        int requestCode = isStart ? DLG_REQUEST_START_DATE : DLG_REQUEST_END_DATE;
+        new DatePickerFragment.Builder(requestCode)
+                .withUnixTime(unixTime)
+                .show(this, tag);
     }
-
 
     private void editTime(long unixTime, boolean isStart) {
-        if (getFragmentManager() == null)
-            return;
-
-        String eventTag = makeTimePickerTag(isStart);
-        if (getFragmentManager().findFragmentByTag(eventTag + "time") != null)
-            return;
-
-        TimePickerFragment f = TimePickerFragment.newInstante(eventTag, unixTime);
-        f.show(getFragmentManager(), eventTag + "time");
+        String tag = makeDialogFragmentTag(isStart) + "time";
+        int requestCode = isStart ? DLG_REQUEST_START_TIME : DLG_REQUEST_END_TIME;
+        new TimePickerFragment.Builder(requestCode)
+                .withUnixTime(unixTime)
+                .show(this, tag);
     }
 
+    @Override
+    public void onDialogResult(@NonNull DialogResultData data) {
+        switch (data.requestCode) {
+            case DLG_REQUEST_START_DATE:
+            case DLG_REQUEST_END_DATE:
+                onDatePickerDateSelectedEvent((DatePickerFragment.DatePickerDialogResultData) data);
+                break;
+
+            case DLG_REQUEST_START_TIME:
+            case DLG_REQUEST_END_TIME:
+                onTimePickerTimeSelectedEvent((TimePickerFragment.TimePickerDialogResultData) data);
+                break;
+        }
+    }
 }

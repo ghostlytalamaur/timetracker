@@ -1,4 +1,4 @@
-package mvasoft.datetimepicker;
+package mvasoft.dialogs;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -7,39 +7,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.widget.DatePicker;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.Calendar;
 
-import mvasoft.datetimepicker.event.DatePickerDateSelectedEvent;
 
-public class DatePickerFragment extends DialogFragment {
+public class DatePickerFragment extends BaseDialogFragment {
 
     private static final String STATE_TAG = "TimePickerFragment_DialogState";
 
     private DatePickerDialog.OnDateSetListener mDateListener;
     private DialogConfig mState;
-
-
-    public static DatePickerFragment newInstante(String eventTag, long unixTime) {
-        DatePickerFragment f = new DatePickerFragment();
-        f.setArguments(makeArgs(eventTag, unixTime));
-        return f;
-    }
-
-
-    private static Bundle makeArgs(String eventTag, long initUnixTime) {
-        Bundle bundle = new Bundle();
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(initUnixTime * 1000);
-        bundle.putParcelable(STATE_TAG,
-                new DialogConfig(eventTag, c.get(Calendar.YEAR), c.get(Calendar.MONTH),
-                        c.get(Calendar.DAY_OF_MONTH)));
-        return bundle;
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,14 +27,11 @@ public class DatePickerFragment extends DialogFragment {
         else if (getArguments() != null)
             mState = getArguments().getParcelable(STATE_TAG);
         else
-            mState = new DialogConfig("", 0, 0, 0);
+            mState = new DialogConfig(0, 0, 0, 0);
 
-        mDateListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                EventBus.getDefault().post(createEvent(mState.eventTag, year, month + 1, dayOfMonth));
-            }
-        };
+        mDateListener = (view, year, month, dayOfMonth) ->
+                sendResult(new DatePickerDialogResultData(mState.requestCode,
+                                year, month + 1, dayOfMonth));
     }
 
     @Override
@@ -78,27 +52,21 @@ public class DatePickerFragment extends DialogFragment {
         return dlg;
     }
 
-    protected DatePickerDateSelectedEvent createEvent(String eventTag,
-                                                      int year, int month, int dayOfMonth) {
-        return new DatePickerDateSelectedEvent(eventTag, year, month, dayOfMonth);
-    }
-
-
     private static class DialogConfig implements Parcelable {
-        String eventTag;
+        int requestCode;
         int initYear;
         int initMonth;
         int initDayOfMonth;
 
-        DialogConfig(String eventTag, int year, int month, int dayOfMonth) {
-            this.eventTag = eventTag;
+        DialogConfig(int requestCode, int year, int month, int dayOfMonth) {
+            this.requestCode = requestCode;
             this.initYear = year;
             this.initMonth = month;
             this.initDayOfMonth = dayOfMonth;
         }
 
         DialogConfig(Parcel in) {
-            eventTag = in.readString();
+            requestCode = in.readInt();
             initYear = in.readInt();
             initMonth = in.readInt();
             initDayOfMonth = in.readInt();
@@ -106,7 +74,7 @@ public class DatePickerFragment extends DialogFragment {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(eventTag);
+            dest.writeInt(requestCode);
             dest.writeInt(initYear);
             dest.writeInt(initMonth);
             dest.writeInt(initDayOfMonth);
@@ -128,5 +96,48 @@ public class DatePickerFragment extends DialogFragment {
                 return new DialogConfig[size];
             }
         };
+    }
+
+    public static class Builder extends BaseDialogFragment.Builder {
+
+        private long unixTime;
+
+        public Builder(int requestCode) {
+            super(requestCode);
+        }
+
+        @Override
+        BaseDialogFragment newInstance() {
+            return new DatePickerFragment();
+        }
+
+        @Override
+        Bundle makeArgs() {
+            Bundle b = new Bundle();
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(unixTime * 1000);
+            b.putParcelable(STATE_TAG,
+                    new DialogConfig(requestCode, c.get(Calendar.YEAR), c.get(Calendar.MONTH),
+                            c.get(Calendar.DAY_OF_MONTH)));
+            return b;
+        }
+
+        public Builder withUnixTime(long unixTime) {
+            this.unixTime = unixTime;
+            return this;
+        }
+    }
+
+    public static class DatePickerDialogResultData extends DialogResultData {
+        public final int year;
+        public final int month;
+        public final int dayOfMonth;
+
+        DatePickerDialogResultData(int requestCode, int year, int month, int dayOfMonth) {
+            super(requestCode);
+            this.year = year;
+            this.month = month;
+            this.dayOfMonth = dayOfMonth;
+        }
     }
 }

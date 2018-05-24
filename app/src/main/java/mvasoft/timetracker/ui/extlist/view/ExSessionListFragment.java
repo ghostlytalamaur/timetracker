@@ -2,16 +2,13 @@ package mvasoft.timetracker.ui.extlist.view;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
@@ -28,6 +25,9 @@ import com.drextended.actionhandler.listener.ActionClickListener;
 
 import javax.inject.Inject;
 
+import mvasoft.dialogs.AlertDialogFragment;
+import mvasoft.dialogs.DialogResultData;
+import mvasoft.dialogs.DialogResultListener;
 import mvasoft.recyclerbinding.adapter.BindableListAdapter;
 import mvasoft.recyclerbinding.delegate.BindableListDelegate;
 import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
@@ -43,15 +43,19 @@ import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
 import mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel;
 
 
-public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel> {
+public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel>
+        implements DialogResultListener {
 
     private static final String ARGS_DATE_START = "args_date_MIN";
     private static final String ARGS_DATE_END = "args_date_MAX";
+
+    private static final int DLG_REQUEST_DELETE_SESSION = 1;
 
     @SuppressWarnings("FieldCanBeLocal")
     private BindableListAdapter mAdapter;
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
+
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
@@ -140,18 +144,14 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         getViewModel().setDate(dateStart, dateEnd);
     }
 
-    private class ExSessionListActionHandler implements ActionClickListener {
 
-        @Override
-        public void onActionClick(View view, String actionType, Object model) {
-            switch (actionType) {
-                case ExSessionListActionType.CLICK:
-                    actionClick(model);
-                    break;
-
-                case ExSessionListActionType.SELECT:
-                    actionSelect(model);
-                    break;
+    @Override
+    public void onDialogResult(@NonNull DialogResultData data) {
+        switch (data.requestCode) {
+            case DLG_REQUEST_DELETE_SESSION: {
+                getViewModel().deleteSelected();
+                if (mActionMode != null)
+                    mActionMode.finish();
             }
         }
     }
@@ -203,23 +203,9 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     }
 
     private void deleteSelected() {
-        // TODO: make undo on delete
-        showDialog(R.string.msg_selected_session_will_removed, (dialog, which) -> {
-            getViewModel().deleteSelected();
-            if (mActionMode != null)
-                mActionMode.finish();
-        });
-    }
-
-    private void showDialog(@StringRes int msgId, DialogInterface.OnClickListener onOkListener) {
-        if (getActivity() == null)
-            return;
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage(msgId);
-        builder.setPositiveButton(android.R.string.ok, onOkListener);
-        builder.setNegativeButton(android.R.string.cancel, null);
-        builder.show();
+        new AlertDialogFragment.Builder(DLG_REQUEST_DELETE_SESSION)
+                .withMessage(getString(R.string.msg_selected_session_will_removed))
+                .show(this, "ExSessionListFragment" + DLG_REQUEST_DELETE_SESSION);
     }
 
     private class ActionModeCallbacks implements ActionMode.Callback {
@@ -263,5 +249,21 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     public static class ExSessionListActionType {
         public static final String CLICK = "click";
         public static final String SELECT = "select";
+    }
+
+    private class ExSessionListActionHandler implements ActionClickListener {
+
+        @Override
+        public void onActionClick(View view, String actionType, Object model) {
+            switch (actionType) {
+                case ExSessionListActionType.CLICK:
+                    actionClick(model);
+                    break;
+
+                case ExSessionListActionType.SELECT:
+                    actionSelect(model);
+                    break;
+            }
+        }
     }
 }

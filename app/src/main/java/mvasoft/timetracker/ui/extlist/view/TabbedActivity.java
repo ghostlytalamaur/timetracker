@@ -21,8 +21,9 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
-import mvasoft.datetimepicker.DatePickerFragment;
-import mvasoft.datetimepicker.event.DatePickerDateSelectedEvent;
+import mvasoft.dialogs.DatePickerFragment;
+import mvasoft.dialogs.DialogResultData;
+import mvasoft.dialogs.DialogResultListener;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.data.event.SessionToggledEvent;
@@ -37,9 +38,10 @@ import mvasoft.timetracker.ui.preferences.PreferencesActivity;
 import mvasoft.timetracker.utils.DateTimeHelper;
 
 public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding,
-        TabbedActivityViewModel> {
+        TabbedActivityViewModel> implements DialogResultListener {
 
-    private static final String DATE_PICKER_TAG = "TabbedActivitySelectDateTag";
+    private static final String DATE_PICKER_TAG = "TabbedActivitySelectDateDlg";
+    private static final int DLG_REQUEST_DATE = 1;
 
     @Inject
     public ViewModelProvider.Factory mViewModelFactory;
@@ -180,10 +182,14 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             @Override
             public CharSequence getPageTitle(int position) {
                 switch (position) {
-                    case 0: return getString(R.string.caption_tabs_day);
-                    case 1: return getString(R.string.caption_tabs_week);
-                    case 2: return getString(R.string.caption_tabs_month);
-                    default: return "Undefined";
+                    case 0:
+                        return getString(R.string.caption_tabs_day);
+                    case 1:
+                        return getString(R.string.caption_tabs_week);
+                    case 2:
+                        return getString(R.string.caption_tabs_month);
+                    default:
+                        return "Undefined";
                 }
             }
         };
@@ -233,16 +239,22 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
         Toast.makeText(this, e.deletedSessionsCount + " session was removed", Toast.LENGTH_LONG).show();
     }
 
-    @Subscribe
-    public void onDateSelected(DatePickerDateSelectedEvent e) {
-        if (e.tag.equals(DATE_PICKER_TAG))
-            getViewModel().setDate(e.year, e.month, e.dayOfMonth);
+    public void onDateSelected(DatePickerFragment.DatePickerDialogResultData data) {
+        getViewModel().setDate(data.year, data.month, data.dayOfMonth);
     }
 
     private void selectDate() {
-        DatePickerFragment f = DatePickerFragment.newInstante(DATE_PICKER_TAG,
-                Objects.requireNonNull(getViewModel().getDate().getValue()));
-        f.show(getSupportFragmentManager(), DATE_PICKER_TAG + "frag");
+        new DatePickerFragment.Builder(DLG_REQUEST_DATE)
+                .withUnixTime(Objects.requireNonNull(getViewModel().getDate().getValue()))
+                .show(this, DATE_PICKER_TAG);
     }
 
+    @Override
+    public void onDialogResult(@NonNull DialogResultData data) {
+        switch (data.requestCode) {
+            case DLG_REQUEST_DATE:
+                onDateSelected((DatePickerFragment.DatePickerDialogResultData) data);
+                break;
+        }
+    }
 }

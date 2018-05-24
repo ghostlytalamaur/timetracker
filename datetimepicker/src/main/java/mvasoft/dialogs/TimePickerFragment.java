@@ -1,4 +1,4 @@
-package mvasoft.datetimepicker;
+package mvasoft.dialogs;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;
@@ -7,39 +7,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.text.format.DateFormat;
-import android.widget.TimePicker;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.Calendar;
 
-import mvasoft.datetimepicker.event.TimePickerTimeSelectedEvent;
-
-public class TimePickerFragment extends DialogFragment {
+public class TimePickerFragment extends BaseDialogFragment {
 
     private static final String STATE_TAG = "TimePickerFragment_DialogState";
 
     private TimePickerDialog.OnTimeSetListener mTimeSetListener;
     private DialogConfig mState;
-
-
-    public static TimePickerFragment newInstante(String eventTag, long unixTime) {
-        TimePickerFragment f = new TimePickerFragment();
-        f.setArguments(makeArgs(eventTag, unixTime));
-        return f;
-    }
-
-
-    private static Bundle makeArgs(String eventTag, long initUnixTime) {
-        Bundle bundle = new Bundle();
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(initUnixTime * 1000);
-        bundle.putParcelable(STATE_TAG,
-                new DialogConfig(eventTag, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
-        return bundle;
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,14 +27,10 @@ public class TimePickerFragment extends DialogFragment {
         else if (getArguments() != null)
             mState = getArguments().getParcelable(STATE_TAG);
         else
-            mState = new DialogConfig("", 0, 0);
+            mState = new DialogConfig(0, 0, 0);
 
-        mTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                EventBus.getDefault().post(createEvent(mState.eventTag, hourOfDay, minute));
-            }
-        };
+        mTimeSetListener = (view, hourOfDay, minute) ->
+                sendResult(new TimePickerDialogResultData(mState.requestCode, hourOfDay, minute));
     }
 
     @NonNull
@@ -78,31 +51,26 @@ public class TimePickerFragment extends DialogFragment {
         outState.putParcelable(STATE_TAG, mState);
     }
 
-    protected TimePickerTimeSelectedEvent createEvent(String eventTag, int hourOfDay, int minute) {
-        return new TimePickerTimeSelectedEvent(eventTag, hourOfDay, minute);
-    }
-
-
     private static class DialogConfig implements Parcelable {
-        String eventTag;
+        int requestCode;
         int initDayOfHour;
         int initMinute;
 
-        DialogConfig(String eventTag, int initDayOfHour, int initMinute) {
-            this.eventTag = eventTag;
+        DialogConfig(int requestCode, int initDayOfHour, int initMinute) {
+            this.requestCode = requestCode;
             this.initDayOfHour = initDayOfHour;
             this.initMinute = initMinute;
         }
 
         DialogConfig(Parcel in) {
-            eventTag = in.readString();
+            requestCode = in.readInt();
             initDayOfHour = in.readInt();
             initMinute = in.readInt();
         }
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(eventTag);
+            dest.writeInt(requestCode);
             dest.writeInt(initDayOfHour);
             dest.writeInt(initMinute);
         }
@@ -123,5 +91,46 @@ public class TimePickerFragment extends DialogFragment {
                 return new DialogConfig[size];
             }
         };
+    }
+
+    public static class TimePickerDialogResultData extends DialogResultData {
+        public final int hourOfDay;
+        public final int minute;
+
+        TimePickerDialogResultData(int requestCode, int hourOfDay, int minute) {
+            super(requestCode);
+            this.hourOfDay = hourOfDay;
+            this.minute = minute;
+        }
+    }
+
+    public static class Builder extends BaseDialogFragment.Builder {
+
+        private long unixTime;
+
+        public Builder(int requestCode) {
+            super(requestCode);
+        }
+
+        @Override
+        BaseDialogFragment newInstance() {
+            return new TimePickerFragment();
+        }
+
+        @Override
+        Bundle makeArgs() {
+            Bundle b = new Bundle();
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(unixTime * 1000);
+            b.putParcelable(STATE_TAG,
+                    new DialogConfig(requestCode, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
+
+            return b;
+        }
+
+        public Builder withUnixTime(long unixTime) {
+            this.unixTime = unixTime;
+            return this;
+        }
     }
 }
