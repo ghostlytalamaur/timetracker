@@ -1,18 +1,14 @@
 package mvasoft.timetracker.ui.extlist.model;
 
-import android.arch.core.util.Function;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.Transformations;
-import android.support.annotation.Nullable;
 
-import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.List;
 
 import dagger.Lazy;
-import mvasoft.timetracker.core.CalculatedValue;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.utils.DateTimeHelper;
@@ -24,85 +20,67 @@ public class DayGroupListModel {
     private final Lazy<DataRepository> mRepository;
     private final LiveData<List<DayGroup>> mGroups;
     private final MutableLiveData<List<Long>> mDays;
-    private final CalculatedValue<Boolean> mHasRunningSession;
-    private final CalculatedValue<Long> mTargetTime;
+    private final LiveData<Boolean> mHasRunningSession;
+    private final MediatorLiveData<Long> mSummaryTimeData;
+    private final MediatorLiveData<Long> mTargetTimeDiffData;
+    private boolean mTargetTimeValid = false;
+    private long mTargetTime;
+
 
     public DayGroupListModel(Lazy<AppPreferences> preferences, Lazy<DataRepository> repository) {
         mPreferences = preferences;
         mRepository = repository;
         mDays = new MutableLiveData<>();
 
-        mGroups= Transformations.switchMap(mDays, new Function<List<Long>, LiveData<List<DayGroup>>>() {
-            @Override
-            public LiveData<List<DayGroup>> apply(List<Long> days) {
-                if (days == null || days.size() == 0)
-                    return null;
+        LiveData<List<DayGroup>> data = Transformations.switchMap(mDays, days -> {
+            if (days == null || days.size() == 0)
+                return null;
 
-                return mRepository.get().getDayGroups(days);
-            }
+            return mRepository.get().getDayGroups(days);
         });
 
-        mGroups.observeForever(new GroupsObserver(this));
-
-        mHasRunningSession = new CalculatedValue<>(new CalculatedValue.ValueCalculator<Boolean>() {
-            @Override
-            public Boolean calculate() {
-                if (mGroups.getValue() != null)
-                    for (DayGroup item : mGroups.getValue())
-                        if (item.isRunning())
-                            return true;
-                return false;
-            }
+        mGroups = Transformations.map(data, days -> {
+            invalidateTargetTime();
+            return days;
         });
 
-        mTargetTime = new CalculatedValue<>(new CalculatedValue.ValueCalculator<Long>() {
-            @Override
-            public Long calculate() {
-                return calculateTargetTime();
-            }
+        mHasRunningSession = Transformations.map(mGroups, list -> {
+            if (list != null)
+                for (DayGroup item : list)
+                    if (item.isRunning())
+                        return true;
+            return false;
         });
+
+        mSummaryTimeData = new MediatorLiveData<>();
+        mSummaryTimeData.addSource(mGroups, groups ->
+                mSummaryTimeData.setValue(calculateSummary()));
+        mSummaryTimeData.setValue((long) 0);
+
+        mTargetTimeDiffData = new MediatorLiveData<>();
+        mTargetTimeDiffData.addSource(mSummaryTimeData, summary ->
+                mTargetTimeDiffData.setValue(calculateTargetTimeDiff()));
     }
 
     public LiveData<List<DayGroup>> getItems() {
         return mGroups;
     }
 
-    public boolean hasRunningSessions() {
-        return mHasRunningSession.getValue() != null && mHasRunningSession.getValue();
+    public LiveData<Boolean> hasRunningSessionsData() {
+        return mHasRunningSession;
     }
 
-    private long calculateTargetTime() {
-        long res = 0;
-        if (mDays.getValue() == null)
-            return res;
-
-        final HashSet<Long> remainingDays = new HashSet<>(mDays.getValue());
-        if (mGroups.getValue() != null) {
-            for (DayGroup group : mGroups.getValue()) {
-                res += group.getTargetTime(mPreferences.get());
-                remainingDays.remove(group.getDay());
-            }
-        }
-        for (Long day : remainingDays)
-            if (mPreferences.get().isWorkingDay(DateTimeHelper.dayOfWeek(day)))
-                res += mPreferences.get().getTargetTimeInMin() * 60;
-        return res;
+    public LiveData<Long> getSummaryTimeData() {
+        return mSummaryTimeData;
     }
 
-    private long getTargetTime() {
-        return mTargetTime.getValue() != null ? mTargetTime.getValue() : 0;
+    public LiveData<Long> getTargetTimeDiffData() {
+        return mTargetTimeDiffData;
     }
 
-    public long getSummaryTime() {
-        long res = 0;
-        if (mGroups.getValue() != null)
-            for (DayGroup group : mGroups.getValue())
-                res += group.getDuration();
-        return res;
-    }
-
-    public long getTargetTimeDiff() {
-        return getSummaryTime() - getTargetTime();
+    public void invalidateValues() {
+        // also update targetTimeDiff by notification from mSummaryTimeData if needed
+        mSummaryTimeData.postValue(calculateSummary());
     }
 
     public void setDateRange(long minDate, long maxDate) {
@@ -117,26 +95,94 @@ public class DayGroupListModel {
         return mDays.getValue() != null && mDays.getValue().size() == 1;
     }
 
-
-    private void invalidate() {
-        mHasRunningSession.invalidate();
-        mTargetTime.invalidate();
+    void invalidateTargetTime() {
+        mTargetTimeValid = false;
     }
 
-    private static class GroupsObserver implements Observer<List<DayGroup>> {
+    private long calculateTargetTime() {
+        if (!mTargetTimeValid) {
+            long res = 0;
+            if (mDays.getValue() == null)
+                return res;
 
-        private final WeakReference<DayGroupListModel> mModel;
-
-        GroupsObserver(DayGroupListModel model) {
-            mModel = new WeakReference<>(model);
+            final HashSet<Long> remainingDays = new HashSet<>(mDays.getValue());
+            List<DayGroup> groups = mGroups.getValue();
+            if (groups != null) {
+                for (DayGroup group : groups) {
+                    res += group.getTargetTime(mPreferences.get());
+                    remainingDays.remove(group.getDay());
+                }
+            }
+            for (Long day : remainingDays)
+                if (mPreferences.get().isWorkingDay(DateTimeHelper.dayOfWeek(day)))
+                    res += mPreferences.get().getTargetTimeInMin() * 60;
+            mTargetTime = res;
+            mTargetTimeValid = true;
         }
-
-        @Override
-        public void onChanged(@Nullable List<DayGroup> list) {
-            DayGroupListModel model = mModel.get();
-            if (model != null)
-                model.invalidate();
-        }
+        return mTargetTime;
     }
 
+    private long calculateSummary() {
+        long res = 0;
+        List<DayGroup> groups = mGroups.getValue();
+        if (groups != null)
+            for (DayGroup group : groups)
+                res += group.getDuration();
+        return res;
+    }
+
+    private long calculateTargetTimeDiff() {
+        long summary = mSummaryTimeData.getValue() != null ? mSummaryTimeData.getValue() : 0;
+        return summary - calculateTargetTime();
+//        return summary - calculateTargetTime();
+    }
+
+//    public static class WeakObservableLiveData<T> extends MediatorLiveData<T> {
+//        private List<Observer<T>> mWeakObservers;
+//
+//        public static <X, Y> WeakObservableLiveData<Y> fromLiveData(LiveData<X> trigger,
+//                                                   final Function<X, LiveData<Y>> func) {
+//            final WeakObservableLiveData<Y> result = new WeakObservableLiveData<>();
+//            result.addSource(trigger, new Observer<X>() {
+//                LiveData<Y> mSource;
+//
+//                @Override
+//                public void onChanged(@Nullable X x) {
+//                    LiveData<Y> newLiveData = func.apply(x);
+//                    if (mSource == newLiveData) {
+//                        return;
+//                    }
+//                    if (mSource != null) {
+//                        result.removeSource(mSource);
+//                    }
+//                    mSource = newLiveData;
+//                    if (mSource != null) {
+//                        result.addSource(mSource, new Observer<Y>() {
+//                            @Override
+//                            public void onChanged(@Nullable Y y) {
+//                                result.setValue(y);
+//                            }
+//                        });
+//                    }
+//                }
+//            });
+//            return result;
+//        }
+//
+//        public void addWeakObserver(Observer<T> observer) {
+//            mWeakObservers.add(observer);
+//        }
+//
+//        public void removeWeakObserver(Observer<T> observer){
+//            mWeakObservers.remove(observer);
+//        }
+//
+//        @Override
+//        protected void setValue(T value) {
+//            super.setValue(value);
+//            if (hasActiveObservers())
+//                for (Observer<T> observer : mWeakObservers)
+//                    observer.onChanged(value);
+//        }
+//    }
 }

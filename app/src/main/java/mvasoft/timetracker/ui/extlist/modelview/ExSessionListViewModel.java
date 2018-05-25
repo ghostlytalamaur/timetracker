@@ -1,7 +1,6 @@
 package mvasoft.timetracker.ui.extlist.modelview;
 
 import android.app.Application;
-import android.arch.core.util.Function;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
@@ -11,7 +10,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +23,6 @@ import javax.inject.Inject;
 import dagger.Lazy;
 import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
 import mvasoft.recyclerbinding.viewmodel.ListViewModel;
-import mvasoft.timetracker.common.CalculatedLiveData;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
@@ -38,54 +35,47 @@ import mvasoft.timetracker.vo.Session;
 public class ExSessionListViewModel extends BaseViewModel {
 
 
-    private final ModelObserver mModelObserver;
+    private final Observer<List<DayGroup>> mModelObserver;
     private final Lazy<AppPreferences> mAppPreferences;
-    private ScheduledFuture<?> mUpdateFuture;
     private final DayGroupListModel mModel;
     private final DateTimeFormatters mFormatter;
     private final ListViewModel mListModel;
     private final ScheduledExecutorService mUpdateExecutor;
-
-    private CalculatedLiveData<List<DayGroup>, String> mSummaryTimeLiveData;
-    private final CalculatedLiveData<List<DayGroup>, Long> mTargetDiffLiveData;
+    private final LiveData<String> mSummaryTimeLiveData;
     private final LiveData<String> mTargetDiffStrLiveData;
     private final LiveData<Boolean> mIsTargetAchieved;
-
     private final Lazy<DataRepository> mRepository;
+    private final Observer<Boolean> mRunningObserver;
+    private ScheduledFuture<?> mUpdateFuture;
+
 
     @Inject
     ExSessionListViewModel(@NonNull Application application, Lazy<DataRepository> repository,
                            Lazy<AppPreferences> appPreferences) {
         super(application);
 
-        mListModel = new ListViewModel();
-
-        mFormatter = new DateTimeFormatters();
         mAppPreferences = appPreferences;
-        mModel = new DayGroupListModel(appPreferences, repository);
         mRepository = repository;
+
+        mListModel = new ListViewModel();
+        mFormatter = new DateTimeFormatters();
+        mModel = new DayGroupListModel(appPreferences, repository);
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
-        mModelObserver = new ModelObserver();
-        mModel.getItems().observeForever(mModelObserver);
 
-        mTargetDiffLiveData = new CalculatedLiveData<>(mModel.getItems(),
-                input -> mModel.getTargetTimeDiff());
+        mTargetDiffStrLiveData = Transformations.map(mModel.getTargetTimeDiffData(), diff ->
+                mFormatter.formatDuration(diff != null ? diff : 0));
 
-        mTargetDiffStrLiveData = Transformations.map(mTargetDiffLiveData,
-                mFormatter::formatDuration);
-        mIsTargetAchieved = Transformations.map(mTargetDiffLiveData,
-                (target) -> target >= 0);
+        mIsTargetAchieved = Transformations.map(mModel.getTargetTimeDiffData(), target ->
+                target != null && target >= 0);
+
+        mSummaryTimeLiveData = Transformations.map(mModel.getSummaryTimeData(), summary ->
+                mFormatter.formatDuration(summary != null ? summary : 0));
+
+        mModelObserver = list -> mListModel.setItemsList(buildListItem());
+        mRunningObserver = this::updateTimer;
     }
 
     public LiveData<String> getSummaryTime() {
-        if (mSummaryTimeLiveData == null) {
-            mSummaryTimeLiveData = new CalculatedLiveData<>(mModel.getItems(), new Function<List<DayGroup>, String>() {
-                @Override
-                public String apply(List<DayGroup> input) {
-                    return mFormatter.formatDuration(mModel.getSummaryTime());
-                }
-            });
-        }
         return mSummaryTimeLiveData;
     }
 
@@ -97,90 +87,24 @@ public class ExSessionListViewModel extends BaseViewModel {
         return mIsTargetAchieved;
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    public void resume() {
-        updateTimer();
-    }
-
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    public void pause() {
-
-        if (mUpdateFuture != null) {
-            mUpdateFuture.cancel(true);
-            mUpdateFuture = null;
-        }
-    }
-
-    private void updateTimer() {
-        boolean hasOpened = mModel.hasRunningSessions();
-        if (!hasOpened && mUpdateFuture != null && !mUpdateFuture.isCancelled()) {
-            mUpdateFuture.cancel(true);
-            mUpdateFuture = null;
-        }
-        else if (hasOpened && (mUpdateFuture == null || mUpdateFuture.isCancelled()))
-            mUpdateFuture = mUpdateExecutor.scheduleWithFixedDelay(this::updateRunningItems,
-                    0, 1, TimeUnit.SECONDS);
-    }
-
-    private void updateRunningItems() {
-        List<ItemViewModel> list = mListModel.getItemsData().getValue();
-        if (list == null)
-            return;
-
-        for (ItemViewModel item : list) {
-            if (item instanceof BaseItemViewModel && ((BaseItemViewModel) item).getIsRunning())
-                ((BaseItemViewModel) item).updateDuration();
-        }
-
-        if (mSummaryTimeLiveData != null)
-            mSummaryTimeLiveData.invalidateValue();
-        if (mTargetDiffLiveData != null)
-            mTargetDiffLiveData.invalidateValue();
-    }
-
     public ListViewModel getListModel() {
         return mListModel;
     }
 
-    private List<ItemViewModel> buildListItem() {
-        List<DayGroup> list = mModel.getItems().getValue();
-        if (list == null ||  list.isEmpty())
-            return null;
-
-        ArrayList<ItemViewModel> res = new ArrayList<>();
-        if (mModel.isSingleDay()) {
-            DayGroup group = list.get(0);
-            if (group.hasSessions())
-                for (Session item : group.getSessions())
-                    res.add(new SessionItemViewModel(mFormatter, item));
-        }
-        else {
-            for (DayGroup item : mModel.getItems().getValue())
-                if (item.hasSessions())
-                    res.add(new DayItemViewModel(mFormatter, item, mAppPreferences.get()));
-        }
-
-        return res;
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    public void onStart() {
+        mModel.getItems().observeForever(mModelObserver);
+        mModel.hasRunningSessionsData().observeForever(mRunningObserver);
     }
 
-    @Override
-    protected void onCleared() {
-        if (mUpdateFuture != null && !mUpdateFuture.isCancelled()) {
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    public void onStop() {
+        if (mUpdateFuture != null) {
             mUpdateFuture.cancel(true);
             mUpdateFuture = null;
         }
-
         mModel.getItems().removeObserver(mModelObserver);
-        super.onCleared();
-    }
-
-    private List<Long> getSelectedSessionsIds() {
-        ArrayList<Long> ids = new ArrayList<>();
-        for (ItemViewModel item : mListModel.getSelectedItems()) {
-            if (item instanceof BaseItemViewModel)
-                ((BaseItemViewModel) item).appendSessionIds(ids);
-        }
-        return ids;
+        mModel.hasRunningSessionsData().removeObserver(mRunningObserver);
     }
 
     public void deleteSelected() {
@@ -210,13 +134,56 @@ public class ExSessionListViewModel extends BaseViewModel {
         mModel.setDateRange(dateStart, dateEnd);
     }
 
-    private class ModelObserver implements Observer<List<DayGroup>> {
+    private void updateTimer(Boolean hasRunning) {
+        if (hasRunning != null && !hasRunning) {
+            if (mUpdateFuture != null)
+                mUpdateFuture.cancel(true);
+            mUpdateFuture = null;
+            mModel.invalidateValues();
 
-        @Override
-        public void onChanged(@Nullable List<DayGroup> list) {
-            mListModel.setItemsList(buildListItem());
-            updateTimer();
+        } else if (mUpdateFuture == null) {
+            mUpdateFuture = mUpdateExecutor.scheduleWithFixedDelay(this::updateRunningItems,
+                    0, 1, TimeUnit.SECONDS);
         }
     }
 
+    private void updateRunningItems() {
+        List<ItemViewModel> list = mListModel.getItemsData().getValue();
+        if (list != null)
+            for (ItemViewModel item : list) {
+                if (item instanceof BaseItemViewModel && ((BaseItemViewModel) item).getIsRunning())
+                    ((BaseItemViewModel) item).updateDuration();
+            }
+
+        mModel.invalidateValues();
+    }
+
+    private List<ItemViewModel> buildListItem() {
+        List<DayGroup> list = mModel.getItems().getValue();
+        if (list == null || list.isEmpty())
+            return null;
+
+        ArrayList<ItemViewModel> res = new ArrayList<>();
+        if (mModel.isSingleDay()) {
+            DayGroup group = list.get(0);
+            if (group.hasSessions())
+                for (Session item : group.getSessions())
+                    res.add(new SessionItemViewModel(mFormatter, item));
+        } else {
+            for (DayGroup item : mModel.getItems().getValue())
+                if (item.hasSessions())
+                    res.add(new DayItemViewModel(mFormatter, item, mAppPreferences.get()));
+        }
+
+        return res;
+    }
+
+    private List<Long> getSelectedSessionsIds() {
+        ArrayList<Long> ids = new ArrayList<>();
+        for (ItemViewModel item : mListModel.getSelectedItems()) {
+            if (item instanceof BaseItemViewModel)
+                ((BaseItemViewModel) item).appendSessionIds(ids);
+        }
+        return ids;
+    }
 }
