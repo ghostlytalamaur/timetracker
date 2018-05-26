@@ -11,6 +11,7 @@ import android.arch.persistence.room.Update;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Flowable;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
@@ -43,6 +44,8 @@ public abstract class SessionsDao {
 
     @Query("SELECT * FROM sessions WHERE _id = :id")
     public abstract LiveData<Session> getSessionById(long id);
+    @Query("SELECT * FROM sessions WHERE _id = :id")
+    public abstract Flowable<Session> getSessionByIdRx(long id);
 
     @Update
     public abstract int updateSession(Session session);
@@ -72,6 +75,9 @@ public abstract class SessionsDao {
     @Update
     public abstract int updateDayDescription(DayDescription dayDescription);
 
+
+    @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
+    public abstract Flowable<DayDescription> getDayDescriptionRx(long date);
     @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract LiveData<DayDescription> getDayDescription(long date);
     @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")

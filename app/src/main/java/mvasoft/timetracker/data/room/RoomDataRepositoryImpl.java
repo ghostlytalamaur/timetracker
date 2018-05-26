@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.reactivex.Flowable;
 import mvasoft.timetracker.core.AppExecutors;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.data.event.SessionSavedEvent;
@@ -28,9 +29,9 @@ import mvasoft.timetracker.vo.Session;
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {
 
+    private final AppExecutors mExecutors;
     private SessionsDao mGroupsModel;
     private AppDatabase mDatabase;
-    private final AppExecutors mExecutors;
 
     @Inject
     RoomDataRepositoryImpl(Application application, AppExecutors executors) {
@@ -105,9 +106,9 @@ public class RoomDataRepositoryImpl implements DataRepository {
         return mGroupsModel.getSessionById(id);
     }
 
-//    @Override
-    public LiveData<List<Session>> getSessionForDate(long date) {
-        return mGroupsModel.getSessionForDate(date);
+    @Override
+    public Flowable<Session> getSessionByIdRx(long id) {
+        return mGroupsModel.getSessionByIdRx(id);
     }
 
     @Override
@@ -155,6 +156,11 @@ public class RoomDataRepositoryImpl implements DataRepository {
     @Override
     public void appendAll(ArrayList<Session> list) {
         mExecutors.getDiskIO().execute(() -> mGroupsModel.appendAll(list));
+    }
+
+    //    @Override
+    public LiveData<List<Session>> getSessionForDate(long date) {
+        return mGroupsModel.getSessionForDate(date);
     }
 
     public AppDatabase getDatabase() {

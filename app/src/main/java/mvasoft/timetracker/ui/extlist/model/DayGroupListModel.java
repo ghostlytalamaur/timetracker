@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import dagger.Lazy;
+import mvasoft.timetracker.core.CalculatedValue;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.utils.DateTimeHelper;
@@ -23,14 +24,15 @@ public class DayGroupListModel {
     private final LiveData<Boolean> mHasRunningSession;
     private final MediatorLiveData<Long> mSummaryTimeData;
     private final MediatorLiveData<Long> mTargetTimeDiffData;
-    private boolean mTargetTimeValid = false;
-    private long mTargetTime;
+    private final CalculatedValue<Long> mTargetTime;
 
 
     public DayGroupListModel(Lazy<AppPreferences> preferences, Lazy<DataRepository> repository) {
         mPreferences = preferences;
         mRepository = repository;
         mDays = new MutableLiveData<>();
+
+        mTargetTime = new CalculatedValue<>(this::calculateTargetTime);
 
         LiveData<List<DayGroup>> data = Transformations.switchMap(mDays, days -> {
             if (days == null || days.size() == 0)
@@ -39,9 +41,9 @@ public class DayGroupListModel {
             return mRepository.get().getDayGroups(days);
         });
 
-        mGroups = Transformations.map(data, days -> {
-            invalidateTargetTime();
-            return days;
+        mGroups = Transformations.map(data, groups -> {
+            mTargetTime.invalidate();
+            return groups;
         });
 
         mHasRunningSession = Transformations.map(mGroups, list -> {
@@ -95,31 +97,23 @@ public class DayGroupListModel {
         return mDays.getValue() != null && mDays.getValue().size() == 1;
     }
 
-    void invalidateTargetTime() {
-        mTargetTimeValid = false;
-    }
-
     private long calculateTargetTime() {
-        if (!mTargetTimeValid) {
-            long res = 0;
-            if (mDays.getValue() == null)
-                return res;
+        long res = 0;
+        if (mDays.getValue() == null)
+            return res;
 
-            final HashSet<Long> remainingDays = new HashSet<>(mDays.getValue());
-            List<DayGroup> groups = mGroups.getValue();
-            if (groups != null) {
-                for (DayGroup group : groups) {
-                    res += group.getTargetTime(mPreferences.get());
-                    remainingDays.remove(group.getDay());
-                }
+        final HashSet<Long> remainingDays = new HashSet<>(mDays.getValue());
+        List<DayGroup> groups = mGroups.getValue();
+        if (groups != null) {
+            for (DayGroup group : groups) {
+                res += group.getTargetTime(mPreferences.get());
+                remainingDays.remove(group.getDay());
             }
-            for (Long day : remainingDays)
-                if (mPreferences.get().isWorkingDay(DateTimeHelper.dayOfWeek(day)))
-                    res += mPreferences.get().getTargetTimeInMin() * 60;
-            mTargetTime = res;
-            mTargetTimeValid = true;
         }
-        return mTargetTime;
+        for (Long day : remainingDays)
+            if (mPreferences.get().isWorkingDay(DateTimeHelper.dayOfWeek(day)))
+                res += mPreferences.get().getTargetTimeInMin() * 60;
+        return res;
     }
 
     private long calculateSummary() {
@@ -133,7 +127,7 @@ public class DayGroupListModel {
 
     private long calculateTargetTimeDiff() {
         long summary = mSummaryTimeData.getValue() != null ? mSummaryTimeData.getValue() : 0;
-        return summary - calculateTargetTime();
+        return summary - mTargetTime.getValue();
 //        return summary - calculateTargetTime();
     }
 

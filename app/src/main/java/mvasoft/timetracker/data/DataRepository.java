@@ -5,6 +5,7 @@ import android.arch.lifecycle.LiveData;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Flowable;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
@@ -37,6 +38,7 @@ public interface DataRepository {
      */
     void updateSession(Session session);
     LiveData<Session> getSessionById(long id);
+    Flowable<Session> getSessionByIdRx(long id);
 
 //    LiveData<List<Session>> getSessionForDate(long date);
 

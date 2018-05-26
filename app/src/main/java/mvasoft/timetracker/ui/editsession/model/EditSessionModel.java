@@ -1,6 +1,7 @@
 package mvasoft.timetracker.ui.editsession.model;
 
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.LiveDataReactiveStreams;
 import android.arch.lifecycle.MediatorLiveData;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -8,6 +9,10 @@ import android.os.Parcelable;
 
 import java.util.Objects;
 
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.Single;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.Session;
@@ -23,6 +28,7 @@ public class EditSessionModel {
     private MediatorLiveData<Long> mDurationData;
     private MediatorLiveData<Boolean> mIsRunningData;
     private MediatorLiveData<Boolean> mIsChangedData;
+    private Flowable<Session> mSessionFlowable;
 
     public EditSessionModel(DataRepository repository) {
         super();
@@ -64,6 +70,44 @@ public class EditSessionModel {
 
         mSessionId = id;
         mSessionLiveData = mRepository.getSessionById(mSessionId);
+
+        mSessionFlowable = mRepository.getSessionByIdRx(mSessionId)
+                .doOnNext(this::setSession);
+
+        Observable<Long> o = new Observable<Long>() {
+            long mValue;
+
+            @Override
+            protected void subscribeActual(Observer<? super Long> observer) {
+                observer.onNext(mValue);
+            }
+        };
+
+//        Single s = Single.
+//        Flowable<Long> f = Flowable.merge(). doOnSubscribe(
+//                subscription -> {subscription.})
+//                .doOnTerminate()
+
+//
+//        LiveDataReactiveStreams.toPublisher(mStartTimeData).
+//
+//        Flowable<Long> startFlowable2 = Flowable.create(new FlowableOnSubscribe<Long>() {
+//            @Override
+//            public void subscribe(FlowableEmitter<Long> emitter) throws Exception {
+//
+//            }
+//        }, BackpressureStrategy.BUFFER);
+//        startFlowable2;
+//        Flowable<Long> startFlowable = mSessionFlowable
+//                .filter(session -> session != null)
+//                .map(Session::getStartTime);
+//        Flowable<Long> endFlowable = mSessionFlowable
+//                .filter(session -> session != null)
+//                .map(Session::getEndTime);
+//        Flowable<Long> durationFlowable = startFlowable.withLatestFrom(endFlowable,
+//                (start, end) -> end - start);
+//
+//
         // in that case session will be queried only when one of liveData activated
         mStartTimeData.addSource(mSessionLiveData, this::setSession);
         mEndTimeData.addSource(mSessionLiveData, this::setSession);

@@ -80,8 +80,11 @@ dependencies {
     implementation deps.support.preferencev7
     implementation deps.support.preferencev14
 
+    implementation deps.rxjava.rxjava2
+    implementation deps.lifecycle.reactivestreams
     implementation deps.lifecycle.extensions
     implementation deps.room.runtime
+    implementation deps.room.rxjava2
     testImplementation deps.room.testing
     testImplementation deps.arch_core.testing
     annotationProcessor deps.lifecycle.compiler
