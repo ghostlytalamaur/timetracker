@@ -43,7 +43,8 @@ support.recycler_view = "com.android.support:recyclerview-v7:$versions.support"
 support.preferencev7 = "com.android.support:preference-v7:$versions.support"
 support.preferencev14 = "com.android.support:preference-v14:$versions.support"
 
-
+def rxjava = [:]
+rxjava.rxjava2 = "io.reactivex.rxjava2:rxjava:2.1.14"
 
 def room = [:]
 room.runtime = "android.arch.persistence.room:runtime:$versions.room"
@@ -56,6 +57,7 @@ lifecycle.runtime = "android.arch.lifecycle:runtime:$versions.lifecycle"
 lifecycle.extensions = "android.arch.lifecycle:extensions:$versions.lifecycle"
 lifecycle.java8 = "android.arch.lifecycle:common-java8:$versions.lifecycle"
 lifecycle.compiler = "android.arch.lifecycle:compiler:$versions.lifecycle"
+lifecycle.reactivestreams = "android.arch.lifecycle:reactivestreams:$versions.lifecycle"
 
 def arch_core = [:]
 arch_core.testing = "android.arch.core:core-testing:$versions.arch_core"
@@ -81,6 +83,7 @@ deps.arch_core = arch_core
 deps.junit = junit
 deps.espresso = espresso
 deps.eventbus = eventbus
+deps.rxjava = rxjava
 ext.deps = deps
 
 static def addRepos(RepositoryHandler handler) {

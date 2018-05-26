@@ -7,11 +7,11 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/datetimepicker" />
-            <option value="$PROJECT_DIR$/recyclerbinding" />
-            <option value="$PROJECT_DIR$/utils" />
+            <option value="/mnt/win_d/dev/android/TimeTracker2" />
+            <option value="/mnt/win_d/dev/android/TimeTracker2/app" />
+            <option value="/mnt/win_d/dev/android/TimeTracker2/datetimepicker" />
+            <option value="/mnt/win_d/dev/android/TimeTracker2/recyclerbinding" />
+            <option value="/mnt/win_d/dev/android/TimeTracker2/utils" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
