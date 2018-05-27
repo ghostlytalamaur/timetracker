@@ -128,55 +128,6 @@ public class DayGroupListModel {
     private long calculateTargetTimeDiff() {
         long summary = mSummaryTimeData.getValue() != null ? mSummaryTimeData.getValue() : 0;
         return summary - mTargetTime.getValue();
-//        return summary - calculateTargetTime();
     }
 
-//    public static class WeakObservableLiveData<T> extends MediatorLiveData<T> {
-//        private List<Observer<T>> mWeakObservers;
-//
-//        public static <X, Y> WeakObservableLiveData<Y> fromLiveData(LiveData<X> trigger,
-//                                                   final Function<X, LiveData<Y>> func) {
-//            final WeakObservableLiveData<Y> result = new WeakObservableLiveData<>();
-//            result.addSource(trigger, new Observer<X>() {
-//                LiveData<Y> mSource;
-//
-//                @Override
-//                public void onChanged(@Nullable X x) {
-//                    LiveData<Y> newLiveData = func.apply(x);
-//                    if (mSource == newLiveData) {
-//                        return;
-//                    }
-//                    if (mSource != null) {
-//                        result.removeSource(mSource);
-//                    }
-//                    mSource = newLiveData;
-//                    if (mSource != null) {
-//                        result.addSource(mSource, new Observer<Y>() {
-//                            @Override
-//                            public void onChanged(@Nullable Y y) {
-//                                result.setValue(y);
-//                            }
-//                        });
-//                    }
-//                }
-//            });
-//            return result;
-//        }
-//
-//        public void addWeakObserver(Observer<T> observer) {
-//            mWeakObservers.add(observer);
-//        }
-//
-//        public void removeWeakObserver(Observer<T> observer){
-//            mWeakObservers.remove(observer);
-//        }
-//
-//        @Override
-//        protected void setValue(T value) {
-//            super.setValue(value);
-//            if (hasActiveObservers())
-//                for (Observer<T> observer : mWeakObservers)
-//                    observer.onChanged(value);
-//        }
-//    }
 }
