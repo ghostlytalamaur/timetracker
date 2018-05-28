@@ -1,100 +1,85 @@
 package mvasoft.timetracker.ui.editdate.modelview;
 
 import android.app.Application;
-import android.arch.core.util.Function;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.Transformations;
-import android.databinding.Bindable;
+import android.arch.lifecycle.LiveDataReactiveStreams;
 import android.support.annotation.NonNull;
 
 import javax.inject.Inject;
 
+import io.reactivex.BackpressureStrategy;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
-import mvasoft.timetracker.utils.DateTimeHelper;
-import mvasoft.timetracker.vo.DayDescription;
+import mvasoft.timetracker.ui.editdate.model.EditDateModel;
+import mvasoft.timetracker.utils.DateTimeFormatters;
 
 public class EditDateViewModel extends BaseViewModel {
 
     private final DataRepository mRepository;
-    private final MutableLiveData<Long> mDateLiveData;
-    private final LiveData<DayDescription> mDayDescriptionLiveData;
-    private final MediatorLiveData<Long> mIdLiveData;
-    private final MediatorLiveData<Boolean> mIsWorkingDayLiveData;
-    private final MediatorLiveData<Long> mTargetTimeLiveData;
-    @Inject
-    AppPreferences mPreferences;
+    private final AppPreferences mPreferences;
+    private final DateTimeFormatters mFormatter;
+    private final EditDateModel mModel;
+    private final LiveData<String> mTargetTimeData;
+    private final LiveData<Boolean> mIsWorkingDayData;
+    private final LiveData<String> mIdData;
+    private final LiveData<Boolean> mIsChangedData;
 
     @Inject
-    EditDateViewModel(@NonNull Application application, DataRepository repository) {
+    EditDateViewModel(@NonNull Application application, DataRepository repository,
+                      AppPreferences preferences) {
         super(application);
-        mDateLiveData = new MutableLiveData<>();
         mRepository = repository;
+        mPreferences = preferences;
+        mFormatter = new DateTimeFormatters();
+        mModel = new EditDateModel(mRepository, mPreferences);
+        mTargetTimeData = LiveDataReactiveStreams.fromPublisher(
+                mModel.getTargetMin()
+                        .map(minutes -> mFormatter.formatDuration(minutes * 60))
+                        .toFlowable(BackpressureStrategy.LATEST)
+        );
 
-        mDayDescriptionLiveData = Transformations.switchMap(mDateLiveData, new Function<Long, LiveData<DayDescription>>() {
-            @Override
-            public LiveData<DayDescription> apply(Long input) {
-                return mRepository.getDayDescription(input);
-            }
-        });
+        mIsWorkingDayData = LiveDataReactiveStreams.fromPublisher(
+                mModel.getIsWorkingDay().toFlowable(BackpressureStrategy.LATEST)
+        );
 
-        mIsWorkingDayLiveData = new MediatorLiveData<>();
-        mIsWorkingDayLiveData.addSource(mDayDescriptionLiveData, (dayDescription) -> {
-            if (dayDescription != null)
-                mIsWorkingDayLiveData.setValue(dayDescription.isWorkingDay());
-        });
+        mIdData = LiveDataReactiveStreams.fromPublisher(
+                mModel.getId()
+                        .map(String::valueOf)
+                        .toFlowable(BackpressureStrategy.LATEST)
+        );
 
-        mTargetTimeLiveData = new MediatorLiveData<>();
-        mTargetTimeLiveData.addSource(mDayDescriptionLiveData, (dayDescription) -> {
-            if (dayDescription != null)
-                mTargetTimeLiveData.setValue(dayDescription.getTargetDuration());
-        });
-
-        mIdLiveData = new MediatorLiveData<>();
-        mIdLiveData.addSource(mDayDescriptionLiveData, (dayDescription) -> {
-            if (dayDescription != null)
-                mIdLiveData.setValue(dayDescription.getId());
-        });
+        mIsChangedData = LiveDataReactiveStreams.fromPublisher(
+                mModel.getIsChangedObservable()
+                        .toFlowable(BackpressureStrategy.LATEST)
+        );
     }
 
-    @Bindable
-    public MutableLiveData<Long> getTargetTime() {
-        return mTargetTimeLiveData;
+    public LiveData<String> getTargetTimeData() {
+        return mTargetTimeData;
     }
 
-    @Bindable
-    public MutableLiveData<Boolean> getIsWorkingDay() {
-        return mIsWorkingDayLiveData;
+    public LiveData<Boolean> getIsWorkingDay() {
+        return mIsWorkingDayData;
     }
 
-    public LiveData<Long> getDayId() {
-        return mIdLiveData;
+    public LiveData<String> getDayId() {
+        return mIdData;
     }
 
     public void setDate(long date) {
-        if (mDateLiveData.getValue() != null && mDateLiveData.getValue() == date)
-            return;
-
-        Boolean isWorking = mPreferences.isWorkingDay(DateTimeHelper.dayOfWeek(date));
-        mIsWorkingDayLiveData.setValue(isWorking);
-        mTargetTimeLiveData.setValue(isWorking ? mPreferences.getTargetTimeInMin() : 0);
-        mDateLiveData.setValue(date);
+        mModel.setDate(date);
     }
 
     public void save() {
-        if (mDateLiveData.getValue() == null ||
-                getTargetTime().getValue() == null || getIsWorkingDay().getValue() == null)
-            return;
+        mModel.save();
+    }
 
-        long id = getDayId().getValue() != null ? getDayId().getValue() : 0;
-        long date = mDateLiveData.getValue();
-        boolean isWorkingDay = getIsWorkingDay().getValue();
-        long target = isWorkingDay ? getTargetTime().getValue() : 0;
+    public EditDateModel getModel() {
+        return mModel;
+    }
 
-        DayDescription d = new DayDescription(id , date, target, isWorkingDay);
-        mRepository.updateDayDescription(d);
+    public LiveData<Boolean> getIsChanged() {
+        return mIsChangedData;
     }
 }

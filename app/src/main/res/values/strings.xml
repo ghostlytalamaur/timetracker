@@ -18,8 +18,10 @@
     <string name="title_session_selected">%d sessions selected</string>
     <string name="msg_session_started">Session started.</string>
     <string name="msg_session_stopped">Session stopped.</string>
-    <string name="session_saved">Session saved.</string>
-    <string name="session_unable_save">Unable to save session.</string>
+    <string name="msg_day_description_saved">Data saved</string>
+    <string name="msg_day_description_unable_save">Cannot save data</string>
+    <string name="msg_session_saved">Session saved.</string>
+    <string name="msg_session_unable_save">Unable to save session.</string>
 
     <string name="appwidget_text_current_empty">Current:</string>
     <string name="appwidget_text_today_empty">Today:</string>

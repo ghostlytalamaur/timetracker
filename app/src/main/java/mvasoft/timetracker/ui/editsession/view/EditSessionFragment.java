@@ -25,6 +25,7 @@ import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentEditSessionBinding;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
+import mvasoft.timetracker.ui.common.EditTextUtils;
 import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionViewModel;
 
 public class EditSessionFragment extends BindingSupportFragment<FragmentEditSessionBinding,
@@ -94,22 +95,12 @@ public class EditSessionFragment extends BindingSupportFragment<FragmentEditSess
         getBinding().swIsRunning.setOnCheckedChangeListener((buttonView, isChecked) ->
                 getViewModel().setIsRunning(isChecked));
 
-        makeEditNotEditable(getBinding().edtStartDate);
-        makeEditNotEditable(getBinding().edtStartTime);
-        makeEditNotEditable(getBinding().edtEndDate);
-        makeEditNotEditable(getBinding().edtEndTime);
+        EditTextUtils.makeEditNotEditable(getBinding().edtStartDate);
+        EditTextUtils.makeEditNotEditable(getBinding().edtStartTime);
+        EditTextUtils.makeEditNotEditable(getBinding().edtEndDate);
+        EditTextUtils.makeEditNotEditable(getBinding().edtEndTime);
 
         return v;
-    }
-
-    private void makeEditNotEditable(EditText edit) {
-        if (edit == null)
-            return;
-
-        edit.setKeyListener(null);
-        edit.setFocusable(false);
-        edit.setFocusableInTouchMode(false);
-        edit.setClickable(true);
     }
 
     @Override

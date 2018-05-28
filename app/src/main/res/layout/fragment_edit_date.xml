@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
@@ -7,6 +8,7 @@
         <variable
             name="view_model"
             type="mvasoft.timetracker.ui.editdate.modelview.EditDateViewModel" />
+
         <import
             alias="conv"
             type="mvasoft.timetracker.databinding.BindingAdapters" />
@@ -18,29 +20,27 @@
         android:layout_height="match_parent">
 
 
+        <!--android:text="@={conv.toString(view_model.targetTime, view_model.targetTime)}"-->
         <EditText
             android:id="@+id/edtTarget"
-            android:layout_width="395dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:inputType="numberDecimal"
-            android:text="@={conv.toString(view_model.targetTime, view_model.targetTime)}"
+            android:inputType="none|numberDecimal"
+            android:text="@{view_model.targetTimeData}"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvId" />
 
         <Switch
             android:id="@+id/swWorkDay"
-            android:layout_width="395dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:checked="@={view_model.isWorkingDay}"
+            android:checked="@{view_model.isWorkingDay}"
             android:text="Working day"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
@@ -49,14 +49,24 @@
 
         <TextView
             android:id="@+id/tvId"
-            android:layout_width="395dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:text="@{`Id = ` + conv.toString(view_model.dayId, view_model.dayId)}"
+            android:text="@{`Id = ` + view_model.dayId}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/lblTarget"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Target Time"
+            app:layout_constraintBaseline_toBaselineOf="@+id/edtTarget"
+            app:layout_constraintStart_toStartOf="parent" />
+
     </android.support.constraint.ConstraintLayout>
 </layout>

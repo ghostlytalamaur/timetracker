@@ -109,9 +109,9 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onSessionSavedEvent(SessionSavedEvent e) {
         if (e.wasSaved)
-            Toast.makeText(this, R.string.session_saved, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.msg_session_saved, Toast.LENGTH_SHORT).show();
         else
-            Toast.makeText(this, R.string.session_unable_save, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.msg_session_unable_save, Toast.LENGTH_SHORT).show();
     }
 
     private static class SessionsPagerAdapter extends PagerAdapter {

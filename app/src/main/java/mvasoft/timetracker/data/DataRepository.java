@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
@@ -45,6 +46,7 @@ public interface DataRepository {
     LiveData<List<Long>> getSessionsIds();
 
     LiveData<DayDescription> getDayDescription(Long date);
+    Flowable<DayDescription> getDayDescriptionRx(Long date);
 
     /**
      * append new {@link DayDescription} or update existing if {@link DayDescription}'s id is set.

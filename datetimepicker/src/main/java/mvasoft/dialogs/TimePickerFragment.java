@@ -27,7 +27,7 @@ public class TimePickerFragment extends BaseDialogFragment {
         else if (getArguments() != null)
             mState = getArguments().getParcelable(STATE_TAG);
         else
-            mState = new DialogConfig(0, 0, 0);
+            mState = new DialogConfig(0, 0, 0, false);
 
         mTimeSetListener = (view, hourOfDay, minute) ->
                 sendResult(new TimePickerDialogResultData(mState.requestCode, hourOfDay, minute));
@@ -39,9 +39,10 @@ public class TimePickerFragment extends BaseDialogFragment {
         if (getActivity() == null)
             return super.onCreateDialog(savedInstanceState);
 
+        boolean is24Hour = mState.force24Hour || DateFormat.is24HourFormat(getContext());
         //noinspection UnnecessaryLocalVariable
         TimePickerDialog dlg = new TimePickerDialog(getActivity(), mTimeSetListener,
-                mState.initDayOfHour, mState.initMinute, DateFormat.is24HourFormat(getContext()));
+                mState.initDayOfHour, mState.initMinute, is24Hour);
         return dlg;
     }
 
@@ -55,17 +56,20 @@ public class TimePickerFragment extends BaseDialogFragment {
         int requestCode;
         int initDayOfHour;
         int initMinute;
+        boolean force24Hour;
 
-        DialogConfig(int requestCode, int initDayOfHour, int initMinute) {
+        DialogConfig(int requestCode, int initDayOfHour, int initMinute, boolean force24Hour) {
             this.requestCode = requestCode;
             this.initDayOfHour = initDayOfHour;
             this.initMinute = initMinute;
+            this.force24Hour = force24Hour;
         }
 
         DialogConfig(Parcel in) {
             requestCode = in.readInt();
             initDayOfHour = in.readInt();
             initMinute = in.readInt();
+            force24Hour = in.readByte() == 1;
         }
 
         @Override
@@ -73,6 +77,7 @@ public class TimePickerFragment extends BaseDialogFragment {
             dest.writeInt(requestCode);
             dest.writeInt(initDayOfHour);
             dest.writeInt(initMinute);
+            dest.writeByte((byte) (force24Hour ? 1 : 0));
         }
 
         @Override
@@ -107,6 +112,7 @@ public class TimePickerFragment extends BaseDialogFragment {
     public static class Builder extends BaseDialogFragment.Builder {
 
         private long unixTime;
+        private boolean force24Hour;
 
         public Builder(int requestCode) {
             super(requestCode);
@@ -122,14 +128,24 @@ public class TimePickerFragment extends BaseDialogFragment {
             Bundle b = new Bundle();
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(unixTime * 1000);
-            b.putParcelable(STATE_TAG,
-                    new DialogConfig(requestCode, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
+
+            DialogConfig config = new DialogConfig(requestCode,
+                    c.get(Calendar.HOUR_OF_DAY),
+                    c.get(Calendar.MINUTE),
+                    force24Hour);
+
+            b.putParcelable(STATE_TAG, config);
 
             return b;
         }
 
         public Builder withUnixTime(long unixTime) {
             this.unixTime = unixTime;
+            return this;
+        }
+
+        public Builder setForce24Hour(boolean isForce) {
+            force24Hour = isForce;
             return this;
         }
     }

@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import io.reactivex.Flowable;
 import mvasoft.timetracker.core.AppExecutors;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.data.event.DayDescriptionSavedEvent;
 import mvasoft.timetracker.data.event.SessionSavedEvent;
 import mvasoft.timetracker.data.event.SessionToggledEvent;
 import mvasoft.timetracker.data.event.SessionsDeletedEvent;
@@ -122,13 +123,19 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
+    public Flowable<DayDescription> getDayDescriptionRx(Long date) {
+        return mGroupsModel.getDayDescriptionRx(date);
+    }
+
+    @Override
     public void updateDayDescription(DayDescription dayDescription) {
         mExecutors.getDiskIO().execute(new Runnable() {
             @Override
             public void run() {
-                int cnt = mGroupsModel.updateDayDescription(dayDescription);
-                if (cnt == 0)
-                    mGroupsModel.appendDayDescription(dayDescription);
+                boolean wasSaved = mGroupsModel.updateDayDescription(dayDescription) != 0;
+                if (!wasSaved)
+                    wasSaved = mGroupsModel.appendDayDescription(dayDescription) > 0;
+                EventBus.getDefault().post(new DayDescriptionSavedEvent(wasSaved));
             }
         });
     }
