@@ -15,7 +15,7 @@ android {
         signApk {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
+            storeFile rootProject.file(".key/" + keystoreProperties['storeFile'])
             storePassword keystoreProperties['storePassword']
         }
     }
@@ -25,8 +25,8 @@ android {
         applicationId "mvasoft.timetracker.new"
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 2
-        versionName "2.0"
+        versionCode 3
+        versionName "2.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         // Specify string resource: @string/app_name which used in AndroidManifest.xml
