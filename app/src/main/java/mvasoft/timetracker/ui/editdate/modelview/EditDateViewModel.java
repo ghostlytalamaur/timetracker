@@ -1,8 +1,10 @@
 package mvasoft.timetracker.ui.editdate.modelview;
 
 import android.app.Application;
+import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.LiveDataReactiveStreams;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.support.annotation.NonNull;
 
 import javax.inject.Inject;
@@ -16,8 +18,8 @@ import mvasoft.timetracker.utils.DateTimeFormatters;
 
 public class EditDateViewModel extends BaseViewModel {
 
-    private final DataRepository mRepository;
-    private final AppPreferences mPreferences;
+//    private final DataRepository mRepository;
+//    private final AppPreferences mPreferences;
     private final DateTimeFormatters mFormatter;
     private final EditDateModel mModel;
     private final LiveData<String> mTargetTimeData;
@@ -26,32 +28,27 @@ public class EditDateViewModel extends BaseViewModel {
     private final LiveData<Boolean> mIsChangedData;
 
     @Inject
-    EditDateViewModel(@NonNull Application application, DataRepository repository,
-                      AppPreferences preferences) {
+    EditDateViewModel(@NonNull Application application, EditDateModel model) {
         super(application);
-        mRepository = repository;
-        mPreferences = preferences;
+//        mModel = new EditDateModel(mRepository, mPreferences);
+        mModel = model;
         mFormatter = new DateTimeFormatters();
-        mModel = new EditDateModel(mRepository, mPreferences);
         mTargetTimeData = LiveDataReactiveStreams.fromPublisher(
                 mModel.getTargetMin()
                         .map(minutes -> mFormatter.formatDuration(minutes * 60))
-                        .toFlowable(BackpressureStrategy.LATEST)
         );
 
         mIsWorkingDayData = LiveDataReactiveStreams.fromPublisher(
-                mModel.getIsWorkingDay().toFlowable(BackpressureStrategy.LATEST)
+                mModel.getIsWorkingDay()
         );
 
         mIdData = LiveDataReactiveStreams.fromPublisher(
                 mModel.getId()
                         .map(String::valueOf)
-                        .toFlowable(BackpressureStrategy.LATEST)
         );
 
         mIsChangedData = LiveDataReactiveStreams.fromPublisher(
                 mModel.getIsChangedObservable()
-                        .toFlowable(BackpressureStrategy.LATEST)
         );
     }
 
@@ -81,5 +78,22 @@ public class EditDateViewModel extends BaseViewModel {
 
     public LiveData<Boolean> getIsChanged() {
         return mIsChangedData;
+    }
+
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    public void onStart() {
+//        mModel.activate();
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    public void onStop() {
+//        mModel.deactivate();
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        mModel.clear();
     }
 }

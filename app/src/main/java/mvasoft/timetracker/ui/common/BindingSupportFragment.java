@@ -11,9 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.squareup.leakcanary.RefWatcher;
+
 import org.greenrobot.eventbus.EventBus;
 
 import dagger.android.support.DaggerFragment;
+import mvasoft.timetracker.core.TimeTrackerApp;
 
 public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
         ViewModel extends BaseViewModel> extends DaggerFragment {
@@ -75,4 +78,11 @@ public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
         return 0;
     }
     protected abstract @LayoutRes int getLayoutId();
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RefWatcher refWatcher = TimeTrackerApp.getRefWatcher(getActivity());
+        refWatcher.watch(this);
+    }
 }

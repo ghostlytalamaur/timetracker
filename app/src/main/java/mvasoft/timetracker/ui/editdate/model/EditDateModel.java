@@ -4,91 +4,90 @@ import android.util.Log;
 
 import java.util.Objects;
 
-import io.reactivex.BackpressureStrategy;
+import javax.inject.Inject;
+
 import io.reactivex.Flowable;
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.flowables.ConnectableFlowable;
+import io.reactivex.processors.BehaviorProcessor;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
+import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayDescription;
 
 public class EditDateModel {
 
-    public static final String LOGT = "mvasoft.log";
+    private static final String LOGT = "mvasoft.log";
 
     private final AppPreferences mPreferences;
     private final DataRepository mRepository;
-    private BehaviorSubject<DayDescription> mDayDescriptionSubj;
-    private Flowable<DayDescription> mDayDescriptionFlowable;
-    private BehaviorSubject<Long> mDateSubject;
-    private BehaviorSubject<Long> mTargetMin;
-    private BehaviorSubject<Boolean> mIsWorkingDay;
-    private BehaviorSubject<Boolean> mIsChanged;
 
+    private final BehaviorProcessor<Long> mDateSubject;
 
-    public EditDateModel(DataRepository repository, AppPreferences preferences) {
+    private final BehaviorProcessor<DayDescription> mDayDescriptionSubj;
+    private final BehaviorProcessor<Boolean> mIsChanged;
+
+    private final BehaviorProcessor<Long> mIdSubject;
+    private final BehaviorProcessor<Long> mTargetMin;
+    private final BehaviorProcessor<Boolean> mIsWorkingDay;
+    private Disposable mDisposable;
+
+    @Inject
+    EditDateModel(DataRepository repository, AppPreferences preferences) {
         mRepository = repository;
         mPreferences = preferences;
 
-        mDateSubject = BehaviorSubject.createDefault(System.currentTimeMillis() / 1000);
-        mIsWorkingDay = BehaviorSubject.createDefault(false);
-        mTargetMin = BehaviorSubject.createDefault(0L);
-        mIsChanged = BehaviorSubject.createDefault(false);
+        long today = System.currentTimeMillis() / 1000;
+        mDateSubject = BehaviorProcessor.createDefault(today);
+        mIdSubject = BehaviorProcessor.createDefault(0L);
+        mIsWorkingDay = BehaviorProcessor.createDefault(
+                mPreferences.isWorkingDay(DateTimeHelper.dayOfWeek(today)));
+        mTargetMin = BehaviorProcessor.createDefault(
+                mPreferences.getTargetTimeInMin());
+        mIsChanged = BehaviorProcessor.createDefault(false);
 
-        mDayDescriptionSubj = BehaviorSubject.createDefault(
+        mDayDescriptionSubj = BehaviorProcessor.createDefault(
                 new DayDescription(0, 0, 0, false));
 
-        mDayDescriptionFlowable = mDateSubject
+        ConnectableFlowable<DayDescription> dayConnectable = mDateSubject
                 .skip(1)
-                .switchMap(date -> mRepository.getDayDescriptionRx(date).toObservable())
-                .filter(dayDescription -> !Objects.equals(dayDescription, mDayDescriptionSubj.getValue()))
-                .doOnNext(dayDescription -> {
-                    Log.d(LOGT, "mDayDescriptionFlowable.doOnNext() " + dayDescription.getDate());
-                    mIsChanged.onNext(false);
-                })
-                .toFlowable(BackpressureStrategy.LATEST);
+                .distinctUntilChanged()
+                .switchMap(mRepository::getDayDescriptionRx)
+                .doOnNext(dd -> Log.d(LOGT, "New data received"))
+                .distinctUntilChanged()
+                .doOnNext(dd -> mIsChanged.onNext(false))
+                .replay(1);
 
-        Log.d(LOGT, "subscribe(mDayDescriptionSubj)");
-        mDayDescriptionFlowable
-                .toObservable()
-                .subscribe(mDayDescriptionSubj);
-
-        Log.d(LOGT, "subscribe(mTargetMin)");
-        mDayDescriptionFlowable
-                .filter(dayDescription -> !getIsChanged())
+        dayConnectable
                 .map(DayDescription::getTargetDuration)
-                .toObservable()
                 .subscribe(mTargetMin);
-
-        Log.d(LOGT, "subscribe(mIsWorkingDay)");
-        mDayDescriptionFlowable
-                .filter(dayDescription -> !getIsChanged())
+        dayConnectable
                 .map(DayDescription::isWorkingDay)
-                .toObservable()
                 .subscribe(mIsWorkingDay);
+        dayConnectable
+                .map(DayDescription::getId)
+                .subscribe(mIdSubject);
+        dayConnectable
+                .subscribe(mDayDescriptionSubj);
+        mDisposable = dayConnectable.connect();
     }
 
-    public Observable<Long> getId() {
+    public Flowable<Long> getId() {
         Log.d(LOGT, "query observable: getId()");
-        return mDayDescriptionSubj.map(DayDescription::getId);
+        return mIdSubject;
     }
 
-    public Observable<Boolean> getIsChangedObservable() {
+    public Flowable<Boolean> getIsChangedObservable() {
         Log.d(LOGT, "query observable: getIsChangedObservable()");
         return mIsChanged;
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean getIsChanged() {
-        return mIsChanged.getValue();
-    }
-
-    public Observable<Long> getTargetMin() {
+    public Flowable<Long> getTargetMin() {
         Log.d(LOGT, "query observable: getTargetMin()");
         return mTargetMin;
     }
 
-    public Observable<Boolean> getIsWorkingDay() {
+    public Flowable<Boolean> getIsWorkingDay() {
         Log.d(LOGT, "query observable: getIsWorkingDay()");
         return mIsWorkingDay;
     }
@@ -118,10 +117,8 @@ public class EditDateModel {
     }
 
     public void setDate(long date) {
-        if (mDateSubject.getValue() != date) {
-            Log.d(LOGT,"setDate()");
-            mDateSubject.onNext(date);
-        }
+        Log.d(LOGT,"setDate()");
+        mDateSubject.onNext(date);
     }
 
 
@@ -136,5 +133,13 @@ public class EditDateModel {
 
         Log.d(LOGT,"save()");
         mRepository.updateDayDescription(buildDayDescription());
+    }
+
+    public void clear() {
+        if (mDisposable != null) {
+            mDisposable.dispose();
+            Log.d(LOGT, "EditDateModel.clear()");
+        }
+        mDisposable = null;
     }
 }
