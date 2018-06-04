@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.extlist.view;
+package mvasoft.timetracker.ui.extlist;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -20,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
@@ -37,10 +38,7 @@ import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
 import mvasoft.timetracker.databinding.ListItemDayBinding;
 import mvasoft.timetracker.databinding.ListItemSessionBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
-import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
-import mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel;
-import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
-import mvasoft.timetracker.ui.extlist.modelview.SessionItemViewModel;
+import mvasoft.timetracker.ui.editsession.EditSessionActivity;
 
 
 public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel>
@@ -208,6 +206,15 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
                 .show(this, "ExSessionListFragment" + DLG_REQUEST_DELETE_SESSION);
     }
 
+    private void copyToClipboard() {
+        if (getViewModel().copySelectedToClipboard())
+            Toast.makeText(getContext(), R.string.msg_selected_items_copied_to_clipboard,
+                    Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(getContext(), R.string.msg_cannot_copy_to_clipboard,
+                    Toast.LENGTH_LONG).show();
+    }
+
     private class ActionModeCallbacks implements ActionMode.Callback {
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
@@ -230,7 +237,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
                     deleteSelected();
                     break;
                 case R.id.action_copy_selected:
-                    getViewModel().copySelectedToClipboard();
+                    copyToClipboard();
                     break;
                 default:
                     res = false;

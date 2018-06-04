@@ -35,4 +35,6 @@
     <string name="caption_tabs_week">Week</string>
     <string name="caption_tabs_month">Month</string>
     <string name="action_select_date">Select date</string>
+    <string name="msg_cannot_copy_to_clipboard">Cannot copy to clipboard</string>
+    <string name="msg_selected_items_copied_to_clipboard">Selected item copied to clipboard</string>
 </resources>

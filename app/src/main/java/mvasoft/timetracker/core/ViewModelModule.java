@@ -6,11 +6,11 @@ import android.arch.lifecycle.ViewModelProvider;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoMap;
-import mvasoft.timetracker.ui.editdate.modelview.EditDateViewModel;
-import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionActivityViewModel;
-import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionViewModel;
-import mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel;
-import mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel;
+import mvasoft.timetracker.ui.editdate.EditDateViewModel;
+import mvasoft.timetracker.ui.editsession.EditSessionActivityViewModel;
+import mvasoft.timetracker.ui.editsession.EditSessionViewModel;
+import mvasoft.timetracker.ui.extlist.ExSessionListViewModel;
+import mvasoft.timetracker.ui.extlist.TabbedActivityViewModel;
 
 @SuppressWarnings("unused")
 @Module

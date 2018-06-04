@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editsession.viewmodel;
+package mvasoft.timetracker.ui.editsession;
 
 import android.app.Application;
 import android.arch.lifecycle.Lifecycle;
@@ -17,7 +17,6 @@ import javax.inject.Inject;
 
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.common.BaseViewModel;
-import mvasoft.timetracker.ui.editsession.model.EditSessionModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 
 

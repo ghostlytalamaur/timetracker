@@ -10,12 +10,12 @@ import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
 import mvasoft.timetracker.data.RepositoryModule;
 import mvasoft.timetracker.ui.backup.BackupActivity;
-import mvasoft.timetracker.ui.editdate.view.EditDateActivity;
-import mvasoft.timetracker.ui.editdate.view.EditDateFragment;
-import mvasoft.timetracker.ui.editsession.view.EditSessionActivity;
-import mvasoft.timetracker.ui.editsession.view.EditSessionFragment;
-import mvasoft.timetracker.ui.extlist.view.ExSessionListFragment;
-import mvasoft.timetracker.ui.extlist.view.TabbedActivity;
+import mvasoft.timetracker.ui.editdate.EditDateActivity;
+import mvasoft.timetracker.ui.editdate.EditDateFragment;
+import mvasoft.timetracker.ui.editsession.EditSessionActivity;
+import mvasoft.timetracker.ui.editsession.EditSessionFragment;
+import mvasoft.timetracker.ui.extlist.ExSessionListFragment;
+import mvasoft.timetracker.ui.extlist.TabbedActivity;
 
 @SuppressWarnings("unused")
 @Module(includes = {ViewModelModule.class})

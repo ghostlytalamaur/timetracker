@@ -17,7 +17,7 @@ import java.util.Calendar;
 
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.core.ExtService;
-import mvasoft.timetracker.ui.extlist.view.TabbedActivity;
+import mvasoft.timetracker.ui.extlist.TabbedActivity;
 
 public class SessionsWidgetService extends ExtService {
 

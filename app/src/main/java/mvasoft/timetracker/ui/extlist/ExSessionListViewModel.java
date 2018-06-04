@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.extlist.modelview;
+package mvasoft.timetracker.ui.extlist;
 
 import android.app.Application;
 import android.arch.lifecycle.Lifecycle;
@@ -26,7 +26,6 @@ import mvasoft.recyclerbinding.viewmodel.ListViewModel;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
-import mvasoft.timetracker.ui.extlist.model.DayGroupListModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
@@ -111,11 +110,11 @@ public class ExSessionListViewModel extends BaseViewModel {
         mRepository.get().deleteSessions(getSelectedSessionsIds());
     }
 
-    public void copySelectedToClipboard() {
+    public boolean copySelectedToClipboard() {
         final ClipboardManager clipboard = (ClipboardManager)
                 getApplication().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard == null)
-            return;
+            return false;
 
         StringBuilder text = new StringBuilder();
 
@@ -126,8 +125,12 @@ public class ExSessionListViewModel extends BaseViewModel {
 
 
         String str = text.toString();
-        if (!str.isEmpty())
+        if (!str.isEmpty()) {
             clipboard.setPrimaryClip(ClipData.newPlainText("Sessions", str));
+            return true;
+        }
+
+        return false;
     }
 
     public void setDate(long dateStart, long dateEnd) {

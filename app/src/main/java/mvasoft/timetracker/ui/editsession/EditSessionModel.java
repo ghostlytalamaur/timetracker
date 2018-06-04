@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editsession.model;
+package mvasoft.timetracker.ui.editsession;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;

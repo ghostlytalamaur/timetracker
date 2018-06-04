@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.extlist.view;
+package mvasoft.timetracker.ui.extlist;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -32,8 +32,7 @@ import mvasoft.timetracker.databinding.ActivityTabbedBinding;
 import mvasoft.timetracker.ui.backup.BackupActivity;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
 import mvasoft.timetracker.ui.common.PagerAdapter;
-import mvasoft.timetracker.ui.editdate.view.EditDateActivity;
-import mvasoft.timetracker.ui.extlist.modelview.TabbedActivityViewModel;
+import mvasoft.timetracker.ui.editdate.EditDateActivity;
 import mvasoft.timetracker.ui.preferences.PreferencesActivity;
 import mvasoft.timetracker.utils.DateTimeHelper;
 

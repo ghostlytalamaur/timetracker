@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.extlist.modelview;
+package mvasoft.timetracker.ui.extlist;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;

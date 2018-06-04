@@ -7,7 +7,7 @@
 
         <variable
             name="view_model"
-            type="mvasoft.timetracker.ui.extlist.modelview.ExSessionListViewModel" />
+            type="mvasoft.timetracker.ui.extlist.ExSessionListViewModel" />
 
         <import
             alias="v"

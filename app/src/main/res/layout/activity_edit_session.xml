@@ -9,7 +9,7 @@
 
         <variable
             name="view_model"
-            type="mvasoft.timetracker.ui.editsession.viewmodel.EditSessionActivityViewModel"
+            type="mvasoft.timetracker.ui.editsession.EditSessionActivityViewModel"
             />
     </data>
 
@@ -17,7 +17,7 @@
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="mvasoft.timetracker.ui.editsession.view.EditSessionActivity"
+        tools:context="mvasoft.timetracker.ui.editsession.EditSessionActivity"
         >
 
         <LinearLayout

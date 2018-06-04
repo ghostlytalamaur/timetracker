@@ -6,7 +6,7 @@
     <fragment
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:name="mvasoft.timetracker.ui.editdate.view.EditDateFragment"
+        android:name="mvasoft.timetracker.ui.editdate.EditDateFragment"
         android:id="@+id/fragment"
         />
 

@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editsession.view;
+package mvasoft.timetracker.ui.editsession;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -22,7 +22,6 @@ import mvasoft.timetracker.data.event.SessionSavedEvent;
 import mvasoft.timetracker.databinding.ActivityEditSessionBinding;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
 import mvasoft.timetracker.ui.common.PagerAdapter;
-import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionActivityViewModel;
 
 public class EditSessionActivity extends BindingSupportActivity<ActivityEditSessionBinding,
         EditSessionActivityViewModel> {

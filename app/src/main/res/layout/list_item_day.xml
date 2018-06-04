@@ -11,7 +11,7 @@
             />
         <variable
             name="view_model"
-            type="mvasoft.timetracker.ui.extlist.modelview.DayItemViewModel"
+            type="mvasoft.timetracker.ui.extlist.DayItemViewModel"
             />
 
         <variable
@@ -19,7 +19,7 @@
             type="com.drextended.actionhandler.listener.ActionClickListener"/>
         <import
             alias="ActionType"
-            type="mvasoft.timetracker.ui.extlist.view.ExSessionListFragment.ExSessionListActionType" />
+            type="mvasoft.timetracker.ui.extlist.ExSessionListFragment.ExSessionListActionType" />
 
         <import
             alias="v"

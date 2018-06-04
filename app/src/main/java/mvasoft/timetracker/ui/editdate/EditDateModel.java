@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editdate.model;
+package mvasoft.timetracker.ui.editdate;
 
 import android.util.Log;
 

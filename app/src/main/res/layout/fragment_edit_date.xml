@@ -7,7 +7,7 @@
 
         <variable
             name="view_model"
-            type="mvasoft.timetracker.ui.editdate.modelview.EditDateViewModel" />
+            type="mvasoft.timetracker.ui.editdate.EditDateViewModel" />
 
         <import
             alias="conv"

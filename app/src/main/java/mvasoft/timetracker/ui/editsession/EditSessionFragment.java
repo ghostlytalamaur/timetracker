@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editsession.view;
+package mvasoft.timetracker.ui.editsession;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModelProvider;
@@ -12,7 +12,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 
 import javax.inject.Inject;
 
@@ -26,7 +25,6 @@ import mvasoft.timetracker.databinding.FragmentEditSessionBinding;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.EditTextUtils;
-import mvasoft.timetracker.ui.editsession.viewmodel.EditSessionViewModel;
 
 public class EditSessionFragment extends BindingSupportFragment<FragmentEditSessionBinding,
         EditSessionViewModel> implements DialogResultListener {

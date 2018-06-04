@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.extlist.modelview;
+package mvasoft.timetracker.ui.extlist;
 
 import android.support.annotation.Nullable;
 

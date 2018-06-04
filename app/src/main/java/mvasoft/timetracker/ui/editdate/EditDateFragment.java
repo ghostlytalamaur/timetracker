@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editdate.view;
+package mvasoft.timetracker.ui.editdate;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -12,13 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 
 import javax.inject.Inject;
 
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.dialogs.TimePickerFragment;
@@ -27,7 +23,7 @@ import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentEditDateBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.EditTextUtils;
-import mvasoft.timetracker.ui.editdate.modelview.EditDateViewModel;
+import mvasoft.timetracker.ui.editdate.EditDateViewModel;
 
 public class EditDateFragment extends
         BindingSupportFragment<FragmentEditDateBinding, EditDateViewModel> implements

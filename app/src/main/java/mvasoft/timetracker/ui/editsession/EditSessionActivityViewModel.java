@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editsession.viewmodel;
+package mvasoft.timetracker.ui.editsession;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;

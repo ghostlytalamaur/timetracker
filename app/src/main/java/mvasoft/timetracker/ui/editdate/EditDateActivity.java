@@ -1,4 +1,4 @@
-package mvasoft.timetracker.ui.editdate.view;
+package mvasoft.timetracker.ui.editdate;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
