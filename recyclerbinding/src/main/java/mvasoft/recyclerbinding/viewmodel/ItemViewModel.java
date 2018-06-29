@@ -41,11 +41,11 @@ public abstract class ItemViewModel {
         setIsSelected(!isSelected());
     }
 
-    public void addSelectionListener(ItemViewModelSelectionListener listener) {
+    void addSelectionListener(ItemViewModelSelectionListener listener) {
         mAnnouncer.addListener(listener);
     }
 
-    public void removeSelectionListener(ItemViewModelSelectionListener listener) {
+    void removeSelectionListener(ItemViewModelSelectionListener listener) {
         mAnnouncer.removeListener(listener);
     }
 

@@ -7,14 +7,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 public class ListViewModel {
-    private static final String LOGT = "mvasoft.log";
 
     private final MutableLiveData<List<ItemViewModel>> mItemsLiveData;
     private final MutableLiveData<Boolean> mHasSelectionData;
@@ -76,10 +74,10 @@ public class ListViewModel {
                             iter.remove();
                         }
                     }
-
                 }
                 else
                     mSelectedIds.clear();
+                // FIXME: case when selectedIds was restored, but list currently not loaded
 
                 mHasSelectionData.setValue(mSelectedIds.size() > 0);
                 mItemsLiveData.setValue(list);
@@ -114,8 +112,9 @@ public class ListViewModel {
 
     public void restoreState(Bundle state) {
         SavedState s = state.getParcelable("ListViewModelState");
-        if (s != null)
+        if (s != null) {
             s.restore(this);
+        }
     }
 
     private static class SavedState implements Parcelable {
@@ -145,8 +144,9 @@ public class ListViewModel {
         }
 
         void restore(ListViewModel model) {
-            model.mSelectedIds.clear();;
+            model.mSelectedIds.clear();
             model.mSelectedIds.addAll(selectedIds);
+            model.mHasSelectionData.setValue(selectedIds.size() > 0);
         }
 
         public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {

@@ -37,8 +37,7 @@ import mvasoft.timetracker.ui.preferences.PreferencesActivity;
 import mvasoft.timetracker.utils.DateTimeHelper;
 
 public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding,
-        TabbedActivityViewModel> implements DialogResultListener,
-        ExSessionListFragment.VisibleFragmentInfoProvider {
+        TabbedActivityViewModel> implements DialogResultListener {
 
     private static final String DATE_PICKER_TAG = "TabbedActivitySelectDateDlg";
     private static final int DLG_REQUEST_DATE = 1;
@@ -48,10 +47,17 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     private ActionMode mActionMode;
     private PagerAdapter mPagerAdapter;
 
-    @Override
-    public boolean isFragmentVisible(Fragment fragment) {
-        return mPagerAdapter.getFragment(getBinding().viewPager.getCurrentItem()) == fragment;
-    }
+    /**
+      Ugly workaround to keep action mode alive when viewPager restore their state.
+      At first time fragment restores their state. If fragment has selected items
+      it will be restored and actionMode gets started.
+      Later Activity restores own view state including viewPager.
+      ViewPager restores last selected tab and appropriate callback method called,
+      but at this moment fragment is already restored =>
+      items has selection and actionMode was started.
+      So, need to block finish actionMode in onPageSelected() callback when restoring state.
+     */
+    private boolean mInRestoreInstanceState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +79,13 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        getViewModel().restoreState(savedInstanceState);
+        mInRestoreInstanceState = true;
+        try {
+            super.onRestoreInstanceState(savedInstanceState);
+            getViewModel().restoreState(savedInstanceState);
+        } finally {
+            mInRestoreInstanceState = false;
+        }
     }
 
     private void updateFragmentDate() {
@@ -84,8 +95,6 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             Pair<Long, Long> dateRange = getDateForFragment(getBinding().viewPager.getCurrentItem());
             //noinspection ConstantConditions
             listFragment.setDate(dateRange.first, dateRange.second);
-
-            listFragment.updateActionMode();
         }
     }
 
@@ -209,10 +218,11 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             @Override
             public void onPageSelected(int position) {
                 updateFragmentDate();
-//                if (mActionMode == null)
-//                    return;
+                if (mActionMode == null)
+                    return;
 
-//                mActionMode.finish();
+                if (!mInRestoreInstanceState)
+                    mActionMode.finish();
             }
 
             @Override

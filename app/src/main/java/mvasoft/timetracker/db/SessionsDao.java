@@ -2,24 +2,21 @@ package mvasoft.timetracker.db;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
-import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Transaction;
 import android.arch.persistence.room.Update;
+import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.util.Pair;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,64 +124,55 @@ public abstract class SessionsDao {
     public Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days) {
         Flowable<List<Session>> sessionsFlowable =
                 getSessionsForDays(days.get(0), days.get(days.size() - 1));
-
-        int daysCount = days.size();
-        sessionsFlowable = sessionsFlowable
-                .doOnNext((list) -> {
-                    Log.d(LOGT, String.format("%d days: %d sessions fetched.",
-                            daysCount, list.size()));
-                });
-
         Flowable<List<DayDescription>> dayDescriptionsFlowable =
                 getDayDescriptionsForDays(days.get(0), days.get(days.size() - 1));
-
-        dayDescriptionsFlowable = dayDescriptionsFlowable
-                .doOnNext((list) -> {
-                    Log.d(LOGT, String.format("%d days: %d day descriptions fetched.",
-                            daysCount, list.size()));
-                });
-
         return Flowable
-                .combineLatest(sessionsFlowable, dayDescriptionsFlowable, (sessions, dd) -> {
-                    Log.d(LOGT, String.format("%d days: create pair.", daysCount));
-                    return new Pair<>(sessions, dd);
-                })
-                .map(daysAndSessions -> {
-                    Log.d(LOGT, String.format("%d days: building groups", daysCount));
-                    Map<Long, Collection<Session>> multimap;
-                    if (daysAndSessions.first != null)
-                        multimap = Multimaps.index(daysAndSessions.first,
-                                session -> DateTimeHelper.startOfDay(session.getStartTime()))
-                                .asMap();
-                    else
-                        multimap = new HashMap<>();
-
-                    Map<Long, DayDescription> dayDescriptionsMap;
-                    if (daysAndSessions.second != null)
-                        dayDescriptionsMap =
-                                Maps.uniqueIndex(daysAndSessions.second,
-                                        dd -> DateTimeHelper.startOfDay(dd.getDate()));
-                    else
-                        dayDescriptionsMap = new HashMap<>();
-
-                    List<DayGroup> groups = new ArrayList<>();
-                    for (Long day : Iterables.concat(multimap.keySet(), dayDescriptionsMap.keySet())) {
-                        List<Session> sessions = null;
-                        if (multimap.containsKey(day))
-                            sessions = new ArrayList<>(multimap.get(day));
-                        DayDescription dd = null;
-                        if (dayDescriptionsMap.containsKey(day))
-                            dd = dayDescriptionsMap.get(day);
-
-                        groups.add(new DayGroup(day, dd, sessions));
-                    }
-
-                    Log.d(LOGT, String.format("%d days: %d groups was builded.",
-                            daysCount, groups.size()));
-                    return groups;
-                });
+                .combineLatest(sessionsFlowable, dayDescriptionsFlowable, Pair::new)
+                .map(daysAndSessions ->
+                        buildGroups(daysAndSessions.first, daysAndSessions.second));
     }
 
+    private static List<DayGroup> buildGroups(List<Session> sessions, List<DayDescription> days) {
+
+        LongSparseArray<MutablePair<DayDescription, List<Session>>> map = new LongSparseArray<>();
+        if (sessions != null)
+            for (Session s : sessions) {
+                long day = DateTimeHelper.startOfDay(s.getStartTime());
+
+                MutablePair<DayDescription, List<Session>> pair = map.get(day);
+                if (pair == null) {
+                    pair = new MutablePair<>();
+                    pair.second = new ArrayList<>();
+                    map.put(day, pair);
+                }
+
+                pair.second.add(s);
+            }
+
+        if (days != null)
+            for (DayDescription dd : days) {
+                long day = DateTimeHelper.startOfDay(dd.getDate());
+                MutablePair<DayDescription, List<Session>> pair = map.get(day);
+                if (pair == null) {
+                    pair = new MutablePair<>();
+                    map.put(day, pair);
+                }
+
+                if (pair.first != null)
+                    Log.e(LOGT, String.format("DayDescription already set for day %d", day));
+                pair.first = dd;
+            }
+
+
+        List<DayGroup> resList = new ArrayList<>(map.size());
+        for (int i = 0; i < map.size(); i++) {
+            long day = map.keyAt(i);
+            MutablePair<DayDescription, List<Session>> v = map.get(day);
+            resList.add(new DayGroup(day, v.first, v.second));
+        }
+
+        return resList;
+    }
 
 
 
@@ -195,6 +183,10 @@ public abstract class SessionsDao {
         working with DayGroup
      */
 
+    private static class MutablePair<F, S> {
+        F first;
+        S second;
+    }
 
 //    @RawQuery("UPDATE sessions SET EndTime = strftime('%s', 'now') WHERE EndTime = 0 OR EndTime IS NULL; INSERT INTO sessions (StartTime) SELECT strftime('%s', 'now') WHERE (SELECT Changes() = 0);")
 //    public abstract void toggleOpenedSession();

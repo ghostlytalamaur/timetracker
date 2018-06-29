@@ -19,12 +19,14 @@ public class DayItemViewModel extends BaseItemViewModel {
     private final DayGroup mDayGroup;
     private final AppPreferences mPreferences;
     private final MutableLiveData<String> mDurationLiveData;
+    private final MutableLiveData<String> mTargetTimeDiffData;
 
     DayItemViewModel(DateTimeFormatters formatter, DayGroup dayGroup, AppPreferences preferences) {
         mFormatter = formatter;
         mDayGroup = dayGroup;
         mPreferences = preferences;
         mDurationLiveData = new MutableLiveData<>();
+        mTargetTimeDiffData = new MutableLiveData<>();
         updateDuration();
     }
 
@@ -40,17 +42,19 @@ public class DayItemViewModel extends BaseItemViewModel {
         return mDurationLiveData;
     }
 
-    @Override
-    void updateDuration() {
-        if (mDayGroup != null)
-            mDurationLiveData.postValue(mFormatter.formatDuration(mDayGroup.getDuration()));
+    public LiveData<String> getTargetTimeDiff() {
+        return mTargetTimeDiffData;
     }
 
-    public String getTargetTimeDiff() {
-        if (mDayGroup != null)
-            return mFormatter.formatDuration(mDayGroup.getTargetTimeDiff(mPreferences));
-        else
-            return "Target";
+    @Override
+    void updateDuration() {
+        if (mDayGroup == null)
+            return;
+
+        mDurationLiveData.postValue(mFormatter.formatDuration(
+                mDayGroup.getDuration()));
+        mTargetTimeDiffData.postValue(mFormatter.formatDuration(
+                mDayGroup.getTargetTimeDiff(mPreferences)));
     }
 
     public boolean getIsTargetAchieved() {

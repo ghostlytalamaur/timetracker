@@ -50,10 +50,8 @@ public class ExSessionListFragment
 
     private static final int DLG_REQUEST_DELETE_SESSION = 1;
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private BindableListAdapter mAdapter;
     private ActionMode.Callback mActionModeCallbacks;
-    private static ActionMode mActionMode;
+    private ActionMode mActionMode;
 
 
     @Inject
@@ -72,14 +70,11 @@ public class ExSessionListFragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // TODO: save viewModel state
         if (savedInstanceState == null && getArguments() != null) {
             long now = System.currentTimeMillis() / 1000;
             getViewModel().setDate(getArguments().getLong(ARGS_DATE_START, now),
                     getArguments().getLong(ARGS_DATE_END, now));
         }
-        else if (savedInstanceState != null)
-            getViewModel().restoreState(savedInstanceState);
 
         mActionModeCallbacks = new ActionModeCallbacks();
     }
@@ -88,10 +83,15 @@ public class ExSessionListFragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
-
         initAdapter();
-//        updateActionMode();
         return v;
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if (savedInstanceState != null)
+            getViewModel().restoreState(savedInstanceState);
     }
 
     @Override
@@ -130,11 +130,12 @@ public class ExSessionListFragment
                         BR.list_model, BR.view_model, DayItemViewModel.class);
         dayDelegate.setActionHandler(BR.actionHandler, actionHandler);
         //noinspection unchecked
-        mAdapter = new BindableListAdapter(this,
+        BindableListAdapter adapter = new BindableListAdapter(this,
                 getViewModel().getListModel(),
                 sessionDelegate, dayDelegate
         );
-        mAdapter.setHasStableIds(true);
+
+        adapter.setHasStableIds(true);
 
         LinearLayoutManager lm = new LinearLayoutManager(getContext());
         lm.setStackFromEnd(true);
@@ -144,7 +145,10 @@ public class ExSessionListFragment
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
         recyclerView.setLayoutManager(lm);
-        recyclerView.setAdapter(mAdapter);
+        recyclerView.setAdapter(adapter);
+
+        getViewModel().getListModel().hasSelectedItems().observe(this, (ignored) ->
+                updateActionMode());
     }
 
     public void setDate(long dateStart, long dateEnd) {
@@ -172,7 +176,6 @@ public class ExSessionListFragment
             editSession(groupModel.getId());
         else if (mActionMode != null) {
             ((ItemViewModel) model).toggleSelection();
-            updateActionMode();
         }
 
     }
@@ -184,17 +187,13 @@ public class ExSessionListFragment
     }
 
     private void actionSelect(Object model) {
-        if (getActivity() == null)
-            return;
-
         if (!(model instanceof ItemViewModel))
             return;
 
         ((ItemViewModel) model).setIsSelected(true);
-        updateActionMode();
     }
 
-    void updateActionMode() {
+    private void updateActionMode() {
         if (getActivity() == null)
             return;
 
@@ -256,16 +255,9 @@ public class ExSessionListFragment
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            boolean isFragmentVisible = (!(getActivity() instanceof VisibleFragmentInfoProvider)) ||
-                    ((VisibleFragmentInfoProvider) getActivity()).isFragmentVisible(ExSessionListFragment.this);
-            if (isFragmentVisible)
-                getViewModel().getListModel().deselectAll();
+            getViewModel().getListModel().deselectAll();
         }
 
-    }
-
-    public interface VisibleFragmentInfoProvider {
-        boolean isFragmentVisible(Fragment fragment);
     }
 
     public static class ExSessionListActionType {
