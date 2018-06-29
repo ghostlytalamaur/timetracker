@@ -3,33 +3,58 @@ package mvasoft.timetracker.ui.widget;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.LiveDataReactiveStreams;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.widget.RemoteViews;
 
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
+import org.reactivestreams.Subscriber;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
+import dagger.Lazy;
+import dagger.android.DaggerIntentService;
+import dagger.android.DaggerService;
+import io.reactivex.Flowable;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.core.ExtService;
+import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.extlist.TabbedActivity;
+import mvasoft.timetracker.vo.DayGroup;
 
 public class SessionsWidgetService extends ExtService {
 
-    public static final String ACTION_UPDATE_WIDGET = "mvasoft.timetracker.action.update_widget.new";
-    private static final String LOGT = "mvasoft.timetracker.log";
+    private static final String ACTION_UPDATE_WIDGET = "mvasoft.timetracker.action.update_widget.new";
     private static final String ACTION_TOGGLE_SESSION = "mvasoft.timetracker.action.toggle_session";
 
     private PeriodFormatter mPeriodFormatter;
     private PendingIntent mAlarmPendingIntent;
+    public Lazy<DataRepository> mRepository;
 
     public SessionsWidgetService() {
         super("SessionsWidgetService");
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    public static Intent makeUpdateIntent(Context context) {
+        Intent intent = new Intent(context, SessionsWidgetService.class);
+        intent.setAction(SessionsWidgetService.ACTION_UPDATE_WIDGET);
+        return intent;
     }
 
     @Override
@@ -40,12 +65,15 @@ public class SessionsWidgetService extends ExtService {
         String action = intent.getAction();
         if (ACTION_UPDATE_WIDGET.equals(action))
             updateWidget();
-//        else if (ACTION_TOGGLE_SESSION.equals(action))
-//            getSessionHelper().toggleSession();
+        else if (ACTION_TOGGLE_SESSION.equals(action))
+            mRepository.get().toggleSession();
     }
 
     private void updateWidget() {
         AppWidgetManager widgetMan = AppWidgetManager.getInstance(this);
+
+        LiveData<List<DayGroup>> groups =
+                mRepository.get().getDayGroups(Arrays.asList(System.currentTimeMillis() / 1000));
 
         int[] ids = widgetMan.getAppWidgetIds(new ComponentName(this, SessionsWidget.class));
         if (ids.length <= 0) {

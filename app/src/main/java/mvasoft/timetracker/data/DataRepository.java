@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Flowable;
-import io.reactivex.Single;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
@@ -39,25 +38,23 @@ public interface DataRepository {
      */
     void updateSession(Session session);
     LiveData<Session> getSessionById(long id);
-    Flowable<Session> getSessionByIdRx(long id);
-
-//    LiveData<List<Session>> getSessionForDate(long date);
-
     LiveData<List<Long>> getSessionsIds();
 
-    LiveData<DayDescription> getDayDescription(Long date);
-    Flowable<DayDescription> getDayDescriptionRx(Long date);
 
     /**
      * append new {@link DayDescription} or update existing if {@link DayDescription}'s id is set.
-     * @param dayDescription
+     * @param dayDescription description for day
      */
     void updateDayDescription(DayDescription dayDescription);
 
-
     LiveData<List<DayGroup>> getDayGroups(List<Long> days);
 
+    Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days);
+    Flowable<DayDescription> getDayDescriptionRx(Long date);
+
+
     void appendAll(ArrayList<Session> list);
+
 
     enum ToggleSessionResult {
         tgs_Started,

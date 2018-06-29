@@ -55,13 +55,8 @@ public class RoomDataRepositoryImpl implements DataRepository {
 
     @Override
     public void deleteSessions(List<Long> ids) {
-        mExecutors.getDiskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                EventBus.getDefault().post(
-                        new SessionsDeletedEvent(mDatabase.groupsModel().deleteByIds(ids)));
-            }
-        });
+        mExecutors.getDiskIO().execute(() -> EventBus.getDefault().post(
+                new SessionsDeletedEvent(mDatabase.groupsModel().deleteByIds(ids))));
     }
 
     @Override
@@ -71,36 +66,28 @@ public class RoomDataRepositoryImpl implements DataRepository {
 
     @Override
     public void toggleSession() {
-        mExecutors.getDiskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                int updatedRows = mGroupsModel.closeOpenedSessions();
-                ToggleSessionResult res;
-                if (updatedRows != 0)
-                    res = ToggleSessionResult.tgs_Stopped;
-                else {
-                    Session session = new Session(0, System.currentTimeMillis() / 1000L, 0);
-                    if (mGroupsModel.appendSession(session) > 0)
-                        res = ToggleSessionResult.tgs_Started;
-                    else
-                        res = ToggleSessionResult.tgs_Error;
-                }
-
-                EventBus.getDefault().post(new SessionToggledEvent(res));
+        mExecutors.getDiskIO().execute(() -> {
+            int updatedRows = mGroupsModel.closeOpenedSessions();
+            ToggleSessionResult res;
+            if (updatedRows != 0)
+                res = ToggleSessionResult.tgs_Stopped;
+            else {
+                Session session = new Session(0, System.currentTimeMillis() / 1000L, 0);
+                if (mGroupsModel.appendSession(session) > 0)
+                    res = ToggleSessionResult.tgs_Started;
+                else
+                    res = ToggleSessionResult.tgs_Error;
             }
+
+            EventBus.getDefault().post(new SessionToggledEvent(res));
         });
 
     }
 
     @Override
     public void updateSession(Session session) {
-        mExecutors.getDiskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                EventBus.getDefault().post(
-                        new SessionSavedEvent(mGroupsModel.updateSession(session) > 0));
-            }
-        });
+        mExecutors.getDiskIO().execute(() -> EventBus.getDefault().post(
+                new SessionSavedEvent(mGroupsModel.updateSession(session) > 0)));
     }
 
     public LiveData<Session> getSessionById(long id) {
@@ -108,18 +95,8 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public Flowable<Session> getSessionByIdRx(long id) {
-        return mGroupsModel.getSessionByIdRx(id);
-    }
-
-    @Override
     public LiveData<List<Long>> getSessionsIds() {
         return mGroupsModel.getSessionsIds();
-    }
-
-    @Override
-    public LiveData<DayDescription> getDayDescription(Long date) {
-        return mGroupsModel.getDayDescription(date);
     }
 
     @Override
@@ -129,14 +106,11 @@ public class RoomDataRepositoryImpl implements DataRepository {
 
     @Override
     public void updateDayDescription(DayDescription dayDescription) {
-        mExecutors.getDiskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                boolean wasSaved = mGroupsModel.updateDayDescription(dayDescription) != 0;
-                if (!wasSaved)
-                    wasSaved = mGroupsModel.appendDayDescription(dayDescription) > 0;
-                EventBus.getDefault().post(new DayDescriptionSavedEvent(wasSaved));
-            }
+        mExecutors.getDiskIO().execute(() -> {
+            boolean wasSaved = mGroupsModel.updateDayDescription(dayDescription) != 0;
+            if (!wasSaved)
+                wasSaved = mGroupsModel.appendDayDescription(dayDescription) > 0;
+            EventBus.getDefault().post(new DayDescriptionSavedEvent(wasSaved));
         });
     }
 
@@ -161,13 +135,13 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
-    public void appendAll(ArrayList<Session> list) {
-        mExecutors.getDiskIO().execute(() -> mGroupsModel.appendAll(list));
+    public Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days) {
+        return mGroupsModel.getDayGroupsRx(days);
     }
 
-    //    @Override
-    public LiveData<List<Session>> getSessionForDate(long date) {
-        return mGroupsModel.getSessionForDate(date);
+    @Override
+    public void appendAll(ArrayList<Session> list) {
+        mExecutors.getDiskIO().execute(() -> mGroupsModel.appendAll(list));
     }
 
     public AppDatabase getDatabase() {

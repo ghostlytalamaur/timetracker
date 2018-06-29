@@ -1,15 +1,18 @@
 package mvasoft.timetracker.ui.extlist;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.Transformations;
+import android.util.Pair;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
 import dagger.Lazy;
-import mvasoft.timetracker.core.CalculatedValue;
+import io.reactivex.Flowable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.flowables.ConnectableFlowable;
+import io.reactivex.internal.disposables.DisposableContainer;
+import io.reactivex.processors.BehaviorProcessor;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.utils.DateTimeHelper;
@@ -19,91 +22,87 @@ public class DayGroupListModel {
 
     private final Lazy<AppPreferences> mPreferences;
     private final Lazy<DataRepository> mRepository;
-    private final LiveData<List<DayGroup>> mGroups;
-    private final MutableLiveData<List<Long>> mDays;
-    private final LiveData<Boolean> mHasRunningSession;
-    private final MediatorLiveData<Long> mSummaryTimeData;
-    private final MediatorLiveData<Long> mTargetTimeDiffData;
-    private final CalculatedValue<Long> mTargetTime;
+
+    private final BehaviorProcessor<List<DayGroup>> mGroups;
+    private final BehaviorProcessor<List<Long>> mDays;
+    private final Flowable<Boolean> mHasRunningSessionFlowable;
+    private final BehaviorProcessor<Long> mSummaryTimeFlowable;
+    private final Flowable<Long> mTargetTimeFlowable;
+    private final Flowable<Long> mTargetTimeDiffFlowable;
+    private final CompositeDisposable mDisposable;
 
 
     public DayGroupListModel(Lazy<AppPreferences> preferences, Lazy<DataRepository> repository) {
         mPreferences = preferences;
         mRepository = repository;
-        mDays = new MutableLiveData<>();
 
-        mTargetTime = new CalculatedValue<>(this::calculateTargetTime);
+        mGroups = BehaviorProcessor.createDefault(Collections.emptyList());
+        mDays = BehaviorProcessor.createDefault(Collections.singletonList(0L));
+        mSummaryTimeFlowable = BehaviorProcessor.createDefault(0L);
+        mDisposable = new CompositeDisposable();
+        ConnectableFlowable<List<DayGroup>> connectable = mDays
+                .skip(1)
+                .switchMap(mRepository.get()::getDayGroupsRx)
+                .distinctUntilChanged()
+                .replay(1);
 
-        LiveData<List<DayGroup>> data = Transformations.switchMap(mDays, days -> {
-            if (days == null || days.size() == 0)
-                return null;
+        mDisposable.add(connectable.subscribe(
+                groups -> mSummaryTimeFlowable.onNext(calculateSummary(groups))));
+        connectable.subscribe(mGroups);
 
-            return mRepository.get().getDayGroups(days);
-        });
+        mHasRunningSessionFlowable = mGroups.map(this::calculateHasRunningSession);
+        mTargetTimeFlowable = mGroups.map(this::calculateTargetTime);
+        mTargetTimeDiffFlowable = Flowable
+                .combineLatest(mSummaryTimeFlowable, mTargetTimeFlowable, Pair::new)
+                .map(pair -> (pair.first - pair.second));
 
-        mGroups = Transformations.map(data, groups -> {
-            mTargetTime.invalidate();
-            return groups;
-        });
-
-        mHasRunningSession = Transformations.map(mGroups, list -> {
-            if (list != null)
-                for (DayGroup item : list)
-                    if (item.isRunning())
-                        return true;
-            return false;
-        });
-
-        mSummaryTimeData = new MediatorLiveData<>();
-        mSummaryTimeData.addSource(mGroups, groups ->
-                mSummaryTimeData.setValue(calculateSummary()));
-        mSummaryTimeData.setValue((long) 0);
-
-        mTargetTimeDiffData = new MediatorLiveData<>();
-        mTargetTimeDiffData.addSource(mSummaryTimeData, summary ->
-                mTargetTimeDiffData.setValue(calculateTargetTimeDiff()));
+        mDisposable.add(connectable.connect());
     }
 
-    public LiveData<List<DayGroup>> getItems() {
+    private boolean calculateHasRunningSession(List<DayGroup> groups) {
+        if (groups != null)
+            for (DayGroup item : groups)
+                if (item.isRunning())
+                    return true;
+        return false;
+    }
+
+    public Flowable<List<DayGroup>> getItems() {
         return mGroups;
     }
 
-    public LiveData<Boolean> hasRunningSessionsData() {
-        return mHasRunningSession;
+    public Flowable<Boolean> hasRunningSessionsData() {
+        return mHasRunningSessionFlowable;
     }
 
-    public LiveData<Long> getSummaryTimeData() {
-        return mSummaryTimeData;
+    public Flowable<Long> getSummaryTimeData() {
+        return mSummaryTimeFlowable;
     }
 
-    public LiveData<Long> getTargetTimeDiffData() {
-        return mTargetTimeDiffData;
+    public Flowable<Long> getTargetTimeDiffData() {
+        return mTargetTimeDiffFlowable;
     }
 
     public void invalidateValues() {
-        // also update targetTimeDiff by notification from mSummaryTimeData if needed
-        mSummaryTimeData.postValue(calculateSummary());
+//         also update targetTimeDiff by notification from mSummaryTimeData if needed
+        mSummaryTimeFlowable.onNext(calculateSummary(mGroups.getValue()));
     }
 
     public void setDateRange(long minDate, long maxDate) {
         List<Long> newDays = DateTimeHelper.daysList(minDate, maxDate);
         List<Long> oldDays = mDays.getValue();
         boolean isEqual = (newDays != null) && newDays.equals(oldDays);
-        if (!isEqual)
-            mDays.setValue(newDays);
+        if (!isEqual && newDays != null)
+            mDays.onNext(newDays);
     }
 
     public boolean isSingleDay() {
-        return mDays.getValue() != null && mDays.getValue().size() == 1;
+        return mDays.getValue().size() == 1;
     }
 
-    private long calculateTargetTime() {
+    private long calculateTargetTime(List<DayGroup> groups) {
         long res = 0;
-        if (mDays.getValue() == null)
-            return res;
-
         final HashSet<Long> remainingDays = new HashSet<>(mDays.getValue());
-        List<DayGroup> groups = mGroups.getValue();
         if (groups != null) {
             for (DayGroup group : groups) {
                 res += group.getTargetTime(mPreferences.get());
@@ -116,18 +115,17 @@ public class DayGroupListModel {
         return res;
     }
 
-    private long calculateSummary() {
+    private long calculateSummary(List<DayGroup> groups) {
         long res = 0;
-        List<DayGroup> groups = mGroups.getValue();
         if (groups != null)
             for (DayGroup group : groups)
                 res += group.getDuration();
         return res;
     }
 
-    private long calculateTargetTimeDiff() {
-        long summary = mSummaryTimeData.getValue() != null ? mSummaryTimeData.getValue() : 0;
-        return summary - mTargetTime.getValue();
+    public void dispose() {
+        if (mDisposable != null)
+            mDisposable.dispose();
     }
 
 }

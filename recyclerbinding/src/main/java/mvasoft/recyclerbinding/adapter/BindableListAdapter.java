@@ -29,7 +29,7 @@ public class BindableListAdapter extends AbsDelegationAdapter<ListViewModel> {
         setItems(owner, viewModel);
     }
 
-    public void setItems(@NonNull LifecycleOwner owner, ListViewModel items) {
+    private void setItems(@NonNull LifecycleOwner owner, ListViewModel items) {
         super.setItems(items);
         items.getItemsData().observe(owner, new Observer<List<ItemViewModel>>() {
             @Override

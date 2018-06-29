@@ -10,8 +10,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        >
+        android:theme="@style/AppTheme">
 
         <activity
             android:name=".ui.extlist.TabbedActivity"
@@ -51,6 +50,19 @@
                 android:value=".ui.extlist.TabbedActivity" />
         </activity>
         <activity android:name=".ui.backup.BackupActivity" />
+
+        <receiver android:name=".ui.widget.SessionsWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_provider_info" />
+        </receiver>
+        <service
+            android:name=".ui.widget.SessionsWidgetService"
+            android:exported="false"
+            />
     </application>
 
 </manifest>

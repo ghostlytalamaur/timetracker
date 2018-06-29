@@ -34,7 +34,7 @@ public class BindableListDelegate<VB extends ViewDataBinding>
     protected void onBindVariables(BindableHolder<VB> bindableHolder, @NonNull ListViewModel items, int position) {
         List<ItemViewModel> list = items.getItemsData().getValue();
         bindableHolder.getBinding().setVariable(mModelVariableId, items);
-        if (list != null)
+        if ((list != null) && (position >= 0 && position < list.size()))
             bindableHolder.getBinding().setVariable(mItemModelVariableId, list.get(position));
         if (mActionHandler != null && mActionHandlerId > 0)
             bindableHolder.getBinding().setVariable(mActionHandlerId, mActionHandler);
@@ -43,7 +43,9 @@ public class BindableListDelegate<VB extends ViewDataBinding>
     @Override
     protected boolean isForViewType(@NonNull ListViewModel items, int position) {
         List<ItemViewModel> list = items.getItemsData().getValue();
-        return (list != null) &&  mClass.isAssignableFrom(list.get(position).getClass());
+        return (list != null) &&
+                (position >= 0 && position < list.size()) &&
+                mClass.isAssignableFrom(list.get(position).getClass());
     }
 
     public void setActionHandler(int variableId, ActionClickListener handler) {

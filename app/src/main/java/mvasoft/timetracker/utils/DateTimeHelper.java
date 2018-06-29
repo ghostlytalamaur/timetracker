@@ -69,6 +69,12 @@ public class DateTimeHelper {
             return res.getMillis() / 1000;
     }
 
+    public static long startOfDay(long unixSec) {
+        DateTime dt = new DateTime(unixSec * 1000);
+        return dt.withTimeAtStartOfDay().getMillis() / 1000;
+
+    }
+
     public static long startOfWeek(long unixSec) {
         DateTime dt = new DateTime(unixSec * 1000);
         return dt.dayOfWeek().withMinimumValue().getMillis() / 1000;

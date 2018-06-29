@@ -24,6 +24,10 @@ android {
     dataBinding {
         enabled = true
     }
+    compileOptions {
+        sourceCompatibility build_versions.source_compatibility
+        targetCompatibility build_versions.target_compatibility
+    }
 }
 
 dependencies {
@@ -33,4 +37,5 @@ dependencies {
     api 'com.drextended.actionhandler:actionhandler:0.1.16'
     implementation deps.support.recycler_view
     implementation deps.lifecycle.extensions
+    implementation project(path: ':utils')
 }

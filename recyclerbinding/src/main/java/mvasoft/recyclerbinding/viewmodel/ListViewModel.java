@@ -2,114 +2,163 @@ package mvasoft.recyclerbinding.viewmodel;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.Log;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 public class ListViewModel {
+    private static final String LOGT = "mvasoft.log";
 
     private final MutableLiveData<List<ItemViewModel>> mItemsLiveData;
-    private final MutableLiveData<Boolean> mPendingSelectionData;
-
+    private final MutableLiveData<Boolean> mHasSelectionData;
+    private final ItemViewModel.ItemViewModelSelectionListener mSelectionListener;
+    private final HashSet<Long> mSelectedIds;
+    private final Handler mHandler;
 
     public ListViewModel() {
+        mHandler = new Handler(Looper.getMainLooper());
         mItemsLiveData = new MutableLiveData<>();
-        mPendingSelectionData = new MutableLiveData<>();
-        mPendingSelectionData.setValue(false);
+        mSelectedIds = new HashSet<>();
+        mHasSelectionData = new MutableLiveData<>();
+        mHasSelectionData.setValue(false);
+
+        mSelectionListener = item -> {
+            if (item.isSelected())
+                mSelectedIds.add(item.getId());
+            else
+                mSelectedIds.remove(item.getId());
+            mHasSelectionData.setValue(mSelectedIds.size() > 0);
+        };
     }
-    
-    public void setItemsList(List<ItemViewModel> list) {
-        if (list != null) {
-            HashSet<Long> wasSelected = getSelectedIds();
-            for (ItemViewModel item : list)
-                if (wasSelected.contains(item.getId()))
-                    item.setIsSelected(true);
+
+    private void addSelectionObserver() {
+        List<ItemViewModel> list = mItemsLiveData.getValue();
+        if (list == null)
+            return;
+
+        for (ItemViewModel item : list) {
+            item.addSelectionListener(mSelectionListener);
         }
-        mItemsLiveData.postValue(list);
+    }
+
+    private void removeSelectionObserver() {
+        List<ItemViewModel> list = mItemsLiveData.getValue();
+        if (list == null)
+            return;
+
+        for (ItemViewModel item : list) {
+            item.removeSelectionListener(mSelectionListener);
+        }
+    }
+
+    public void setItemsList(List<ItemViewModel> list) {
+        mHandler.post(() -> {
+            removeSelectionObserver();
+            try {
+                if (list != null) {
+
+                    HashSet<Long> newIds = new HashSet<>();
+                    for (ItemViewModel item : list) {
+                        newIds.add(item.getId());
+                        item.setIsSelected(mSelectedIds.contains(item.getId()));
+                    }
+
+                    Iterator<Long> iter = mSelectedIds.iterator();
+                    while (iter.hasNext()) {
+                        if (!newIds.contains(iter.next())) {
+                            iter.remove();
+                        }
+                    }
+
+                }
+                else
+                    mSelectedIds.clear();
+
+                mHasSelectionData.setValue(mSelectedIds.size() > 0);
+                mItemsLiveData.setValue(list);
+            } finally {
+                addSelectionObserver();
+            }
+        });
     }
 
     public LiveData<List<ItemViewModel>> getItemsData() {
         return mItemsLiveData;
     }
 
+    public LiveData<Boolean> hasSelectedItems() {
+        return mHasSelectionData;
+    }
+
     public void deselectAll() {
-        if (mItemsLiveData.getValue() != null)
-            for (ItemViewModel item : mItemsLiveData.getValue())
+        List<ItemViewModel> list = mItemsLiveData.getValue();
+        if (list != null)
+            for (ItemViewModel item : list)
                 item.setIsSelected(false);
-    }
-    
-    private HashSet<Long> getSelectedIds() {
-        HashSet<Long> ids = new HashSet<>();
-        for (ItemViewModel item : getSelectedItems())
-            ids.add(item.getId());
-        return ids;
-    }
-    
-    public Iterable<ItemViewModel> getSelectedItems() {
-        return new Iterable<ItemViewModel>() {
-            @NonNull
-            @Override
-            public Iterator<ItemViewModel> iterator() {
-                return new SelectedItemsIter(mItemsLiveData.getValue());
-            }
-        };
     }
 
     public int getSelectedItemsCount() {
-        int res = 0;
-        if (mItemsLiveData.getValue() != null)
-            for (ItemViewModel item : mItemsLiveData.getValue())
-                if (item.isSelected())
-                    res++;
-        return res;
+        return mSelectedIds.size();
     }
 
-    public LiveData<Boolean> getIsPendingSelection() {
-        return mPendingSelectionData;
+    public void saveState(Bundle outState) {
+        outState.putParcelable("ListViewModelState", new SavedState(this));
     }
 
-    public boolean isPendingSelection() {
-        return mPendingSelectionData.getValue() != null && mPendingSelectionData.getValue();
+    public void restoreState(Bundle state) {
+        SavedState s = state.getParcelable("ListViewModelState");
+        if (s != null)
+            s.restore(this);
     }
 
-    public void startSelection() {
-        mPendingSelectionData.setValue(true);
-    }
+    private static class SavedState implements Parcelable {
+        private HashSet<Long> selectedIds;
 
-    public void endSelection() {
-        deselectAll();
-        mPendingSelectionData.setValue(false);
-    }
+        SavedState(ListViewModel model) {
+            selectedIds = new HashSet<>(model.mSelectedIds);
+        }
 
-    private static class SelectedItemsIter implements Iterator<ItemViewModel> {
-        private final List<? extends ItemViewModel> mList;
-        int mCurrent = -1;
-
-        SelectedItemsIter(@Nullable List<?extends ItemViewModel> list) {
-            mList = list;
+        SavedState(Parcel in) {
+            selectedIds = new HashSet<>();
+            int cnt = in.readInt();
+            for (int i = 0; i < cnt; i++)
+                selectedIds.add(in.readLong());
         }
 
         @Override
-        public boolean hasNext() {
-            if (mList != null)
-                for (int i = mCurrent + 1; i < mList.size(); i++) {
-                    Boolean isSelected = mList.get(i).getIsSelected().getValue();
-                    if (isSelected != null && isSelected) {
-                        mCurrent = i;
-                        return true;
-                    }
-                }
-
-            return false;
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(selectedIds.size());
+            for (long id : selectedIds)
+                dest.writeLong(id);
         }
 
         @Override
-        public ItemViewModel next() {
-            return mList != null ? mList.get(mCurrent) : null;
+        public int describeContents() {
+            return 0;
         }
-    }
 
+        void restore(ListViewModel model) {
+            model.mSelectedIds.clear();;
+            model.mSelectedIds.addAll(selectedIds);
+        }
+
+        public static final Creator<SavedState> CREATOR = new Creator<SavedState>() {
+            @Override
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+    }
 }

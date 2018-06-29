@@ -19,8 +19,6 @@ public class WidgetHelper implements IWidgetHelper {
 
     @Override
     public void updateWidget() {
-        Intent serviceIntent = new Intent(mContext, SessionsWidgetService.class);
-        serviceIntent.setAction(SessionsWidgetService.ACTION_UPDATE_WIDGET);
-        mContext.startService(serviceIntent);
+        mContext.startService(SessionsWidgetService.makeUpdateIntent(mContext));
     }
 }

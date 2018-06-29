@@ -41,7 +41,8 @@ import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.editsession.EditSessionActivity;
 
 
-public class ExSessionListFragment extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel>
+public class ExSessionListFragment
+        extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel>
         implements DialogResultListener {
 
     private static final String ARGS_DATE_START = "args_date_MIN";
@@ -52,7 +53,7 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
     @SuppressWarnings("FieldCanBeLocal")
     private BindableListAdapter mAdapter;
     private ActionMode.Callback mActionModeCallbacks;
-    private ActionMode mActionMode;
+    private static ActionMode mActionMode;
 
 
     @Inject
@@ -77,6 +78,8 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
             getViewModel().setDate(getArguments().getLong(ARGS_DATE_START, now),
                     getArguments().getLong(ARGS_DATE_END, now));
         }
+        else if (savedInstanceState != null)
+            getViewModel().restoreState(savedInstanceState);
 
         mActionModeCallbacks = new ActionModeCallbacks();
     }
@@ -87,8 +90,14 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         View v = super.onCreateView(inflater, container, savedInstanceState);
 
         initAdapter();
-        updateActionMode();
+//        updateActionMode();
         return v;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        getViewModel().saveState(outState);
     }
 
     protected ExSessionListViewModel onCreateViewModel() {
@@ -181,17 +190,16 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         if (!(model instanceof ItemViewModel))
             return;
 
-        getViewModel().getListModel().startSelection();
         ((ItemViewModel) model).setIsSelected(true);
         updateActionMode();
     }
 
-    private void updateActionMode() {
+    void updateActionMode() {
         if (getActivity() == null)
             return;
 
         int cnt = getViewModel().getListModel().getSelectedItemsCount();
-        if (getViewModel().getListModel().isPendingSelection()) {
+        if (cnt > 0) {
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
             if (mActionMode != null)
@@ -248,9 +256,16 @@ public class ExSessionListFragment extends BindingSupportFragment<FragmentSessio
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            getViewModel().getListModel().endSelection();
+            boolean isFragmentVisible = (!(getActivity() instanceof VisibleFragmentInfoProvider)) ||
+                    ((VisibleFragmentInfoProvider) getActivity()).isFragmentVisible(ExSessionListFragment.this);
+            if (isFragmentVisible)
+                getViewModel().getListModel().deselectAll();
         }
 
+    }
+
+    public interface VisibleFragmentInfoProvider {
+        boolean isFragmentVisible(Fragment fragment);
     }
 
     public static class ExSessionListActionType {

@@ -9,9 +9,7 @@ public class SessionsWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        Intent intent = new Intent(context, SessionsWidgetService.class);
-        intent.setAction(SessionsWidgetService.ACTION_UPDATE_WIDGET);
-        context.startService(intent);
+        context.startService(SessionsWidgetService.makeUpdateIntent(context));
     }
 }
 
