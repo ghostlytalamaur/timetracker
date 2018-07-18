@@ -23,13 +23,13 @@ import android.os.Parcelable;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceViewHolder;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import mvasoft.timetracker.R;
+import timber.log.Timber;
 
 /**
  * Preference with seekBar widget. Based on SeekBarPreference from v7 support
@@ -58,7 +58,6 @@ public class SliderPreference extends Preference {
     private SeekBar mSeekBar;
     private TextView mSeekBarValueTextView;
 
-    private static final String TAG = "SeekBarPreference";
 
     /**
      * Listener reacting to the SeekBar changing value by the user
@@ -110,7 +109,7 @@ public class SliderPreference extends Preference {
             }
 
             if (mSeekBar == null) {
-                Log.e(TAG, "SeekBar view is null and hence cannot be adjusted.");
+                Timber.e("SeekBar view is null and hence cannot be adjusted.");
                 return false;
             }
             return mSeekBar.onKeyDown(keyCode, event);
@@ -177,7 +176,7 @@ public class SliderPreference extends Preference {
         }
 
         if (mSeekBar == null) {
-            Log.e(TAG, "SeekBar view is null in onBindViewHolder.");
+            Timber.e("SeekBar view is null in onBindViewHolder.");
             return;
         }
         mSeekBar.setOnSeekBarChangeListener(mSeekBarChangeListener);

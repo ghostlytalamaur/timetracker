@@ -40,19 +40,19 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/appwidget_text_current"
+            android:id="@+id/appwidget_text_today"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/appwidget_text_current_empty"
+            android:text="@string/appwidget_text_today_empty"
             android:textColor="#ffffff"
             android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/appwidget_text_today"
+            android:id="@+id/appwidget_text_week"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/appwidget_text_today_empty"
+            android:text="@string/appwidget_text_week_empty"
             android:textColor="#ffffff"
             android:textSize="12sp"
             android:textStyle="bold" />

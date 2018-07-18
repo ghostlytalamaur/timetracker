@@ -1,183 +1,181 @@
 package mvasoft.timetracker.ui.widget;
 
-import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.LiveDataReactiveStreams;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
+import android.support.v4.app.JobIntentService;
 import android.widget.RemoteViews;
 
-import org.joda.time.Period;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
-import org.reactivestreams.Subscriber;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import dagger.Lazy;
-import dagger.android.DaggerIntentService;
-import dagger.android.DaggerService;
-import io.reactivex.Flowable;
+import dagger.android.AndroidInjection;
 import mvasoft.timetracker.R;
-import mvasoft.timetracker.core.ExtService;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.extlist.TabbedActivity;
+import mvasoft.timetracker.utils.DateTimeFormatters;
+import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayGroup;
+import mvasoft.timetracker.vo.DayGroupsUtils;
+import timber.log.Timber;
 
-public class SessionsWidgetService extends ExtService {
+import static mvasoft.timetracker.utils.DateTimeFormatters.DateTimeFormattersType.dtft_Clipboard;
 
-    private static final String ACTION_UPDATE_WIDGET = "mvasoft.timetracker.action.update_widget.new";
-    private static final String ACTION_TOGGLE_SESSION = "mvasoft.timetracker.action.toggle_session";
+public class SessionsWidgetService extends JobIntentService {
 
-    private PeriodFormatter mPeriodFormatter;
-    private PendingIntent mAlarmPendingIntent;
-    public Lazy<DataRepository> mRepository;
+    private static final int JOB_ID = 1000;
 
-    public SessionsWidgetService() {
-        super("SessionsWidgetService");
-    }
+    @Inject
+    Lazy<DataRepository> mRepository;
 
-    @Nullable
+    private DateTimeFormatters mFormatters;
+
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    public static Intent makeUpdateIntent(Context context) {
-        Intent intent = new Intent(context, SessionsWidgetService.class);
-        intent.setAction(SessionsWidgetService.ACTION_UPDATE_WIDGET);
-        return intent;
+    public void onCreate() {
+        super.onCreate();
+        Timber.d("onCreate()");
+        AndroidInjection.inject(this);
     }
 
     @Override
-    protected void onHandleIntent(@Nullable Intent intent) {
-        if (intent == null)
+    public void onDestroy() {
+        Timber.d("onDestroy()");
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onHandleWork(@NonNull Intent intent) {
+        Timber.d("onHandleWork()");
+        String action = intent.getAction();
+        if (action == null)
             return;
 
-        String action = intent.getAction();
-        if (ACTION_UPDATE_WIDGET.equals(action))
-            updateWidget();
-        else if (ACTION_TOGGLE_SESSION.equals(action))
-            mRepository.get().toggleSession();
+        Timber.d("onHandleIntent: %s", action);
+        switch (action) {
+            case WidgetActions.ACTION_WIDGET_UPDATE: {
+                updateWidget();
+                break;
+            }
+            case WidgetActions.ACTION_WIDGET_TOGGLE_SESSION: {
+                mRepository.get().toggleSession();
+                break;
+            }
+            default:
+                throw new UnsupportedOperationException(
+                        String.format("Action %s not supported.", action));
+        }
+
+    }
+
+    public static void enqueueUpdate(Context context) {
+        Intent intent = new Intent(context, SessionsWidgetService.class);
+        intent.setAction(WidgetActions.ACTION_WIDGET_UPDATE);
+
+        enqueueWork(context, SessionsWidgetService.class, JOB_ID, intent);
+        Timber.d("enqueueUpdate()");
+    }
+
+    public static void enqueueToggleSession(Context context) {
+        Intent intent = new Intent(context, SessionsWidgetService.class);
+        intent.setAction(WidgetActions.ACTION_WIDGET_TOGGLE_SESSION);
+
+        enqueueWork(context, SessionsWidgetService.class, JOB_ID, intent);
+        Timber.d("enqueueToggleSession()");
+    }
+
+    public DateTimeFormatters getFormatters() {
+        if (mFormatters == null)
+            mFormatters = new DateTimeFormatters(dtft_Clipboard);
+        return mFormatters;
     }
 
     private void updateWidget() {
+        long today = System.currentTimeMillis() / 1000;
+        List<Long> days = DateTimeHelper.daysList(
+                DateTimeHelper.startOfMonthWeek(today), DateTimeHelper.endOfMonthWeek(today));
+        updateWidget(mRepository.get().getDayGroupsRx(days)
+                .first(Collections.emptyList())
+                .blockingGet());
+    }
+
+    private void updateWidget(List<DayGroup> groups) {
         AppWidgetManager widgetMan = AppWidgetManager.getInstance(this);
-
-        LiveData<List<DayGroup>> groups =
-                mRepository.get().getDayGroups(Arrays.asList(System.currentTimeMillis() / 1000));
-
         int[] ids = widgetMan.getAppWidgetIds(new ComponentName(this, SessionsWidget.class));
         if (ids.length <= 0) {
-            stopSelf();
             return;
         }
 
         RemoteViews views = new RemoteViews(getPackageName(), R.layout.sessions_widget);
 
-        bindViews(views);
+        bindViews(views, groups);
         widgetMan.updateAppWidget(ids, views);
-
-        updateAlarm();
     }
 
-    private void bindViews(RemoteViews views) {
+    private void bindViews(RemoteViews views, List<DayGroup> groups) {
         if (views == null)
             return;
 
-        // Setup click listeners
-        Intent intent = new Intent(this, SessionsWidgetService.class);
-        intent.setAction(ACTION_TOGGLE_SESSION);
+        Timber.d("bindViews()");
+        DayGroupsUtils.sortGroups(groups);
+        // Bind text views
+        String todayText;
+        String stateText;
+        String weekText;
+        int btnImageId;
 
-        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, 0);
+        DayGroup todayGroup = DayGroupsUtils.getDayGroupForDay(groups,
+                System.currentTimeMillis() / 1000);
+        if (todayGroup != null) {
+            todayText = String.format(getString(R.string.appwidget_text_today),
+                    getFormatters().formatDuration(todayGroup.getDuration()));
+
+        } else {
+            todayText = getString(R.string.appwidget_text_today_empty);
+        }
+
+        if (groups.size() > 0) {
+            weekText = String.format(getString(R.string.appwidget_text_week),
+                    getFormatters().formatDuration(DayGroupsUtils.getDuration(groups)));
+        }
+        else {
+            weekText = getString(R.string.appwidget_text_week_empty);
+        }
+
+        boolean hasOpened = mRepository.get().getOpenedSessionsIds()
+                .first(Collections.emptyList())
+                .blockingGet().size() > 0;
+        if (hasOpened) {
+            stateText = getString(R.string.appwidget_text_state_opened);
+            btnImageId = R.drawable.minus;
+        }
+        else {
+            stateText = getString(R.string.appwidget_text_state_closed);
+            btnImageId = R.drawable.plus;
+        }
+
+        views.setImageViewResource(R.id.appwidget_button, btnImageId);
+        views.setTextViewText(R.id.appwidget_text_state, stateText);
+        views.setTextViewText(R.id.appwidget_text_week, weekText);
+        views.setTextViewText(R.id.appwidget_text_today, todayText);
+
+        // Setup click listeners
+        Intent intent = new Intent(this, JobReceiver.class);
+        intent.setAction(WidgetActions.ACTION_WIDGET_TOGGLE_SESSION);
+
+        PendingIntent pendingIntent =
+                PendingIntent.getBroadcast(this, 0, intent, 0);
         views.setOnClickPendingIntent(R.id.appwidget_button, pendingIntent);
 
         intent = new Intent(this, TabbedActivity.class);
         pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
         views.setOnClickPendingIntent(R.id.appwidget_text_layout, pendingIntent);
 
-        // Bind text views
-        String todayText;
-        long duration = 0;//getSessionHelper().getTodayDuration();
-        if (duration != 0)
-            todayText = String.format(getString(R.string.appwidget_text_today),
-                    getPeriodFormatter().print(new Period(duration * 1000)));
-        else
-            todayText = getString(R.string.appwidget_text_today_empty);
-
-        String stateText;
-        String currentText;
-        int btnImageId;
-        boolean hasOpened = false; //getSessionHelper().hasOpenedSessions();
-        if (hasOpened) {
-            duration = 0; //getSessionHelper().getCurrentDuration();
-            currentText = String.format(getString(R.string.appwidget_text_current),
-                    getPeriodFormatter().print(new Period(duration * 1000)));
-
-            stateText = getString(R.string.appwidget_text_state_opened);
-            btnImageId = R.drawable.minus;
-        } else {
-            stateText = getString(R.string.appwidget_text_state_closed);
-            currentText = getString(R.string.appwidget_text_current_empty);
-            btnImageId = R.drawable.plus;
-        }
-
-        views.setImageViewResource(R.id.appwidget_button, btnImageId);
-        views.setTextViewText(R.id.appwidget_text_state, stateText);
-        views.setTextViewText(R.id.appwidget_text_current, currentText);
-        views.setTextViewText(R.id.appwidget_text_today, todayText);
-    }
-
-    private void updateAlarm() {
-        boolean hasOpened = false; //getSessionHelper().hasOpenedSessions();
-        boolean shouldStop = true;
-        try {
-            if ((mAlarmPendingIntent == null) && hasOpened) {
-                AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-                if (alarmManager == null)
-                    return;
-
-                Intent alarm_intent = new Intent(this, SessionsWidgetService.class);
-                alarm_intent.setAction(ACTION_UPDATE_WIDGET);
-
-                Calendar cal = Calendar.getInstance();
-                cal.set(Calendar.MINUTE, 0);
-                cal.set(Calendar.SECOND, 0);
-                cal.set(Calendar.MILLISECOND, 0);
-
-                mAlarmPendingIntent = PendingIntent.getService(this, 0, alarm_intent, 0);
-                alarmManager.setRepeating(AlarmManager.RTC, cal.getTime().getTime(), 60 * 1000, mAlarmPendingIntent);
-                shouldStop = false;
-            } else if (!hasOpened && (mAlarmPendingIntent != null)) {
-                mAlarmPendingIntent.cancel();
-                mAlarmPendingIntent = null;
-            }
-        } finally {
-          if (shouldStop)
-              stopSelf();
-        }
-    }
-
-    private PeriodFormatter getPeriodFormatter() {
-        if (mPeriodFormatter == null)
-            mPeriodFormatter = new PeriodFormatterBuilder().
-                    printZeroAlways().
-                    minimumPrintedDigits(2).
-                    appendHours().
-                    appendSeparator(":").
-                    printZeroAlways().
-                    minimumPrintedDigits(2).
-                    appendMinutes().
-                    toFormatter();
-
-        return mPeriodFormatter;
+        SessionsWidgetJobService.scheduleUpdate(this, hasOpened);
     }
 }

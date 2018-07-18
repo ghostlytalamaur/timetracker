@@ -16,6 +16,7 @@ import mvasoft.timetracker.ui.editsession.EditSessionActivity;
 import mvasoft.timetracker.ui.editsession.EditSessionFragment;
 import mvasoft.timetracker.ui.extlist.ExSessionListFragment;
 import mvasoft.timetracker.ui.extlist.TabbedActivity;
+import mvasoft.timetracker.ui.widget.SessionsWidgetService;
 
 @SuppressWarnings("unused")
 @Module(includes = {ViewModelModule.class})
@@ -48,7 +49,6 @@ abstract class AppModule {
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
     abstract BackupActivity BackupActivityInjector();
-
 
     @Binds
     @Singleton

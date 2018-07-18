@@ -8,31 +8,23 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Transaction;
 import android.arch.persistence.room.Update;
 import android.support.v4.util.LongSparseArray;
-import android.util.Log;
 import android.util.Pair;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
 import mvasoft.timetracker.vo.SessionWithDescription;
+import timber.log.Timber;
 
 
 @Dao
 public abstract class SessionsDao {
-
-    private static final String LOGT = "mvasoft.log.dao";
 
     // perform any date/time comparison using 'localtime' modifier.
     // unixTime always is number of second in GTM0 timezone.
@@ -41,13 +33,11 @@ public abstract class SessionsDao {
     @Query("SELECT * FROM sessions ORDER BY startTime DESC")
     public abstract LiveData<List<Session>> getAll();
 
-//    @TypeConverters({RoomTypeConverters.class})
-//    @Transaction
-//    @Query("SELECT * FROM (SELECT min(_id) as groupId, datetime(min(StartTime), 'unixepoch', 'localtime') as groupStartTime, datetime(max(EndTime), 'unixepoch', 'localtime') as groupEndTime, group_concat(_id, ' ') as sessionIds FROM sessions GROUP BY date(StartTime, 'unixepoch', 'localtime', 'start of year'));")
-//    public abstract LiveData<List<SessionGroupEntity>> getYearGroups();
-
     @Query("SELECT _id FROM sessions WHERE EndTime = 0 or EndTime IS NULL")
     public abstract LiveData<Long> getOpenedSessionId();
+
+    @Query("SELECT _id FROM sessions WHERE EndTime = 0 or EndTime IS NULL")
+    public abstract Flowable<List<Long>> getOpenedSessionsIds();
 
     @Query("DELETE FROM sessions WHERE _id in (:groupIds)")
     public abstract int deleteByIds(List<Long> groupIds);
@@ -159,7 +149,7 @@ public abstract class SessionsDao {
                 }
 
                 if (pair.first != null)
-                    Log.e(LOGT, String.format("DayDescription already set for day %d", day));
+                    Timber.e("DayDescription already set for day %d", day);
                 pair.first = dd;
             }
 

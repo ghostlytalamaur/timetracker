@@ -23,6 +23,7 @@ public interface DataRepository {
     void deleteSessions(List<Long> ids);
 
     LiveData<Long> getOpenedSessionId();
+    Flowable<List<Long>> getOpenedSessionsIds();
 
     /**
      * Close opened session if it exists. <p>

@@ -26,6 +26,7 @@ import mvasoft.timetracker.db.SessionsDao;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
+import timber.log.Timber;
 
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {
@@ -65,18 +66,31 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
+    public Flowable<List<Long>> getOpenedSessionsIds() {
+        return mGroupsModel.getOpenedSessionsIds();
+    }
+
+    @Override
     public void toggleSession() {
         mExecutors.getDiskIO().execute(() -> {
+            Timber.d("Try close opened session.");
             int updatedRows = mGroupsModel.closeOpenedSessions();
             ToggleSessionResult res;
-            if (updatedRows != 0)
+            if (updatedRows != 0) {
                 res = ToggleSessionResult.tgs_Stopped;
+                Timber.d("%d sessions stopped.", updatedRows);
+            }
             else {
+                Timber.d("No opened session. Start new session.");
                 Session session = new Session(0, System.currentTimeMillis() / 1000L, 0);
-                if (mGroupsModel.appendSession(session) > 0)
+                if (mGroupsModel.appendSession(session) > 0) {
                     res = ToggleSessionResult.tgs_Started;
-                else
+                    Timber.d("New session started.");
+                }
+                else {
                     res = ToggleSessionResult.tgs_Error;
+                    Timber.d("Cannot start new session.");
+                }
             }
 
             EventBus.getDefault().post(new SessionToggledEvent(res));

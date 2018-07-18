@@ -10,6 +10,10 @@ public class DateTimeHelper {
 
     private DateTimeHelper() {}
 
+    public static int compareDays(long first, long second) {
+        return Long.compare(DateTimeHelper.startOfDay(first),
+                DateTimeHelper.startOfDay(second));
+    }
 
     public static boolean sameDays(long first, long second) {
         return Days.daysBetween(new DateTime(first * 1000),
@@ -102,6 +106,11 @@ public class DateTimeHelper {
     public static long getUnixTime(int year, int month, int dayOfMonth) {
         DateTime dt = new DateTime(year, month, dayOfMonth, 0, 0, 0);
         return dt.getMillis() / 1000;
+    }
+
+    public static long plusDay(long unixSec, int days) {
+        DateTime dt = new DateTime(unixSec * 1000);
+        return dt.plusDays(days).getMillis() / 1000;
     }
 
     public static long roundDateTime(long unixSec, long roundToMin) {

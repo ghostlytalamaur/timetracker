@@ -1,7 +1,5 @@
 package mvasoft.timetracker.ui.editdate;
 
-import android.util.Log;
-
 import java.util.Objects;
 
 import javax.inject.Inject;
@@ -14,10 +12,9 @@ import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayDescription;
+import timber.log.Timber;
 
 public class EditDateModel {
-
-    private static final String LOGT = "mvasoft.log";
 
     private final AppPreferences mPreferences;
     private final DataRepository mRepository;
@@ -53,7 +50,7 @@ public class EditDateModel {
                 .skip(1)
                 .distinctUntilChanged()
                 .switchMap(mRepository::getDayDescriptionRx)
-                .doOnNext(dd -> Log.d(LOGT, "New data received"))
+                .doOnNext(dd -> Timber.d("New data received"))
                 .distinctUntilChanged()
                 .doOnNext(dd -> mIsChanged.onNext(false))
                 .replay(1);
@@ -73,22 +70,22 @@ public class EditDateModel {
     }
 
     public Flowable<Long> getId() {
-        Log.d(LOGT, "query observable: getId()");
+        Timber.d("query observable: getId()");
         return mIdSubject;
     }
 
     public Flowable<Boolean> getIsChangedObservable() {
-        Log.d(LOGT, "query observable: getIsChangedObservable()");
+        Timber.d("query observable: getIsChangedObservable()");
         return mIsChanged;
     }
 
     public Flowable<Long> getTargetMin() {
-        Log.d(LOGT, "query observable: getTargetMin()");
+        Timber.d("query observable: getTargetMin()");
         return mTargetMin;
     }
 
     public Flowable<Boolean> getIsWorkingDay() {
-        Log.d(LOGT, "query observable: getIsWorkingDay()");
+        Timber.d("query observable: getIsWorkingDay()");
         return mIsWorkingDay;
     }
 
@@ -117,7 +114,7 @@ public class EditDateModel {
     }
 
     public void setDate(long date) {
-        Log.d(LOGT,"setDate()");
+        Timber.d("setDate()");
         mDateSubject.onNext(date);
     }
 
@@ -131,14 +128,14 @@ public class EditDateModel {
         if (!mIsChanged.getValue())
             return;
 
-        Log.d(LOGT,"save()");
+        Timber.d("save()");
         mRepository.updateDayDescription(buildDayDescription());
     }
 
     public void clear() {
         if (mDisposable != null) {
             mDisposable.dispose();
-            Log.d(LOGT, "EditDateModel.clear()");
+            Timber.d("EditDateModel.clear()");
         }
         mDisposable = null;
     }

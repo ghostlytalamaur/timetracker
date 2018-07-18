@@ -13,9 +13,10 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.view.PagerAdapter;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
+import timber.log.Timber;
 
 /**
  * Implementation of {@link PagerAdapter} that
@@ -39,7 +40,6 @@ import android.view.ViewGroup;
  *
  */
 public abstract class FragmentStatePagerAdapterEx extends PagerAdapter {
-    private static final String TAG = "FragmentPagerAdapter";
 
     @NonNull
     private final FragmentManager mFragmentManager;
@@ -204,7 +204,7 @@ public abstract class FragmentStatePagerAdapterEx extends PagerAdapter {
                         f.setMenuVisibility(false);
                         mFragments.put(Long.parseLong(key.substring(1)), f);
                     } else {
-                        Log.w(TAG, "Bad fragment at key " + key);
+                        Timber.w("Bad fragment at key %s", key);
                     }
                 }
             }

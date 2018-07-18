@@ -23,10 +23,10 @@
     <string name="msg_session_saved">Session saved.</string>
     <string name="msg_session_unable_save">Unable to save session.</string>
 
-    <string name="appwidget_text_current_empty">Current:</string>
+    <string name="appwidget_text_week_empty">Week:</string>
     <string name="appwidget_text_today_empty">Today:</string>
     <string name="appwidget_text_today">Today: %s</string>
-    <string name="appwidget_text_current">Current: %s</string>
+    <string name="appwidget_text_week">Week: %s</string>
     <string name="appwidget_text_state_opened">Opened</string>
     <string name="appwidget_text_state_closed">Closed</string>
     <string name="msg_selected_session_will_removed">Selected sessions will be removed.</string>

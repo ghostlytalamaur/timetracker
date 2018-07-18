@@ -4,11 +4,21 @@ import javax.inject.Singleton;
 
 import dagger.Binds;
 import dagger.Module;
+import dagger.android.ContributesAndroidInjector;
+import mvasoft.timetracker.data.RepositoryModule;
 
+@SuppressWarnings("unused")
 @Module
 public abstract class WidgetModule {
 
     @Binds
     @Singleton
-    abstract IWidgetHelper bindWidgetHelper(WidgetHelper impl);
+    abstract WidgetHelper bindWidgetHelper(WidgetHelperImpl impl);
+
+    @ContributesAndroidInjector(modules = {RepositoryModule.class})
+    abstract SessionsWidgetService sessionsWidgetServiceInjector();
+
+    @ContributesAndroidInjector
+    abstract SessionsWidget sessionsWidgetInjector();
+
 }

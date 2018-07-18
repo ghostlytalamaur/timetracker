@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import dagger.android.DaggerService;
+import timber.log.Timber;
 
 
 // Same as IntentService, but no automatically stop behavior. Should be stopped by stopSelf() call
@@ -35,6 +36,7 @@ public abstract class ExtService extends DaggerService {
 
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        Timber.d("onStartCommand");
         Message msg = mServiceHandler.obtainMessage();
         msg.arg1 = startId;
         msg.obj = intent;

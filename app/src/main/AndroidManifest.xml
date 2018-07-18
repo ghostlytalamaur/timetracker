@@ -11,7 +11,6 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity
             android:name=".ui.extlist.TabbedActivity"
             android:label="@string/app_name"
@@ -22,11 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.editsession.EditSessionActivity"
             android:parentActivityName=".ui.extlist.TabbedActivity"
             android:theme="@style/AppTheme.NoActionBar">
+
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -35,15 +34,16 @@
         <activity
             android:name=".ui.preferences.PreferencesActivity"
             android:parentActivityName=".ui.extlist.TabbedActivity">
+
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.extlist.TabbedActivity" />
         </activity>
-
         <activity
             android:name=".ui.editdate.EditDateActivity"
             android:parentActivityName=".ui.extlist.TabbedActivity">
+
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -51,18 +51,38 @@
         </activity>
         <activity android:name=".ui.backup.BackupActivity" />
 
-        <receiver android:name=".ui.widget.SessionsWidget">
+        <receiver
+            android:name=".ui.widget.SessionsWidget"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_provider_info" />
         </receiver>
+
         <service
             android:name=".ui.widget.SessionsWidgetService"
+            android:enabled="true"
             android:exported="false"
-            />
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".ui.widget.SessionsWidgetJobService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <receiver
+            android:name=".ui.widget.JobReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="mvasoft.timetracker.action.widget.update" />
+                <action android:name="mvasoft.timetracker.action.widget.toggle_session" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
