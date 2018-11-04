@@ -25,6 +25,7 @@ import mvasoft.dialogs.DatePickerFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.timetracker.BR;
+import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.data.event.SessionToggledEvent;
 import mvasoft.timetracker.data.event.SessionsDeletedEvent;
@@ -133,6 +134,8 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        if (!BuildConfig.DEBUG)
+            menu.removeItem(R.id.action_fill_fake_session);
         return super.onCreateOptionsMenu(menu);
     }
 
