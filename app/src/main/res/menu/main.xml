@@ -22,4 +22,8 @@
         android:id="@+id/action_import_export"
         android:title="Import/Export database"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_fill_fake_session"
+        android:title="Fill with fake sessions"
+        app:showAsAction="never" />
 </menu>

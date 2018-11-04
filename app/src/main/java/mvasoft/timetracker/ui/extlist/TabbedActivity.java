@@ -160,6 +160,9 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             case R.id.action_select_date:
                 selectDate();
                 break;
+            case R.id.action_fill_fake_session:
+                getViewModel().fillFakeSessions();
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }

@@ -59,7 +59,7 @@ public class EditSessionActivity extends BindingSupportActivity<ActivityEditSess
         mAdapter = new SessionsPagerAdapter(getSupportFragmentManager());
 
         getBinding().viewPager.setAdapter(mAdapter);
-        getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
+//        getBinding().tabLayout.setupWithViewPager(getBinding().viewPager);
         getViewModel().getSessionsIds().observe(this, this::onIdListChanged);
     }
 
