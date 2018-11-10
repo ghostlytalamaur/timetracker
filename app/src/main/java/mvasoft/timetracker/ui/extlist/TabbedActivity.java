@@ -156,7 +156,6 @@ public class TabbedActivity extends BindingSupportActivity<ActivityTabbedBinding
             }
             case R.id.action_import_export: {
                 Intent intent = new Intent(this, BackupActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 break;
             }

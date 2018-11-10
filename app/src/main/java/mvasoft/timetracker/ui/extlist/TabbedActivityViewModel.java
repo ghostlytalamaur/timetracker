@@ -2,6 +2,7 @@ package mvasoft.timetracker.ui.extlist;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.LiveDataReactiveStreams;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Transformations;
 import android.os.Bundle;
@@ -50,7 +51,8 @@ public class TabbedActivityViewModel extends BaseViewModel {
 
     public LiveData<Long> getOpenedSessionsId() {
         if (mOpenedSessionId == null)
-            mOpenedSessionId = mRepository.get().getOpenedSessionId();
+            mOpenedSessionId = LiveDataReactiveStreams.fromPublisher(
+                    mRepository.get().getOpenedSessionIdRx());
 
         return mOpenedSessionId;
     }

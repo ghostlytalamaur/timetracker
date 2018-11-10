@@ -49,7 +49,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.extlist.TabbedActivity" />
         </activity>
-        <activity android:name=".ui.backup.BackupActivity" />
+        <activity android:name=".ui.backup.BackupActivity"
+            android:parentActivityName=".ui.extlist.TabbedActivity" >
+            <!--android:theme="@style/AppTheme.NoActionBar" -->
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.extlist.TabbedActivity" />
+        </activity>
 
         <receiver
             android:name=".ui.widget.SessionsWidget"

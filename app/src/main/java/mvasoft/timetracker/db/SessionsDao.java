@@ -14,12 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Flowable;
-import io.reactivex.Single;
 import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
-import mvasoft.timetracker.vo.SessionWithDescription;
 import timber.log.Timber;
 
 
@@ -30,11 +28,8 @@ public abstract class SessionsDao {
     // unixTime always is number of second in GTM0 timezone.
     // should adjust this unitTime to local time
 
-    @Query("SELECT * FROM sessions ORDER BY startTime DESC")
-    public abstract LiveData<List<Session>> getAll();
-
     @Query("SELECT _id FROM sessions WHERE EndTime = 0 or EndTime IS NULL")
-    public abstract LiveData<Long> getOpenedSessionId();
+    public abstract Flowable<Long> getOpenedSessionIdRx();
 
     @Query("SELECT _id FROM sessions WHERE EndTime = 0 or EndTime IS NULL")
     public abstract Flowable<List<Long>> getOpenedSessionsIds();
@@ -56,21 +51,11 @@ public abstract class SessionsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract long appendSession(Session entity);
 
-//    LEFT JOIN days on date(startTime, 'unixepoch', 'localtime') = date(days.dayDate, 'unixepoch', 'localtime')
-    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch', 'localtime') = date(:date, 'unixepoch', 'localtime')")
-    public abstract LiveData<List<Session>> getSessionForDate(long date);
     @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch', 'localtime') = date(:date, 'unixepoch', 'localtime')")
     public abstract List<Session> getSessionForDateRaw(long date);
 
     @Query("SELECT _id from sessions ORDER BY startTime DESC")
-    public abstract LiveData<List<Long>> getSessionsIds();
-
-    @Query("SELECT * from sessions LEFT JOIN days on date(startTime, 'unixepoch', 'localtime') = date(days.dayDate, 'unixepoch', 'localtime') WHERE startTime BETWEEN :dateStart AND :dateEnd")
-    public abstract LiveData<List<SessionWithDescription>> getSessionWithDescription(long dateStart, long dateEnd);
-
-
-    @Query("SELECT dayId from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
-    public abstract boolean hasDayDescription(long date);
+    public abstract Flowable<List<Long>> getSessionsIdsRx();
 
     @Insert
     public abstract long appendDayDescription(DayDescription dayDescription);
@@ -81,10 +66,6 @@ public abstract class SessionsDao {
 
     @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract Flowable<DayDescription> getDayDescriptionRx(long date);
-    @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
-    public abstract LiveData<DayDescription> getDayDescription(long date);
-
-
 
     @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract DayDescription getDayDescriptionRaw(long date);
@@ -169,9 +150,6 @@ public abstract class SessionsDao {
     @Insert
     public abstract void appendAll(ArrayList<Session> list);
 
-    /*
-        working with DayGroup
-     */
 
     private static class MutablePair<F, S> {
         F first;

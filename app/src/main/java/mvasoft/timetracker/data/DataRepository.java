@@ -12,9 +12,6 @@ import mvasoft.timetracker.vo.Session;
 
 public interface DataRepository {
 
-    LiveData<List<Session>> getSessions();
-
-
     /**
      * Delete session with id in ids list.
      * Post number of deleted rows as event {@link mvasoft.timetracker.data.event.SessionsDeletedEvent}
@@ -22,7 +19,7 @@ public interface DataRepository {
      */
     void deleteSessions(List<Long> ids);
 
-    LiveData<Long> getOpenedSessionId();
+    Flowable<Long> getOpenedSessionIdRx();
     Flowable<List<Long>> getOpenedSessionsIds();
 
     /**
@@ -39,7 +36,7 @@ public interface DataRepository {
      */
     void updateSession(Session session);
     LiveData<Session> getSessionById(long id);
-    LiveData<List<Long>> getSessionsIds();
+    Flowable<List<Long>> getSessionsIdsRx();
 
 
     /**
@@ -47,8 +44,6 @@ public interface DataRepository {
      * @param dayDescription description for day
      */
     void updateDayDescription(DayDescription dayDescription);
-
-    LiveData<List<DayGroup>> getDayGroups(List<Long> days);
 
     Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days);
     Flowable<DayDescription> getDayDescriptionRx(Long date);

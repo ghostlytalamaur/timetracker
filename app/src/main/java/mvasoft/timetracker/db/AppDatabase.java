@@ -16,7 +16,6 @@ public abstract class AppDatabase extends RoomDatabase {
     public static AppDatabase getDatabase(final Context context) {
         return Room.databaseBuilder(context.getApplicationContext(),
                 AppDatabase.class, "timetracker.db")
-                .allowMainThreadQueries()
                 .build();
     }
 

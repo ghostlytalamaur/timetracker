@@ -1,20 +1,22 @@
 package mvasoft.timetracker.data.room;
 
-import android.app.Application;
 import android.arch.lifecycle.LiveData;
-import android.arch.persistence.room.InvalidationTracker;
+import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
 
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
+import io.reactivex.disposables.Disposables;
+import io.reactivex.functions.Action;
 import mvasoft.timetracker.core.AppExecutors;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.data.event.DayDescriptionSavedEvent;
@@ -22,7 +24,7 @@ import mvasoft.timetracker.data.event.SessionSavedEvent;
 import mvasoft.timetracker.data.event.SessionToggledEvent;
 import mvasoft.timetracker.data.event.SessionsDeletedEvent;
 import mvasoft.timetracker.db.AppDatabase;
-import mvasoft.timetracker.db.SessionsDao;
+import mvasoft.timetracker.db.DatabaseProvider;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
@@ -31,50 +33,41 @@ import timber.log.Timber;
 @Singleton
 public class RoomDataRepositoryImpl implements DataRepository {
 
+    private static final Object NOTHING = new Object();
+
     private final AppExecutors mExecutors;
-    private SessionsDao mGroupsModel;
-    private AppDatabase mDatabase;
+    private DatabaseProvider mDatabaseProvider;
 
     @Inject
-    RoomDataRepositoryImpl(Application application, AppExecutors executors) {
+    RoomDataRepositoryImpl(AppExecutors executors, DatabaseProvider dbProvider) {
         mExecutors = executors;
-        reinitDatabase(application);
-    }
-
-    public void reinitDatabase(Application application) {
-        if (mDatabase != null)
-            mDatabase.close();
-
-        mDatabase = AppDatabase.getDatabase(application);
-        mGroupsModel = mDatabase.groupsModel();
-    }
-
-    @Override
-    public LiveData<List<Session>> getSessions() {
-        return mGroupsModel.getAll();
+        mDatabaseProvider = dbProvider;
     }
 
     @Override
     public void deleteSessions(List<Long> ids) {
         mExecutors.getDiskIO().execute(() -> EventBus.getDefault().post(
-                new SessionsDeletedEvent(mDatabase.groupsModel().deleteByIds(ids))));
+                new SessionsDeletedEvent(getDb().groupsModel().deleteByIds(ids))));
     }
 
     @Override
-    public LiveData<Long> getOpenedSessionId() {
-        return mGroupsModel.getOpenedSessionId();
+    public Flowable<Long> getOpenedSessionIdRx() {
+        return createFlowable(() -> getDb().groupsModel().getOpenedSessionIdRx());
     }
 
     @Override
     public Flowable<List<Long>> getOpenedSessionsIds() {
-        return mGroupsModel.getOpenedSessionsIds();
+
+        return createFlowable(() ->
+            getDb().groupsModel().getOpenedSessionsIds()
+        );
     }
 
     @Override
     public void toggleSession() {
         mExecutors.getDiskIO().execute(() -> {
             Timber.d("Try close opened session.");
-            int updatedRows = mGroupsModel.closeOpenedSessions();
+            int updatedRows = getDb().groupsModel().closeOpenedSessions();
             ToggleSessionResult res;
             if (updatedRows != 0) {
                 res = ToggleSessionResult.tgs_Stopped;
@@ -83,7 +76,7 @@ public class RoomDataRepositoryImpl implements DataRepository {
             else {
                 Timber.d("No opened session. Start new session.");
                 Session session = new Session(0, System.currentTimeMillis() / 1000L, 0);
-                if (mGroupsModel.appendSession(session) > 0) {
+                if (getDb().groupsModel().appendSession(session) > 0) {
                     res = ToggleSessionResult.tgs_Started;
                     Timber.d("New session started.");
                 }
@@ -101,64 +94,120 @@ public class RoomDataRepositoryImpl implements DataRepository {
     @Override
     public void updateSession(Session session) {
         mExecutors.getDiskIO().execute(() -> EventBus.getDefault().post(
-                new SessionSavedEvent(mGroupsModel.updateSession(session) > 0)));
+                new SessionSavedEvent(getDb().groupsModel().updateSession(session) > 0)));
     }
 
     public LiveData<Session> getSessionById(long id) {
-        return mGroupsModel.getSessionById(id);
+        return createLiveData(() -> getDb().groupsModel().getSessionById(id));
     }
 
     @Override
-    public LiveData<List<Long>> getSessionsIds() {
-        return mGroupsModel.getSessionsIds();
+    public Flowable<List<Long>> getSessionsIdsRx() {
+        return createFlowable(() -> getDb().groupsModel().getSessionsIdsRx());
     }
 
     @Override
     public Flowable<DayDescription> getDayDescriptionRx(Long date) {
-        return mGroupsModel.getDayDescriptionRx(date);
+        return createFlowable(() -> getDb().groupsModel().getDayDescriptionRx(date));
     }
 
     @Override
     public void updateDayDescription(DayDescription dayDescription) {
         mExecutors.getDiskIO().execute(() -> {
-            boolean wasSaved = mGroupsModel.updateDayDescription(dayDescription) != 0;
+            boolean wasSaved = getDb().groupsModel().updateDayDescription(dayDescription) != 0;
             if (!wasSaved)
-                wasSaved = mGroupsModel.appendDayDescription(dayDescription) > 0;
+                wasSaved = getDb().groupsModel().appendDayDescription(dayDescription) > 0;
             EventBus.getDefault().post(new DayDescriptionSavedEvent(wasSaved));
         });
     }
 
-    public LiveData<List<DayGroup>> getDayGroups(List<Long> days) {
-        return new ComputableData<List<DayGroup>>(mExecutors.getMainThread(), mExecutors.getDiskIO()) {
-            private InvalidationTracker.Observer mObserver;
-
-            @Override
-            protected List<DayGroup> compute() {
-                if (mObserver == null) {
-                    mObserver = new InvalidationTracker.Observer("sessions", "days") {
-                        @Override
-                        public void onInvalidated(@NonNull Set<String> tables) {
-                            invalidate();
-                        }
-                    };
-                }
-                mDatabase.getInvalidationTracker().addObserver(mObserver);
-                return mDatabase.groupsModel().getDayGroups(days);
-            }
-        };
-    }
-
     @Override
     public Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days) {
-        return mGroupsModel.getDayGroupsRx(days);
+        return createFlowable(() -> getDb().groupsModel().getDayGroupsRx(days));
     }
 
     @Override
     public void appendAll(ArrayList<Session> list) {
-        mExecutors.getDiskIO().execute(() -> mGroupsModel.appendAll(list));
+        mExecutors.getDiskIO().execute(() -> getDb().groupsModel().appendAll(list));
     }
 
-    public AppDatabase getDatabase() {
-        return mDatabase;
+    private Flowable<Object> createFlowable() {
+        return Flowable.create(emitter -> {
+            final DatabaseProvider.Observer observer = new DatabaseProvider.Observer() {
+                @Override
+                public void onDatabaseChanged() {
+                    Timber.d("Database changed with Flowable.");
+                    if (!emitter.isCancelled())
+                        emitter.onNext(NOTHING);
+                }
+            };
+
+            if (!emitter.isCancelled()) {
+                mDatabaseProvider.addObserver(observer);
+                emitter.setDisposable(Disposables.fromAction(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        mDatabaseProvider.removeObserver(observer);
+                    }
+                }));
+            }
+
+            // emit once to avoid missing any data and also easy chaining
+            if (!emitter.isCancelled()) {
+                emitter.onNext(NOTHING);
+            }
+        }, BackpressureStrategy.LATEST);
+    }
+
+    private <T> Flowable<T> createFlowable(@NonNull Callable<Flowable<T>> callable) {
+        return createFlowable()
+                .flatMap(object -> callable.call());
+    }
+
+    private <T> LiveData<T> createLiveData(@NonNull Callable<LiveData<T>> callable) {
+        return Transformations.switchMap(new DbObserverLiveData(mDatabaseProvider),
+                (input) -> {
+                    try {
+                        return callable.call();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return  null;
+                    }
+                });
+    }
+
+    private AppDatabase getDb() {
+        return mDatabaseProvider.getDatabase();
+    }
+
+
+    static class DbObserverLiveData extends LiveData<Object> {
+
+        DatabaseProvider mProvider;
+        private DatabaseProvider.Observer mObserver;
+
+        DbObserverLiveData(DatabaseProvider provider) {
+            mProvider = provider;
+            mObserver = new DatabaseProvider.Observer() {
+                @Override
+                public void onDatabaseChanged() {
+                    Timber.d("Database changed with LiveData.");
+                    setValue(NOTHING);
+                }
+            };
+        }
+
+        @Override
+        protected void onActive() {
+            super.onActive();
+            mProvider.addObserver(mObserver);
+            setValue(NOTHING);
+        }
+
+        @Override
+        protected void onInactive() {
+            mProvider.removeObserver(mObserver);
+            super.onInactive();
+        }
     }
 }

@@ -2,6 +2,7 @@ package mvasoft.timetracker.ui.editsession;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.LiveDataReactiveStreams;
 import android.support.annotation.NonNull;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class EditSessionActivityViewModel extends BaseViewModel {
 
     public LiveData<List<Long>> getSessionsIds() {
         if (mSessionsIds == null)
-            mSessionsIds = mRepository.getSessionsIds();
+            mSessionsIds = LiveDataReactiveStreams.fromPublisher(mRepository.getSessionsIdsRx());
         return mSessionsIds;
     }
 }
