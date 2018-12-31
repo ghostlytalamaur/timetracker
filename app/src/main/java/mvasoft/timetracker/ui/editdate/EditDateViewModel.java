@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 
 import javax.inject.Inject;
 
+import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 
@@ -18,6 +19,7 @@ public class EditDateViewModel extends BaseViewModel {
     private final LiveData<Boolean> mIsWorkingDayData;
     private final LiveData<String> mIdData;
     private final LiveData<Boolean> mIsChangedData;
+    private final LiveData<String> mDateData;
 
     @Inject
     EditDateViewModel(@NonNull Application application, EditDateModel model) {
@@ -25,6 +27,12 @@ public class EditDateViewModel extends BaseViewModel {
 
         mModel = model;
         mFormatter = new DateTimeFormatters();
+
+        mDateData = LiveDataReactiveStreams.fromPublisher(
+                mModel.getDate()
+                        .map(mFormatter::formatDate)
+        );
+
         mTargetTimeData = LiveDataReactiveStreams.fromPublisher(
                 mModel.getTargetMin()
                         .map(minutes -> mFormatter.formatDuration(minutes * 60))
@@ -42,6 +50,10 @@ public class EditDateViewModel extends BaseViewModel {
         mIsChangedData = LiveDataReactiveStreams.fromPublisher(
                 mModel.getIsChangedObservable()
         );
+    }
+
+    public LiveData<String> getDate() {
+        return mDateData;
     }
 
     public LiveData<String> getTargetTimeData() {

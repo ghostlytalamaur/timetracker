@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
+<layout xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -23,16 +23,16 @@
         <!--android:text="@={conv.toString(view_model.targetTime, view_model.targetTime)}"-->
         <EditText
             android:id="@+id/edtTarget"
+            style="@style/NotEditableEditTextStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
             android:ems="10"
-            style="@style/NotEditableEditTextStyle"
             android:inputType="none|numberDecimal"
             android:text="@{view_model.targetTimeData}"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvId" />
+            app:layout_constraintTop_toBottomOf="@+id/tvDate" />
 
         <Switch
             android:id="@+id/swWorkDay"
@@ -53,13 +53,14 @@
             android:id="@+id/tvId"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
             android:text="@{`Id = ` + view_model.dayId}"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="id = 1" />
 
         <TextView
             android:id="@+id/lblTarget"
@@ -69,6 +70,20 @@
             android:text="Target Time"
             app:layout_constraintBaseline_toBaselineOf="@+id/edtTarget"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tvDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:text="@{view_model.date}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvId"
+            tools:text="31 december 2018" />
 
     </android.support.constraint.ConstraintLayout>
 </layout>

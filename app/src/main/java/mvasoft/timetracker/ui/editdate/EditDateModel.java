@@ -34,7 +34,7 @@ public class EditDateModel {
         mRepository = repository;
         mPreferences = preferences;
 
-        long today = System.currentTimeMillis() / 1000;
+        final long today = System.currentTimeMillis() / 1000;
         mDateSubject = BehaviorProcessor.createDefault(today);
         mIdSubject = BehaviorProcessor.createDefault(0L);
         mIsWorkingDay = BehaviorProcessor.createDefault(
@@ -47,10 +47,8 @@ public class EditDateModel {
                 new DayDescription(0, 0, 0, false));
 
         ConnectableFlowable<DayDescription> dayConnectable = mDateSubject
-                .skip(1)
                 .distinctUntilChanged()
-                .switchMap(mRepository::getDayDescriptionRx)
-                .doOnNext(dd -> Timber.d("New data received"))
+                .flatMap(this::queryOrDefault)
                 .distinctUntilChanged()
                 .doOnNext(dd -> mIsChanged.onNext(false))
                 .replay(1);
@@ -69,17 +67,31 @@ public class EditDateModel {
         mDisposable = dayConnectable.connect();
     }
 
+    private Flowable<DayDescription> queryOrDefault(Long date) {
+        DayDescription dd = new DayDescription(0, date,
+                mPreferences.getTargetTimeInMin(),
+                mPreferences.isWorkingDay(DateTimeHelper.dayOfWeek(date)));
+        return Flowable.just(dd)
+                .mergeWith(
+                        mRepository.getDayDescriptionRx(date)
+                                .doOnNext(descr -> Timber.d("Data received")));
+    }
+
     public Flowable<Long> getId() {
         Timber.d("query observable: getId()");
         return mIdSubject;
     }
 
-    public Flowable<Boolean> getIsChangedObservable() {
+    public Flowable<Long> getDate() {
+        return mDateSubject;
+    }
+
+    Flowable<Boolean> getIsChangedObservable() {
         Timber.d("query observable: getIsChangedObservable()");
         return mIsChanged;
     }
 
-    public Flowable<Long> getTargetMin() {
+    Flowable<Long> getTargetMin() {
         Timber.d("query observable: getTargetMin()");
         return mTargetMin;
     }
@@ -89,7 +101,7 @@ public class EditDateModel {
         return mIsWorkingDay;
     }
 
-    public long getCurTargetMin() {
+    long getCurTargetMin() {
         return mTargetMin.getValue();
     }
 
@@ -101,7 +113,7 @@ public class EditDateModel {
         updateIsChanged();
     }
 
-    public void setTargetMinutes(long minutes) {
+    void setTargetMinutes(long minutes) {
         if (mTargetMin.getValue() == minutes)
             return;
 
@@ -124,7 +136,7 @@ public class EditDateModel {
                 mDateSubject.getValue(), mTargetMin.getValue(), mIsWorkingDay.getValue());
     }
 
-    public void save() {
+    void save() {
         if (!mIsChanged.getValue())
             return;
 
@@ -132,7 +144,7 @@ public class EditDateModel {
         mRepository.updateDayDescription(buildDayDescription());
     }
 
-    public void clear() {
+    void clear() {
         if (mDisposable != null) {
             mDisposable.dispose();
             Timber.d("EditDateModel.clear()");
