@@ -2,54 +2,59 @@ package mvasoft.timetracker.ui.editdate;
 
 import android.app.Application;
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.LiveDataReactiveStreams;
+import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
 import android.support.annotation.NonNull;
 
 import javax.inject.Inject;
 
+import io.reactivex.Flowable;
+import io.reactivex.disposables.Disposable;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
+import mvasoft.timetracker.utils.DateTimeHelper;
+import mvasoft.timetracker.vo.DayDescription;
+import timber.log.Timber;
 
 public class EditDateViewModel extends BaseViewModel {
 
+    private final DataRepository mRepository;
+    private final AppPreferences mPreferences;
     private final DateTimeFormatters mFormatter;
-    private final EditDateModel mModel;
     private final LiveData<String> mTargetTimeData;
     private final LiveData<Boolean> mIsWorkingDayData;
     private final LiveData<String> mIdData;
     private final LiveData<Boolean> mIsChangedData;
     private final LiveData<String> mDateData;
+    private Disposable mDisposable;
+    private DayDescription mOriginalDayDescription;
+    private final MutableLiveData<DayDescription> mDayDescriptionData;
 
     @Inject
-    EditDateViewModel(@NonNull Application application, EditDateModel model) {
+    EditDateViewModel(@NonNull Application application, DataRepository repository, AppPreferences preferences) {
         super(application);
 
-        mModel = model;
+        mRepository = repository;
+        mPreferences = preferences;
+
+        mDayDescriptionData = new MutableLiveData<>();
+        final long today = System.currentTimeMillis() / 1000;
+        mDayDescriptionData.setValue(new DayDescription(0,
+                today, mPreferences.getTargetTimeInMin(),
+                mPreferences.isWorkingDay(DateTimeHelper.dayOfWeek(today))));
+
         mFormatter = new DateTimeFormatters();
 
-        mDateData = LiveDataReactiveStreams.fromPublisher(
-                mModel.getDate()
-                        .map(mFormatter::formatDate)
-        );
-
-        mTargetTimeData = LiveDataReactiveStreams.fromPublisher(
-                mModel.getTargetMin()
-                        .map(minutes -> mFormatter.formatDuration(minutes * 60))
-        );
-
-        mIsWorkingDayData = LiveDataReactiveStreams.fromPublisher(
-                mModel.getIsWorkingDay()
-        );
-
-        mIdData = LiveDataReactiveStreams.fromPublisher(
-                mModel.getId()
-                        .map(String::valueOf)
-        );
-
-        mIsChangedData = LiveDataReactiveStreams.fromPublisher(
-                mModel.getIsChangedObservable()
-        );
+        mIdData = Transformations.map(mDayDescriptionData, dd -> String.valueOf(dd.getId()));
+        mDateData = Transformations.map(mDayDescriptionData, dd ->
+                mFormatter.formatDate(dd.getDate()));
+        mTargetTimeData = Transformations.map(mDayDescriptionData, dd ->
+                mFormatter.formatDuration(dd.getTargetDuration() * 60 ));
+        mIsWorkingDayData = Transformations.map(mDayDescriptionData, DayDescription::isWorkingDay);
+        mIsChangedData = Transformations.map(mDayDescriptionData, dd ->
+                !dd.equals(mOriginalDayDescription));
     }
 
     public LiveData<String> getDate() {
@@ -68,25 +73,62 @@ public class EditDateViewModel extends BaseViewModel {
         return mIdData;
     }
 
+    DayDescription getDayDescription() {
+        assert mDayDescriptionData.getValue() != null;
+        return mDayDescriptionData.getValue();
+    }
+
+    void setTargetTime(long timeInMin) {
+        DayDescription dd = mDayDescriptionData.getValue();
+        assert dd != null;
+        mDayDescriptionData.setValue(
+                new DayDescription(dd.getId(), dd.getDate(), timeInMin, dd.isWorkingDay()));
+    }
+
+
+    void setIsWorkingDay(boolean isWorkingDay) {
+        DayDescription dd = mDayDescriptionData.getValue();
+        assert dd != null;
+        mDayDescriptionData.setValue(
+                new DayDescription(dd.getId(), dd.getDate(), dd.getTargetDuration(), isWorkingDay));
+    }
+
     public void setDate(long date) {
-        mModel.setDate(date);
+        if (date == getDayDescription().getDate())
+            return;
+
+        if (mDisposable != null)
+            mDisposable.dispose();
+
+        mDayDescriptionData.setValue(
+                new DayDescription(0, date,
+                        mPreferences.getTargetTimeInMin(),
+                        mPreferences.isWorkingDay(DateTimeHelper.dayOfWeek(date))));
+        Flowable<DayDescription> dd = mRepository.getDayDescriptionRx(date);
+        mDisposable = dd.subscribe(this::setOriginalDayDescription);
     }
 
-    public void save() {
-        mModel.save();
+    private void setOriginalDayDescription(DayDescription dayDescription) {
+        Timber.d("New data received.");
+        mOriginalDayDescription = dayDescription;
+        mDayDescriptionData.postValue(dayDescription);
     }
 
-    public EditDateModel getModel() {
-        return mModel;
+    void save() {
+        mRepository.updateDayDescription(mDayDescriptionData.getValue());
     }
 
-    public LiveData<Boolean> getIsChanged() {
+    LiveData<Boolean> getIsChanged() {
         return mIsChangedData;
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        mModel.clear();
+
+        if (mDisposable != null) {
+            mDisposable.dispose();
+            mDisposable = null;
+        }
     }
 }

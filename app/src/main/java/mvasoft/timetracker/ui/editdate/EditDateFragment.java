@@ -48,7 +48,7 @@ public class EditDateFragment extends
         EditTextUtils.makeEditNotEditable(getBinding().edtTarget);
         getBinding().edtTarget.setOnClickListener(v1 -> selectTargetTime());
         getBinding().swWorkDay.setOnCheckedChangeListener((buttonView, isChecked) ->
-                getViewModel().getModel().setIsWorkingDay(isChecked));
+                getViewModel().setIsWorkingDay(isChecked));
 
         getViewModel().getIsChanged().observe(this, isChanged -> {
             if (getActivity() != null)
@@ -102,7 +102,7 @@ public class EditDateFragment extends
         switch (data.requestCode) {
             case DLG_REQUEST_TARGET_TIME: {
                 TimePickerFragment.TimePickerDialogResultData d = (TimePickerFragment.TimePickerDialogResultData) data;
-                getViewModel().getModel().setTargetMinutes(d.hourOfDay * 60 + d.minute);
+                getViewModel().setTargetTime(d.hourOfDay * 60 + d.minute);
                 break;
             }
         }
@@ -113,7 +113,7 @@ public class EditDateFragment extends
     }
 
     private void selectTargetTime() {
-        long unixTime = getViewModel().getModel().getCurTargetMin() * 60;
+        long unixTime = getViewModel().getDayDescription().getTargetDuration() * 60; // getCurTargetMin() * 60;
         new TimePickerFragment.Builder(DLG_REQUEST_TARGET_TIME)
                 .withUnixTime(unixTime)
                 .setForce24Hour(true)
