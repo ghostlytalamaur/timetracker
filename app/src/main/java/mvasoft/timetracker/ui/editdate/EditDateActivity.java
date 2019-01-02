@@ -2,6 +2,8 @@ package mvasoft.timetracker.ui.editdate;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.widget.Toast;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -9,9 +11,12 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.data.event.DayDescriptionSavedEvent;
-import mvasoft.timetracker.ui.common.EventBusSupportActivity;
+import mvasoft.timetracker.databinding.ActivityEditDateBinding;
+import mvasoft.timetracker.ui.common.BindingSupportActivity;
 
-public class EditDateActivity extends EventBusSupportActivity {
+public class EditDateActivity extends
+        BindingSupportActivity<ActivityEditDateBinding, EditDateActivityViewModel> implements
+        DatesViewFragment.OnDateSelected {
 
     public static Bundle makeArgs(long date) {
         Bundle res = new Bundle();
@@ -19,15 +24,29 @@ public class EditDateActivity extends EventBusSupportActivity {
         return res;
     }
 
+    @Override
+    public void onDateSelected(long unixTime) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .addToBackStack(null)
+                .replace(R.id.fragment_container, EditDateFragment.makeInstance(unixTime))
+                .commit();
+    }
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit_date);
-        EditDateFragment fragment = (EditDateFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
-        Bundle extras = getIntent().getExtras();
-        if (fragment != null && extras != null)
-            fragment.setDate(extras.getLong("EXTRA_DATE", 0));
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = new DatesViewFragment();
+        fm.beginTransaction()
+                .add(R.id.fragment_container, fragment)
+                .commit();
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_edit_date;
     }
 
     @Override

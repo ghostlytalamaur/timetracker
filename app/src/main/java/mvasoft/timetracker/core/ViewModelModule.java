@@ -6,6 +6,7 @@ import android.arch.lifecycle.ViewModelProvider;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoMap;
+import mvasoft.timetracker.ui.editdate.DatesViewModel;
 import mvasoft.timetracker.ui.editdate.EditDateViewModel;
 import mvasoft.timetracker.ui.editsession.EditSessionActivityViewModel;
 import mvasoft.timetracker.ui.editsession.EditSessionViewModel;
@@ -41,6 +42,10 @@ abstract class ViewModelModule {
     @ViewModelKey(EditDateViewModel.class)
     abstract ViewModel bindEditDateFragmentViewModel(EditDateViewModel editDateViewModel);
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(DatesViewModel.class)
+    abstract ViewModel bindDatesViewModel(DatesViewModel vm);
 
     @Binds
     abstract ViewModelProvider.Factory bindViewModelFactory(DIViewModelFactory factory);

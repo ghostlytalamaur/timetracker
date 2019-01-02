@@ -92,6 +92,8 @@ dependencies {
     implementation deps.eventbus.eventbus
     annotationProcessor deps.eventbus.compiler
 
+    implementation 'com.github.prolificinteractive:material-calendarview:2.0.0'
+
     api 'com.google.guava:guava:25.1-android'
     implementation 'com.jakewharton.timber:timber:4.7.1'
 

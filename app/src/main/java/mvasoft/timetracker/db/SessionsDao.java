@@ -67,6 +67,9 @@ public abstract class SessionsDao {
     @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract Flowable<DayDescription> getDayDescriptionRx(long date);
 
+    @Query("SELECT * from days WHERE date(dayDate, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
+    public abstract Flowable<List<DayDescription>> getDayDescriptionsRx(long start, long end);
+
     @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
     public abstract DayDescription getDayDescriptionRaw(long date);
 

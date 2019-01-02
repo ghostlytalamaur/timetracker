@@ -112,6 +112,11 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
+    public Flowable<List<DayDescription>> getDayDescriptionsRx(Long start, Long end) {
+        return createFlowable(() -> getDb().groupsModel().getDayDescriptionsRx(start, end));
+    }
+
+    @Override
     public void updateDayDescription(DayDescription dayDescription) {
         mExecutors.getDiskIO().execute(() -> {
             boolean wasSaved = getDb().groupsModel().updateDayDescription(dayDescription) != 0;

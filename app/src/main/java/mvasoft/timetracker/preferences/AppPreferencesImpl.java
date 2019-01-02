@@ -22,7 +22,7 @@ public class AppPreferencesImpl extends AppPreferences {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         setDefaults(context);
-        upgradeVersions();
+        upgradeVersions(context);
     }
 
     private void setDefaults(@NonNull Context context) {
@@ -34,11 +34,12 @@ public class AppPreferencesImpl extends AppPreferences {
         }
     }
 
-    private void upgradeVersions() {
+    private void upgradeVersions(@NonNull Context context) {
         SharedPreferences.Editor editor = mPreferences.edit();
         switch (mPreferences.getInt(PREF_VERSION_KEY, 0)) {
             case 0:
                 editor.clear().apply();
+                PreferenceManager.setDefaultValues(context, R.xml.preferences, true);
                 break;
         }
         editor.putInt(PREF_VERSION_KEY, PREF_VERSION_VALUE).apply();

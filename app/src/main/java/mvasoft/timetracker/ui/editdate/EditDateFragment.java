@@ -23,21 +23,31 @@ import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentEditDateBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.EditTextUtils;
-import mvasoft.timetracker.ui.editdate.EditDateViewModel;
 
 public class EditDateFragment extends
         BindingSupportFragment<FragmentEditDateBinding, EditDateViewModel> implements
         DialogResultListener {
 
     private static final int DLG_REQUEST_TARGET_TIME = 1;
+    private static final String ARGS_UNIXTIME = "args_unixtime";
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
+
+    static EditDateFragment makeInstance(long unixTime) {
+        Bundle args = new Bundle();
+        args.putLong(ARGS_UNIXTIME, unixTime);
+        EditDateFragment f = new EditDateFragment();
+        f.setArguments(args);
+        return f;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        if (getArguments() != null)
+            setDate(getArguments().getLong(ARGS_UNIXTIME));
     }
 
     @Nullable
