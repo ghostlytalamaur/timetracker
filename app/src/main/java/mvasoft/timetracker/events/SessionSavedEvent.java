@@ -1,4 +1,4 @@
-package mvasoft.timetracker.data.event;
+package mvasoft.timetracker.events;
 
 public class SessionSavedEvent {
     public final boolean wasSaved;

@@ -1,4 +1,4 @@
-package mvasoft.timetracker.data.event;
+package mvasoft.timetracker.events;
 
 import mvasoft.timetracker.data.DataRepository;
 

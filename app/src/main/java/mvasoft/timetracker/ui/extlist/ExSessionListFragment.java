@@ -2,12 +2,12 @@ package mvasoft.timetracker.ui.extlist;
 
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -24,21 +24,33 @@ import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import javax.inject.Inject;
 
 import mvasoft.dialogs.AlertDialogFragment;
+import mvasoft.dialogs.DatePickerFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.recyclerbinding.adapter.BindableListAdapter;
 import mvasoft.recyclerbinding.delegate.BindableListDelegate;
 import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
 import mvasoft.timetracker.BR;
+import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.events.SessionToggledEvent;
+import mvasoft.timetracker.events.SessionsDeletedEvent;
+import mvasoft.timetracker.events.SnackbarEvent;
 import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
 import mvasoft.timetracker.databinding.ListItemDayBinding;
 import mvasoft.timetracker.databinding.ListItemSessionBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
-import mvasoft.timetracker.ui.editsession.EditSessionActivity;
+import mvasoft.timetracker.ui.common.FabProvider;
+import mvasoft.timetracker.ui.common.NavigationController;
+import mvasoft.timetracker.ui.editsession.EditSessionFragment;
+import mvasoft.timetracker.utils.DateTimeHelper;
 
 
 public class ExSessionListFragment
@@ -49,6 +61,8 @@ public class ExSessionListFragment
     private static final String ARGS_DATE_END = "args_date_MAX";
 
     private static final int DLG_REQUEST_DELETE_SESSION = 1;
+    private static final int DLG_REQUEST_DATE = 2;
+    private static final String DATE_PICKER_TAG = "ExSessionListFragmentSelectDateDlg";
 
     private ActionMode.Callback mActionModeCallbacks;
     private ActionMode mActionMode;
@@ -56,6 +70,8 @@ public class ExSessionListFragment
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
+    private FabProvider mFabProvider;
+    private View.OnClickListener mFabListener;
 
     public static Fragment newInstance(long minDate, long maxDate) {
         Fragment fragment = new ExSessionListFragment();
@@ -77,6 +93,7 @@ public class ExSessionListFragment
         }
 
         mActionModeCallbacks = new ActionModeCallbacks();
+        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -84,7 +101,19 @@ public class ExSessionListFragment
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
         initAdapter();
+        updateFab(false);
+        getViewModel().getOpenedSessionId().observe(this, b -> updateFab(b != null && b));
         return v;
+    }
+
+    private void updateFab(boolean hasOpenedSession) {
+        if (mFabProvider == null)
+            return;
+
+        if (hasOpenedSession)
+            mFabProvider.setImageResource(R.drawable.animated_minus);
+        else
+            mFabProvider.setImageResource(R.drawable.animated_plus);
     }
 
     @Override
@@ -99,6 +128,59 @@ public class ExSessionListFragment
         super.onSaveInstanceState(outState);
         getViewModel().saveState(outState);
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_sessions, menu);
+        if (!BuildConfig.DEBUG)
+            menu.removeItem(R.id.action_fill_fake_session);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_select_date:
+                selectDate();
+                break;
+            case R.id.action_fill_fake_session:
+                getViewModel().fillFakeSessions();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (getActivity() instanceof FabProvider) {
+            mFabProvider = (FabProvider) getActivity();
+            mFabProvider.setVisibility(View.VISIBLE);
+            if (mFabListener == null)
+                mFabListener = (v) -> getViewModel().toggleSession();
+            mFabProvider.setClickListener(mFabListener);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        if (mFabProvider != null) {
+            mFabProvider.setVisibility(View.GONE);
+            mFabProvider.removeClickListener(mFabListener);
+        }
+        mFabProvider = null;
+        super.onStop();
+    }
+
+    private void selectDate() {
+        new DatePickerFragment.Builder(DLG_REQUEST_DATE)
+                .withUnixTime(System.currentTimeMillis() / 1000)
+                .show(this, DATE_PICKER_TAG);
+    }
+
+
 
     protected ExSessionListViewModel onCreateViewModel() {
         return ViewModelProviders.of(this, viewModelFactory)
@@ -163,9 +245,20 @@ public class ExSessionListFragment
                 getViewModel().deleteSelected();
                 if (mActionMode != null)
                     mActionMode.finish();
+                break;
+            }
+            case DLG_REQUEST_DATE: {
+                onDateSelected((DatePickerFragment.DatePickerDialogResultData) data);
+                break;
             }
         }
     }
+
+    public void onDateSelected(DatePickerFragment.DatePickerDialogResultData data) {
+        long unixTime = DateTimeHelper.getUnixTime(data.year, data.month, data.dayOfMonth);
+        setDate(unixTime, unixTime);
+    }
+
 
     private void actionClick(Object model) {
         if (!(model instanceof ItemViewModel))
@@ -181,9 +274,8 @@ public class ExSessionListFragment
     }
 
     private void editSession(long sessionId) {
-        Intent intent = new Intent(getContext(), EditSessionActivity.class);
-        intent.putExtras(EditSessionActivity.makeArgs(sessionId));
-        startActivity(intent);
+        if (getActivity() instanceof NavigationController)
+            ((NavigationController) getActivity()).showFragment(() -> EditSessionFragment.newInstance(sessionId));
     }
 
     private void actionSelect(Object model) {
@@ -221,6 +313,30 @@ public class ExSessionListFragment
             Toast.makeText(getContext(), R.string.msg_cannot_copy_to_clipboard,
                     Toast.LENGTH_LONG).show();
     }
+
+    @Override
+    protected boolean shouldRegisterToEventBus() {
+        return true;
+    }
+
+    @Subscribe
+    public void onSessionToggled(SessionToggledEvent e) {
+        switch (e.toggleResult) {
+            case tgs_Started:
+                EventBus.getDefault().post(new SnackbarEvent(R.string.msg_session_started, Snackbar.LENGTH_LONG));
+                break;
+
+            case tgs_Stopped:
+                EventBus.getDefault().post(new SnackbarEvent(R.string.msg_session_stopped, Snackbar.LENGTH_LONG));
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onSessionsDeletedEvent(SessionsDeletedEvent e) {
+        Toast.makeText(getContext(), e.deletedSessionsCount + " session was removed", Toast.LENGTH_LONG).show();
+    }
+
 
     private class ActionModeCallbacks implements ActionMode.Callback {
         @Override

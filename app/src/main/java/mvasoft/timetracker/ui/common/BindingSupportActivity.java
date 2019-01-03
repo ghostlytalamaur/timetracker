@@ -6,10 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.LayoutRes;
 
-import org.greenrobot.eventbus.EventBus;
-
-import dagger.android.support.DaggerAppCompatActivity;
-
 public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
         ViewModel extends BaseViewModel> extends EventBusSupportActivity {
 

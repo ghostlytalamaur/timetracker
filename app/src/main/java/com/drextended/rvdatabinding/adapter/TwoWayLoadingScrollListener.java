@@ -29,8 +29,8 @@ public class TwoWayLoadingScrollListener extends RecyclerView.OnScrollListener {
     private static final int DEFAULT_VISIBLE_THRESOLD = 2;
     private final OnLoadMoreListener mMoreListener;
 
-    private OnPositionChangeListener mPositionChangeListener;
-    private int mVisibleThreshold; // The minimum amount of items to have below your current scroll position before loading more.
+    private final OnPositionChangeListener mPositionChangeListener;
+    private final int mVisibleThreshold; // The minimum amount of items to have below your current scroll position before loading more.
     int firstVisibleItem, lastVisibleItem, oldFirstVisibleItem, oldLastVisibleItem, visibleItemCount, totalItemCount;
 
     private RecyclerView.LayoutManager mLayoutManager;

@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.databinding.FragmentDatesViewBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
+import mvasoft.timetracker.ui.common.NavigationController;
 import mvasoft.timetracker.utils.DateTimeHelper;
 
 public class DatesViewFragment extends
@@ -61,8 +62,8 @@ public class DatesViewFragment extends
     }
 
     private void showDate(long unixTime) {
-        if (getActivity() instanceof OnDateSelected)
-            ((OnDateSelected) getActivity()).onDateSelected(unixTime);
+        if (getActivity() instanceof NavigationController)
+            ((NavigationController) getActivity()).showFragment(() -> EditDateFragment.makeInstance(unixTime));
     }
 
     @Override
@@ -74,10 +75,6 @@ public class DatesViewFragment extends
     protected DatesViewModel onCreateViewModel() {
         return ViewModelProviders.of(this, mFactory).get(DatesViewModel.class);
 
-    }
-
-    interface OnDateSelected {
-        void onDateSelected(long unixTime);
     }
 
     static class DayDecorator implements DayViewDecorator {

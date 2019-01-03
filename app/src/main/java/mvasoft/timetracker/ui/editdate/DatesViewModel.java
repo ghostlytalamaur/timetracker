@@ -28,8 +28,8 @@ public class DatesViewModel extends BaseViewModel {
 
     private final DataRepository mRepository;
     private final AppPreferences mPreferences;
-    private LiveData<Set<CalendarDay>> mWorkingDays;
-    private BehaviorProcessor<CalendarDay> mLastQueryMonth;
+    private final LiveData<Set<CalendarDay>> mWorkingDays;
+    private final BehaviorProcessor<CalendarDay> mLastQueryMonth;
 
     @Inject
     public DatesViewModel(@NonNull Application application, DataRepository repository, AppPreferences preferences) {

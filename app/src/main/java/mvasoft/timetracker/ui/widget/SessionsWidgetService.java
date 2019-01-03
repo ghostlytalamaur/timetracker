@@ -18,7 +18,7 @@ import dagger.Lazy;
 import dagger.android.AndroidInjection;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.data.DataRepository;
-import mvasoft.timetracker.ui.extlist.TabbedActivity;
+import mvasoft.timetracker.ui.NavigationDrawerActivity;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayGroup;
@@ -172,7 +172,7 @@ public class SessionsWidgetService extends JobIntentService {
                 PendingIntent.getBroadcast(this, 0, intent, 0);
         views.setOnClickPendingIntent(R.id.appwidget_button, pendingIntent);
 
-        intent = new Intent(this, TabbedActivity.class);
+        intent = new Intent(this, NavigationDrawerActivity.class);
         pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
         views.setOnClickPendingIntent(R.id.appwidget_text_layout, pendingIntent);
 

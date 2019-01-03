@@ -29,9 +29,6 @@ public abstract class SessionsDao {
     // should adjust this unitTime to local time
 
     @Query("SELECT _id FROM sessions WHERE EndTime = 0 or EndTime IS NULL")
-    public abstract Flowable<Long> getOpenedSessionIdRx();
-
-    @Query("SELECT _id FROM sessions WHERE EndTime = 0 or EndTime IS NULL")
     public abstract Flowable<List<Long>> getOpenedSessionsIds();
 
     @Query("DELETE FROM sessions WHERE _id in (:groupIds)")

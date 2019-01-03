@@ -1,4 +1,4 @@
-package mvasoft.timetracker.data.event;
+package mvasoft.timetracker.events;
 
 public class SessionsDeletedEvent {
     public final int deletedSessionsCount;

@@ -39,7 +39,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
     private final boolean mDisableFirst;
     private final boolean mDisableLast;
 
-    protected int mSpacing;
+    protected final int mSpacing;
 
     /**
      * Creates ItemDecoration for colored spacing (divider) between items in RecyclerView

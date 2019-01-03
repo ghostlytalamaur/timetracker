@@ -9,14 +9,12 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
 import mvasoft.timetracker.data.RepositoryModule;
-import mvasoft.timetracker.ui.backup.BackupActivity;
+import mvasoft.timetracker.ui.backup.BackupFragment;
+import mvasoft.timetracker.ui.NavigationDrawerActivity;
 import mvasoft.timetracker.ui.editdate.DatesViewFragment;
-import mvasoft.timetracker.ui.editdate.EditDateActivity;
 import mvasoft.timetracker.ui.editdate.EditDateFragment;
-import mvasoft.timetracker.ui.editsession.EditSessionActivity;
 import mvasoft.timetracker.ui.editsession.EditSessionFragment;
 import mvasoft.timetracker.ui.extlist.ExSessionListFragment;
-import mvasoft.timetracker.ui.extlist.TabbedActivity;
 
 @SuppressWarnings("unused")
 @Module(includes = {ViewModelModule.class})
@@ -25,33 +23,25 @@ abstract class AppModule {
     @Binds
     abstract Context bindApplicationContext(TimeTrackerApp app);
 
-//    @ContributesAndroidInjector(modules = {WidgetModule.class})
-//    abstract SessionsContentProvider sessionsContentProviderInjector();
-
-    // Разрешаем инжектить зависимости в класс TabbedActivity предоставляемые модулем RepositoryModule
-    @ContributesAndroidInjector(modules = {RepositoryModule.class})
-    abstract TabbedActivity TabbedActivityInjector();
-
+    // Разрешаем инжектить зависимости в ExSessionListFragment предоставляемые модулем RepositoryModule
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
     abstract ExSessionListFragment exSessionListFragmentInjector();
 
-    @ContributesAndroidInjector(modules = {RepositoryModule.class})
-    abstract EditSessionActivity EditSessionActivityInjector();
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
     abstract EditSessionFragment EditSessionFragmentInjector();
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
-    abstract EditDateActivity EditDateActivityInjector();
-
-    @ContributesAndroidInjector(modules = {RepositoryModule.class})
     abstract EditDateFragment EditDateFragmentInjector();
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
-    abstract BackupActivity BackupActivityInjector();
+    abstract BackupFragment BackupActivityInjector();
 
     @ContributesAndroidInjector(modules = {RepositoryModule.class})
     abstract DatesViewFragment DatesViewFragmentInjector();
+
+    @ContributesAndroidInjector(modules = {RepositoryModule.class})
+    abstract NavigationDrawerActivity NavigationDrawerActivityInjector();
 
     @Binds
     @Singleton

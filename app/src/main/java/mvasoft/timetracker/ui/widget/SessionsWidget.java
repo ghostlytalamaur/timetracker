@@ -3,7 +3,6 @@ package mvasoft.timetracker.ui.widget;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
-import android.content.Intent;
 
 import javax.inject.Inject;
 

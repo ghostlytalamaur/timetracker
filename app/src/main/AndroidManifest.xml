@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="mvasoft.timetracker">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="mvasoft.timetracker"
+    >
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -10,82 +13,54 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning"
+        >
+
         <activity
-            android:name=".ui.extlist.TabbedActivity"
+            android:name=".ui.NavigationDrawerActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.editsession.EditSessionActivity"
-            android:parentActivityName=".ui.extlist.TabbedActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.extlist.TabbedActivity" />
-        </activity>
-        <activity
-            android:name=".ui.preferences.PreferencesActivity"
-            android:parentActivityName=".ui.extlist.TabbedActivity">
-
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.extlist.TabbedActivity" />
-        </activity>
-        <activity
-            android:name=".ui.editdate.EditDateActivity"
-            android:parentActivityName=".ui.extlist.TabbedActivity">
-
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.extlist.TabbedActivity" />
-        </activity>
-        <activity android:name=".ui.backup.BackupActivity"
-            android:parentActivityName=".ui.extlist.TabbedActivity" >
-            <!--android:theme="@style/AppTheme.NoActionBar" -->
-
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.extlist.TabbedActivity" />
-        </activity>
 
         <receiver
             android:name=".ui.widget.SessionsWidget"
-            android:enabled="true">
+            android:enabled="true"
+            >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_provider_info" />
+                android:resource="@xml/widget_provider_info"
+                />
         </receiver>
 
         <service
             android:name=".ui.widget.SessionsWidgetService"
             android:enabled="true"
             android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            />
         <service
             android:name=".ui.widget.SessionsWidgetJobService"
             android:enabled="true"
             android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            />
 
         <receiver
             android:name=".ui.widget.JobReceiver"
             android:enabled="true"
-            android:exported="false">
+            android:exported="false"
+            >
             <intent-filter>
                 <action android:name="mvasoft.timetracker.action.widget.update" />
                 <action android:name="mvasoft.timetracker.action.widget.toggle_session" />

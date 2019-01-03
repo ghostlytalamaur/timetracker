@@ -11,8 +11,11 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -43,8 +46,9 @@ public class ExSessionListViewModel extends BaseViewModel {
     private final LiveData<String> mTargetDiffStrLiveData;
     private final LiveData<Boolean> mIsTargetAchieved;
     private final Lazy<DataRepository> mRepository;
-    private CompositeDisposable mDisposable;
+    private final CompositeDisposable mDisposable;
     private ScheduledFuture<?> mUpdateFuture;
+    private LiveData<Boolean> mOpenedSessionId;
 
 
     @Inject
@@ -91,6 +95,14 @@ public class ExSessionListViewModel extends BaseViewModel {
         return mIsTargetAchieved;
     }
 
+    public LiveData<Boolean> getOpenedSessionId() {
+        if (mOpenedSessionId == null)
+            mOpenedSessionId = LiveDataReactiveStreams.fromPublisher(
+                    mRepository.get().getOpenedSessionsIds().map(list -> list.size() > 0));
+
+        return mOpenedSessionId;
+    }
+
     public ListViewModel getListModel() {
         return mListModel;
     }
@@ -104,6 +116,10 @@ public class ExSessionListViewModel extends BaseViewModel {
         }
     }
 
+    void toggleSession() {
+        mRepository.get().toggleSession();
+    }
+
     @Override
     protected void onCleared() {
         mData.dispose();
@@ -111,11 +127,11 @@ public class ExSessionListViewModel extends BaseViewModel {
         super.onCleared();
     }
 
-    public void deleteSelected() {
+    void deleteSelected() {
         mRepository.get().deleteSessions(getSelectedSessionsIds());
     }
 
-    public boolean copySelectedToClipboard() {
+    boolean copySelectedToClipboard() {
         final ClipboardManager clipboard = (ClipboardManager)
                 getApplication().getSystemService(Context.CLIPBOARD_SERVICE);
         if (clipboard == null)
@@ -214,4 +230,25 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
 
+    void fillFakeSessions() {
+        DateTime day = new DateTime(System.currentTimeMillis())
+                .minusYears(1)
+                .monthOfYear()
+                .withMinimumValue()
+                .withTime(8, 0, 0, 0);
+
+        ArrayList<Session> list = new ArrayList<>();
+        Random rnd = new Random();
+        while (day.getMillis() < System.currentTimeMillis()) {
+            long start = day.withTime(8, 0, 0, 0).getMillis() / 1000;
+            long end = day.withTime(16 + rnd.nextInt(1),
+                    rnd.nextInt(60), 0, 0).getMillis() / 1000;
+
+            list.add(new Session(0, start, end));
+            day = day.plusDays(1);
+            if (day.getDayOfWeek() == 6)
+                day = day.plusDays(2);
+        }
+        mRepository.get().appendAll(list);
+    }
 }

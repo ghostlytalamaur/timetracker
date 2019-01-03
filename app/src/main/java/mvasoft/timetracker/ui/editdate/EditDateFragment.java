@@ -12,6 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import javax.inject.Inject;
 
@@ -20,6 +24,7 @@ import mvasoft.dialogs.DialogResultListener;
 import mvasoft.dialogs.TimePickerFragment;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.events.DayDescriptionSavedEvent;
 import mvasoft.timetracker.databinding.FragmentEditDateBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.EditTextUtils;
@@ -117,6 +122,20 @@ public class EditDateFragment extends
             }
         }
     }
+
+    @Override
+    protected boolean shouldRegisterToEventBus() {
+        return true;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDayDescriptionSavedEvent(DayDescriptionSavedEvent e) {
+        if (e.wasSaved)
+            Toast.makeText(getContext(), R.string.msg_day_description_saved, Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(getContext(), R.string.msg_day_description_unable_save, Toast.LENGTH_SHORT).show();
+    }
+
 
     public void setDate(long date) {
         getViewModel().setDate(date);

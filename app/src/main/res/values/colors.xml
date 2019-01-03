@@ -2,7 +2,6 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303f9f</color>
-    <color name="colorAccent">#FF4081</color>
     <color name="colorControlHighlight">#aa9dc9ff</color>
     <color name="colorSwitchThumbNormal">#83004d7c</color>
     <color name="colorTextPositive">@android:color/holo_green_light</color>

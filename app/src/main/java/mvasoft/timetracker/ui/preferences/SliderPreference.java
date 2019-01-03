@@ -45,14 +45,14 @@ import timber.log.Timber;
  */
 public class SliderPreference extends Preference {
 
-    private boolean mAutoUpdateSeekBarValue;
+    private final boolean mAutoUpdateSeekBarValue;
     private int mPrefValue;
     private int mMin;
     private int mMax;
     private int mStep;
     private int mSeekBarIncrement;
     private boolean mAdjustable; // whether the seekbar should respond to the left/right keys
-    private boolean mShowSeekBarValue; // whether to show the seekbar value TextView next to the bar
+    private final boolean mShowSeekBarValue; // whether to show the seekbar value TextView next to the bar
 
     private boolean mTrackingTouch;
     private SeekBar mSeekBar;
@@ -62,7 +62,7 @@ public class SliderPreference extends Preference {
     /**
      * Listener reacting to the SeekBar changing value by the user
      */
-    private SeekBar.OnSeekBarChangeListener mSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+    private final SeekBar.OnSeekBarChangeListener mSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             if (fromUser && (mAutoUpdateSeekBarValue || !mTrackingTouch)) {
@@ -89,7 +89,7 @@ public class SliderPreference extends Preference {
      * adjustable} attribute is set to true; it transfers the key presses to the SeekBar
      * to be handled accordingly.
      */
-    private View.OnKeyListener mSeekBarKeyListener = new View.OnKeyListener() {
+    private final View.OnKeyListener mSeekBarKeyListener = new View.OnKeyListener() {
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
             if (event.getAction() != KeyEvent.ACTION_DOWN) {

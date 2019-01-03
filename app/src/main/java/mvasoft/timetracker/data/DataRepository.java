@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Flowable;
+import mvasoft.timetracker.events.SessionSavedEvent;
+import mvasoft.timetracker.events.SessionToggledEvent;
+import mvasoft.timetracker.events.SessionsDeletedEvent;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
@@ -14,24 +17,23 @@ public interface DataRepository {
 
     /**
      * Delete session with id in ids list.
-     * Post number of deleted rows as event {@link mvasoft.timetracker.data.event.SessionsDeletedEvent}
+     * Post number of deleted rows as event {@link SessionsDeletedEvent}
      * @param ids session ids to delete
      */
     void deleteSessions(List<Long> ids);
 
-    Flowable<Long> getOpenedSessionIdRx();
     Flowable<List<Long>> getOpenedSessionsIds();
 
     /**
      * Close opened session if it exists. <p>
      * Start new session if no opened sessions was found. <p>
-     * Post result as event {@link mvasoft.timetracker.data.event.SessionToggledEvent}.
+     * Post result as event {@link SessionToggledEvent}.
      */
     void toggleSession();
 
     /**
      * Save session to repository.
-     * Post event {@link mvasoft.timetracker.data.event.SessionSavedEvent}
+     * Post event {@link SessionSavedEvent}
      * @param session - session to update
      */
     void updateSession(Session session);

@@ -8,19 +8,12 @@ import dagger.Module;
 import dagger.multibindings.IntoMap;
 import mvasoft.timetracker.ui.editdate.DatesViewModel;
 import mvasoft.timetracker.ui.editdate.EditDateViewModel;
-import mvasoft.timetracker.ui.editsession.EditSessionActivityViewModel;
 import mvasoft.timetracker.ui.editsession.EditSessionViewModel;
 import mvasoft.timetracker.ui.extlist.ExSessionListViewModel;
-import mvasoft.timetracker.ui.extlist.TabbedActivityViewModel;
 
 @SuppressWarnings("unused")
 @Module
 abstract class ViewModelModule {
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(TabbedActivityViewModel.class)
-    abstract ViewModel bindTabbedActivityViewModel(TabbedActivityViewModel tabbedActivityViewModel);
 
     @Binds
     @IntoMap
@@ -31,11 +24,6 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(EditSessionViewModel.class)
     abstract ViewModel bindEditSessionViewModel(EditSessionViewModel editSessionViewModel);
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(EditSessionActivityViewModel.class)
-    abstract ViewModel bindEditSessionActivityViewModel(EditSessionActivityViewModel editSessionActivityViewModel);
 
     @Binds
     @IntoMap

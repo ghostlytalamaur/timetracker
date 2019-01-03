@@ -14,7 +14,7 @@ import mvasoft.utils.Announcer;
 public class DatabaseProvider {
 
     private AppDatabase mDatabase;
-    private Announcer<Observer> mAnnouncer;
+    private final Announcer<Observer> mAnnouncer;
 
     @Inject
     public DatabaseProvider(Context context) {

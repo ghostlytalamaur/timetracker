@@ -53,8 +53,8 @@ public class ListConfig {
         mAdapter = adapter;
         mLayoutManagerProvider = layoutManagerProvider;
         mItemAnimator = itemAnimator;
-        mItemDecorations = itemDecorations != null ? itemDecorations : Collections.<RecyclerView.ItemDecoration>emptyList();
-        mScrollListeners = scrollListeners != null ? scrollListeners : Collections.<RecyclerView.OnScrollListener>emptyList();
+        mItemDecorations = itemDecorations != null ? itemDecorations : Collections.emptyList();
+        mScrollListeners = scrollListeners != null ? scrollListeners : Collections.emptyList();
         mItemTouchHelper = itemTouchHelper;
         mHasFixedSize = hasFixedSize;
     }

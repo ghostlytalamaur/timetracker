@@ -19,10 +19,10 @@ import io.reactivex.disposables.Disposables;
 import io.reactivex.functions.Action;
 import mvasoft.timetracker.core.AppExecutors;
 import mvasoft.timetracker.data.DataRepository;
-import mvasoft.timetracker.data.event.DayDescriptionSavedEvent;
-import mvasoft.timetracker.data.event.SessionSavedEvent;
-import mvasoft.timetracker.data.event.SessionToggledEvent;
-import mvasoft.timetracker.data.event.SessionsDeletedEvent;
+import mvasoft.timetracker.events.DayDescriptionSavedEvent;
+import mvasoft.timetracker.events.SessionSavedEvent;
+import mvasoft.timetracker.events.SessionToggledEvent;
+import mvasoft.timetracker.events.SessionsDeletedEvent;
 import mvasoft.timetracker.db.AppDatabase;
 import mvasoft.timetracker.db.DatabaseProvider;
 import mvasoft.timetracker.vo.DayDescription;
@@ -36,7 +36,7 @@ public class RoomDataRepositoryImpl implements DataRepository {
     private static final Object NOTHING = new Object();
 
     private final AppExecutors mExecutors;
-    private DatabaseProvider mDatabaseProvider;
+    private final DatabaseProvider mDatabaseProvider;
 
     @Inject
     RoomDataRepositoryImpl(AppExecutors executors, DatabaseProvider dbProvider) {
@@ -48,11 +48,6 @@ public class RoomDataRepositoryImpl implements DataRepository {
     public void deleteSessions(List<Long> ids) {
         mExecutors.getDiskIO().execute(() -> EventBus.getDefault().post(
                 new SessionsDeletedEvent(getDb().groupsModel().deleteByIds(ids))));
-    }
-
-    @Override
-    public Flowable<Long> getOpenedSessionIdRx() {
-        return createFlowable(() -> getDb().groupsModel().getOpenedSessionIdRx());
     }
 
     @Override
@@ -151,7 +146,7 @@ public class RoomDataRepositoryImpl implements DataRepository {
                 mDatabaseProvider.addObserver(observer);
                 emitter.setDisposable(Disposables.fromAction(new Action() {
                     @Override
-                    public void run() throws Exception {
+                    public void run() {
                         mDatabaseProvider.removeObserver(observer);
                     }
                 }));
@@ -188,8 +183,8 @@ public class RoomDataRepositoryImpl implements DataRepository {
 
     static class DbObserverLiveData extends LiveData<Object> {
 
-        DatabaseProvider mProvider;
-        private DatabaseProvider.Observer mObserver;
+        final DatabaseProvider mProvider;
+        private final DatabaseProvider.Observer mObserver;
 
         DbObserverLiveData(DatabaseProvider provider) {
             mProvider = provider;

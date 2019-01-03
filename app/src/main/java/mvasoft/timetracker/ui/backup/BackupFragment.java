@@ -7,6 +7,9 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.io.File;
@@ -17,13 +20,13 @@ import mvasoft.dialogs.AlertDialogFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.timetracker.R;
-import mvasoft.timetracker.databinding.ActivityBackupBinding;
+import mvasoft.timetracker.databinding.FragmentBackupBinding;
 import mvasoft.timetracker.db.DatabaseProvider;
 import mvasoft.timetracker.ui.common.BaseViewModel;
-import mvasoft.timetracker.ui.common.BindingSupportActivity;
+import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.utils.FileUtils;
 
-public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding, BaseViewModel>
+public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding, BaseViewModel>
         implements DialogResultListener {
 
     private static final int PERMISSION_REQUEST_STORAGE_BACKUP = 2;
@@ -42,28 +45,28 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
         }
     }
 
+    @Nullable
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View rootView =  super.onCreateView(inflater, container, savedInstanceState);
         getBinding().btnBackup.setOnClickListener(v -> checkPermission(
                 Manifest.permission.WRITE_EXTERNAL_STORAGE, PERMISSION_REQUEST_STORAGE_BACKUP));
         getBinding().btnRestore.setOnClickListener(v ->
                 new AlertDialogFragment.Builder(DLG_REQUEST_RESTORE_DB)
                         .withMessage(getString(R.string.msg_selected_session_will_removed))
-                        .show(this, "BackupActivity" + DLG_REQUEST_RESTORE_DB));
+                        .show(this, "BackupFragment" + DLG_REQUEST_RESTORE_DB));
+        return rootView;
     }
-
 
     @Override
     protected int getLayoutId() {
-        return R.layout.activity_backup;
+        return R.layout.fragment_backup;
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this,
+            Toast.makeText(getContext(),
                     "Cannot perform operation without appropriate permission",
                     Toast.LENGTH_LONG).show();
             return;
@@ -82,7 +85,8 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
     }
 
     private void checkPermission(@NonNull String permission, int requestCode) {
-        ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
+        if (getActivity() != null)
+            ActivityCompat.requestPermissions(getActivity(), new String[]{permission}, requestCode);
     }
 
     /* Checks if external storage is available for read and write */
@@ -99,7 +103,7 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
     }
 
     private void showToast(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
     }
 
     private boolean isValidSQLiteDB(File backupDb) {
@@ -108,12 +112,15 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
 
 
     private void restoreDb() {
+        if (getActivity() == null)
+            return;
+
         if (!isExternalStorageReadable()) {
             showToast("External storage unavailable");
             return;
         }
 
-        File dbFile = getDatabasePath(mDatabaseProvider.getDatabase().getOpenHelper().getDatabaseName());
+        File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getOpenHelper().getDatabaseName());
         File backup = getBackupFilePath();
         if (!backup.exists()) {
             showToast("There are no any backups");
@@ -134,7 +141,7 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
 
             showToast("Database restored");
         } finally{
-            mDatabaseProvider.reinitDatabase(getApplication());
+            mDatabaseProvider.reinitDatabase(getActivity().getApplication());
         }
     }
 
@@ -145,6 +152,9 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
     }
 
     private void backupDb() {
+        if (getActivity() == null)
+            return;
+
         if (!isExternalStorageWritable()) {
             showToast("External storage unavailable");
             return;
@@ -152,7 +162,7 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
 
         mDatabaseProvider.getDatabase().close();
         try {
-            File dbFile = getDatabasePath(mDatabaseProvider.getDatabase().getOpenHelper().getDatabaseName());
+            File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getOpenHelper().getDatabaseName());
 
             File backupPath = getBackupFilePath();
             if (FileUtils.copyFile(dbFile, backupPath))
@@ -160,7 +170,7 @@ public class BackupActivity extends BindingSupportActivity<ActivityBackupBinding
             else
                 showToast("Cannot backup database");
         } finally {
-            mDatabaseProvider.reinitDatabase(getApplication());
+            mDatabaseProvider.reinitDatabase(getActivity().getApplication());
         }
     }
 

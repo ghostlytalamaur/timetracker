@@ -18,11 +18,11 @@ public class EditSessionModel {
     private long mSessionId;
     private Session mSession;
     private LiveData<Session> mSessionLiveData;
-    private MediatorLiveData<Long> mStartTimeData;
-    private MediatorLiveData<Long> mEndTimeData;
-    private MediatorLiveData<Long> mDurationData;
-    private MediatorLiveData<Boolean> mIsRunningData;
-    private MediatorLiveData<Boolean> mIsChangedData;
+    private final MediatorLiveData<Long> mStartTimeData;
+    private final MediatorLiveData<Long> mEndTimeData;
+    private final MediatorLiveData<Long> mDurationData;
+    private final MediatorLiveData<Boolean> mIsRunningData;
+    private final MediatorLiveData<Boolean> mIsChangedData;
 
     public EditSessionModel(DataRepository repository) {
         super();
@@ -103,10 +103,6 @@ public class EditSessionModel {
 
     public LiveData<Boolean> getIsRunningData() {
         return mIsRunningData;
-    }
-
-    public LiveData<Session> getSession() {
-        return mSessionLiveData;
     }
 
     private void setStartDateTime(long start) {
@@ -225,10 +221,10 @@ public class EditSessionModel {
                 return new SavedState[size];
             }
         };
-        private long sessionId;
-        private long startTime;
-        private long endTime;
-        private byte isRunning;
+        private final long sessionId;
+        private final long startTime;
+        private final long endTime;
+        private final byte isRunning;
         private Session mSession;
 
         SavedState(EditSessionModel data) {

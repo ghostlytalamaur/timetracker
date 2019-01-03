@@ -1,7 +1,6 @@
 package mvasoft.timetracker.core;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
@@ -16,9 +15,7 @@ import dagger.android.AndroidInjector;
 import dagger.android.support.DaggerApplication;
 import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.TimeTrackerEventBusIndex;
-import mvasoft.timetracker.data.event.SessionToggledEvent;
-import mvasoft.timetracker.ui.common.EventBusSupportActivity;
-import mvasoft.timetracker.ui.widget.SessionsWidgetService;
+import mvasoft.timetracker.events.SessionToggledEvent;
 import mvasoft.timetracker.ui.widget.WidgetHelper;
 import timber.log.Timber;
 

@@ -48,7 +48,7 @@ public class LoadMoreScrollListener extends OnScrollListener {
 
     private static final int DEFAULT_VISIBLE_THRESOLD = 5;
     private final OnLoadMoreListener mMoreListener;
-    private int mVisibleThreshold; // The minimum amount of items to have below your current scroll position before loading more.
+    private final int mVisibleThreshold; // The minimum amount of items to have below your current scroll position before loading more.
     private int firstVisibleItem, lastVisibleItem, visibleItemCount, totalItemCount;
 
     /**

@@ -149,10 +149,6 @@ public class EditSessionFragment extends BindingSupportFragment<FragmentEditSess
     }
 
 
-    long getSessionId() {
-        return getViewModel().getModel().getSessionId();
-    }
-
     private String makeDialogFragmentTag(boolean forStart) {
         return "EditSessionFragment: id = " + getViewModel().getModel().getSessionId() +
                 "; forStart = " + forStart;
