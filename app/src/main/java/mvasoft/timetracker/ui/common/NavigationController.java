@@ -2,6 +2,10 @@ package mvasoft.timetracker.ui.common;
 
 
 public interface NavigationController {
-
-    void showFragment(FragmentFactory factory);
+    void editSession(long sessionId);
+    void editDate(long unixTime);
+    void navigateToSessions();
+    void navigateToDates();
+    void navigateToSettings();
+    void navigateToBackup();
 }

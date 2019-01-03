@@ -39,7 +39,7 @@ public class EditDateFragment extends
     @Inject
     ViewModelProvider.Factory viewModelFactory;
 
-    static EditDateFragment makeInstance(long unixTime) {
+    public static EditDateFragment makeInstance(long unixTime) {
         Bundle args = new Bundle();
         args.putLong(ARGS_UNIXTIME, unixTime);
         EditDateFragment f = new EditDateFragment();

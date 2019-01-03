@@ -70,11 +70,13 @@ public class ExSessionListFragment
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
+    @Inject
+    NavigationController navigationController;
     private FabProvider mFabProvider;
     private View.OnClickListener mFabListener;
 
-    public static Fragment newInstance(long minDate, long maxDate) {
-        Fragment fragment = new ExSessionListFragment();
+    public static ExSessionListFragment newInstance(long minDate, long maxDate) {
+        ExSessionListFragment fragment = new ExSessionListFragment();
         Bundle args = new Bundle();
         args.putLong(ARGS_DATE_START, minDate);
         args.putLong(ARGS_DATE_END, maxDate);
@@ -274,8 +276,9 @@ public class ExSessionListFragment
     }
 
     private void editSession(long sessionId) {
-        if (getActivity() instanceof NavigationController)
-            ((NavigationController) getActivity()).showFragment(() -> EditSessionFragment.newInstance(sessionId));
+        navigationController.editSession(sessionId);
+//        if (getActivity() instanceof NavigationController)
+//            ((NavigationController) getActivity()).showFragment(() -> EditSessionFragment.newInstance(sessionId));
     }
 
     private void actionSelect(Object model) {

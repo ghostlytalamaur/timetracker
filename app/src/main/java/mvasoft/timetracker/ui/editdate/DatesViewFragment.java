@@ -30,7 +30,8 @@ public class DatesViewFragment extends
 
     @Inject
     ViewModelProvider.Factory mFactory;
-
+    @Inject
+    NavigationController navigationController;
     private DayDecorator mDayDecorator;
 
 
@@ -62,8 +63,9 @@ public class DatesViewFragment extends
     }
 
     private void showDate(long unixTime) {
-        if (getActivity() instanceof NavigationController)
-            ((NavigationController) getActivity()).showFragment(() -> EditDateFragment.makeInstance(unixTime));
+        navigationController.editDate(unixTime);
+//        if (getActivity() instanceof NavigationController)
+//            ((NavigationController) getActivity()).showFragment(() -> EditDateFragment.makeInstance(unixTime));
     }
 
     @Override

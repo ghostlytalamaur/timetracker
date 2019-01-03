@@ -7,35 +7,33 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import javax.inject.Inject;
+
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.events.SnackbarEvent;
 import mvasoft.timetracker.databinding.ActivityNavigationDrawerBinding;
-import mvasoft.timetracker.ui.backup.BackupFragment;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.common.BindingSupportActivity;
 import mvasoft.timetracker.ui.common.FabProvider;
-import mvasoft.timetracker.ui.common.FragmentFactory;
 import mvasoft.timetracker.ui.common.NavigationController;
-import mvasoft.timetracker.ui.editdate.DatesViewFragment;
-import mvasoft.timetracker.ui.extlist.ExSessionListFragment;
-import mvasoft.timetracker.ui.preferences.PreferencesFragment;
 
 public class NavigationDrawerActivity
         extends BindingSupportActivity<ActivityNavigationDrawerBinding, BaseViewModel>
-        implements NavigationView.OnNavigationItemSelectedListener, FabProvider, NavigationController {
+        implements NavigationView.OnNavigationItemSelectedListener, FabProvider {
 
+    @Inject
+    NavigationController navigationController;
     private View.OnClickListener mFabListener;
 
     @Override
@@ -65,15 +63,6 @@ public class NavigationDrawerActivity
     }
 
     @Override
-    public void showFragment(FragmentFactory factory) {
-        Fragment fragment = factory.createFragment();
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.addToBackStack(null);
-        ft.replace(R.id.content_frame, fragment);
-        ft.commit();
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -95,6 +84,21 @@ public class NavigationDrawerActivity
                 mFabListener.onClick(v);
         });
 
+        toggle.setToolbarNavigationClickListener((v) -> {
+            FragmentManager fm = getSupportFragmentManager();
+            if (fm.getBackStackEntryCount() > 0)
+                fm.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            else
+                getBinding().drawerLayout.openDrawer(GravityCompat.START);
+        });
+
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            if (getSupportFragmentManager().getBackStackEntryCount() == 0)
+                toggle.setDrawerIndicatorEnabled(true);
+            else
+                toggle.setDrawerIndicatorEnabled(false);
+        });
+
         if (savedInstanceState == null && getBinding().navView.getMenu().size() > 0) {
             MenuItem menuItem = getBinding().navView.getMenu().getItem(0);
             getBinding().navView.setCheckedItem(menuItem.getItemId());
@@ -105,41 +109,21 @@ public class NavigationDrawerActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Fragment fragment = null;
-        FragmentManager fm = getSupportFragmentManager();
         switch (item.getItemId()) {
-            case R.id.nav_sessions: {
-                if (!(fm.findFragmentById(R.id.content_frame) instanceof ExSessionListFragment)) {
-                    long today = System.currentTimeMillis() / 1000;
-                    fragment = ExSessionListFragment.newInstance(today, today);
-                }
+            case R.id.nav_sessions:
+                navigationController.navigateToSessions();
                 break;
-            }
-            case R.id.nav_dates: {
-                if (!(fm.findFragmentById(R.id.content_frame) instanceof DatesViewFragment)) {
-                    fragment = new DatesViewFragment();
-                }
+            case R.id.nav_dates:
+                navigationController.navigateToDates();
                 break;
-            }
-            case R.id.nav_settings: {
-                if (!(fm.findFragmentById(R.id.content_frame) instanceof PreferencesFragment))
-                    fragment = new PreferencesFragment();
+            case R.id.nav_settings:
+                navigationController.navigateToSettings();
                 break;
-            }
             case R.id.nav_backup:
-                if (!(fm.findFragmentById(R.id.content_frame) instanceof BackupFragment))
-                    fragment = new BackupFragment();
+                navigationController.navigateToBackup();
                 break;
             default:
                 return false;
-        }
-
-        if (fragment != null) {
-            FragmentTransaction transaction = fm.beginTransaction();
-            if (getSupportFragmentManager().findFragmentById(R.id.content_frame) != null)
-                    transaction.addToBackStack(null);
-            transaction.replace(R.id.content_frame, fragment);
-            transaction.commit();
         }
 
         getBinding().drawerLayout.closeDrawer(GravityCompat.START);
@@ -147,13 +131,11 @@ public class NavigationDrawerActivity
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                getBinding().drawerLayout.openDrawer(GravityCompat.START);
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void onBackPressed() {
+        if (getBinding().drawerLayout.isDrawerOpen(GravityCompat.START))
+            getBinding().drawerLayout.closeDrawer(GravityCompat.START);
+        else
+            super.onBackPressed();
     }
 
     @Override
