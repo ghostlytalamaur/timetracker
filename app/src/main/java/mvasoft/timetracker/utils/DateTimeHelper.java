@@ -81,22 +81,22 @@ public class DateTimeHelper {
 
     public static long startOfWeek(long unixSec) {
         DateTime dt = new DateTime(unixSec * 1000);
-        return dt.dayOfWeek().withMinimumValue().getMillis() / 1000;
+        return dt.dayOfWeek().withMinimumValue().withTimeAtStartOfDay().getMillis() / 1000;
     }
 
     public static long endOfWeek(long unixSec) {
         DateTime dt = new DateTime(unixSec * 1000);
-        return dt.dayOfWeek().withMaximumValue().getMillis() / 1000;
+        return dt.dayOfWeek().withMaximumValue().withTime(23, 59, 59, 0).getMillis() / 1000;
     }
 
     public static long startOfMonth(long unixSec) {
         DateTime dt = new DateTime(unixSec * 1000);
-        return dt.dayOfMonth().withMinimumValue().getMillis() / 1000;
+        return dt.dayOfMonth().withMinimumValue().withTimeAtStartOfDay().getMillis() / 1000;
     }
 
     public static long endOfMonth(long unixSec) {
         DateTime dt = new DateTime(unixSec * 1000);
-        return dt.dayOfMonth().withMaximumValue().getMillis() / 1000;
+        return dt.dayOfMonth().withMaximumValue().withTime(23, 59, 59, 0).getMillis()  / 1000;
     }
 
     public static int dayOfWeek(Long unixSec) {

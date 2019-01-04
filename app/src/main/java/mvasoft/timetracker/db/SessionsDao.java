@@ -87,14 +87,14 @@ public abstract class SessionsDao {
     }
 
     @Query("SELECT * from sessions WHERE date(startTime, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
-    abstract Flowable<List<Session>> getSessionsForDays(long start, long end);
+    public abstract Flowable<List<Session>> getSessionsRx(long start, long end);
 
     @Query("SELECT * from days WHERE date(dayDate, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
     abstract Flowable<List<DayDescription>> getDayDescriptionsForDays(long start, long end);
 
     public Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days) {
         Flowable<List<Session>> sessionsFlowable =
-                getSessionsForDays(days.get(0), days.get(days.size() - 1));
+                getSessionsRx(days.get(0), days.get(days.size() - 1));
         Flowable<List<DayDescription>> dayDescriptionsFlowable =
                 getDayDescriptionsForDays(days.get(0), days.get(days.size() - 1));
         return Flowable

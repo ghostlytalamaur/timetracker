@@ -8,7 +8,7 @@ import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
@@ -23,10 +23,13 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
+import com.prolificinteractive.materialcalendarview.CalendarDay;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -40,17 +43,19 @@ import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
+import mvasoft.timetracker.databinding.ListItemSessionsGroupsBinding;
 import mvasoft.timetracker.events.SessionToggledEvent;
 import mvasoft.timetracker.events.SessionsDeletedEvent;
 import mvasoft.timetracker.events.SnackbarEvent;
-import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
-import mvasoft.timetracker.databinding.ListItemDayBinding;
-import mvasoft.timetracker.databinding.ListItemSessionBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.FabProvider;
 import mvasoft.timetracker.ui.common.NavigationController;
-import mvasoft.timetracker.ui.editsession.EditSessionFragment;
 import mvasoft.timetracker.utils.DateTimeHelper;
+import mvasoft.timetracker.vo.SessionsGroup;
+import mvasoft.utils.CollectionsUtils;
+
+import static mvasoft.dialogs.DatePickerFragment.SELECTION_MODE_RANGE;
 
 
 public class ExSessionListFragment
@@ -59,6 +64,7 @@ public class ExSessionListFragment
 
     private static final String ARGS_DATE_START = "args_date_MIN";
     private static final String ARGS_DATE_END = "args_date_MAX";
+    private static final String ARGS_GROUP_TYPE = "args_group_type";
 
     private static final int DLG_REQUEST_DELETE_SESSION = 1;
     private static final int DLG_REQUEST_DATE = 2;
@@ -75,11 +81,12 @@ public class ExSessionListFragment
     private FabProvider mFabProvider;
     private View.OnClickListener mFabListener;
 
-    public static ExSessionListFragment newInstance(long minDate, long maxDate) {
+    public static ExSessionListFragment newInstance(SessionsGroup.GroupType groupType, long minDate, long maxDate) {
         ExSessionListFragment fragment = new ExSessionListFragment();
         Bundle args = new Bundle();
         args.putLong(ARGS_DATE_START, minDate);
         args.putLong(ARGS_DATE_END, maxDate);
+        args.putInt(ARGS_GROUP_TYPE, groupType.ordinal());
         fragment.setArguments(args);
         return fragment;
     }
@@ -89,9 +96,11 @@ public class ExSessionListFragment
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState == null && getArguments() != null) {
+            Bundle args = getArguments();
             long now = System.currentTimeMillis() / 1000;
-            getViewModel().setDate(getArguments().getLong(ARGS_DATE_START, now),
-                    getArguments().getLong(ARGS_DATE_END, now));
+            setDate(args.getLong(ARGS_DATE_START, now),
+                    args.getLong(ARGS_DATE_END, now));
+            getViewModel().setGroupType(SessionsGroup.GroupType.values()[args.getInt(ARGS_GROUP_TYPE)]);
         }
 
         mActionModeCallbacks = new ActionModeCallbacks();
@@ -136,6 +145,7 @@ public class ExSessionListFragment
         inflater.inflate(R.menu.menu_sessions, menu);
         if (!BuildConfig.DEBUG)
             menu.removeItem(R.id.action_fill_fake_session);
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -148,10 +158,22 @@ public class ExSessionListFragment
             case R.id.action_fill_fake_session:
                 getViewModel().fillFakeSessions();
                 break;
+            case R.id.action_group_by:
+                selectGroupType();
             default:
                 return super.onOptionsItemSelected(item);
         }
         return true;
+    }
+
+    private void selectGroupType() {
+        new AlertDialog.Builder(Objects.requireNonNull(getContext()))
+                .setTitle(R.string.msg_group_by)
+                .setSingleChoiceItems(R.array.group_type, getViewModel().getGroupType().ordinal(), (dialog, which) -> {
+                    getViewModel().setGroupType(SessionsGroup.GroupType.values()[which]);
+                    dialog.dismiss();
+                })
+                .show();
     }
 
     @Override
@@ -179,6 +201,7 @@ public class ExSessionListFragment
     private void selectDate() {
         new DatePickerFragment.Builder(DLG_REQUEST_DATE)
                 .withUnixTime(System.currentTimeMillis() / 1000)
+                .setSelectionMode(SELECTION_MODE_RANGE)
                 .show(this, DATE_PICKER_TAG);
     }
 
@@ -203,20 +226,16 @@ public class ExSessionListFragment
         if (getContext() == null)
             return;
 
-        BindableListDelegate<ListItemSessionBinding> sessionDelegate =
-                new BindableListDelegate<>(this, R.layout.list_item_session,
-                        BR.list_model, BR.view_model, SessionItemViewModel.class);
         ExSessionListActionHandler actionHandler = new ExSessionListActionHandler();
-        sessionDelegate.setActionHandler(BR.actionHandler, actionHandler);
+        BindableListDelegate<ListItemSessionsGroupsBinding> groupsDelegate =
+                new BindableListDelegate<>(this, R.layout.list_item_sessions_groups,
+                        BR.list_model, BR.view_model, GroupItemViewModel.class);
+        groupsDelegate.setActionHandler(BR.actionHandler, actionHandler);
 
-        BindableListDelegate<ListItemDayBinding> dayDelegate =
-                new BindableListDelegate<>(this, R.layout.list_item_day,
-                        BR.list_model, BR.view_model, DayItemViewModel.class);
-        dayDelegate.setActionHandler(BR.actionHandler, actionHandler);
         //noinspection unchecked
         BindableListAdapter adapter = new BindableListAdapter(this,
                 getViewModel().getListModel(),
-                sessionDelegate, dayDelegate
+                groupsDelegate
         );
 
         adapter.setHasStableIds(true);
@@ -235,7 +254,7 @@ public class ExSessionListFragment
                 updateActionMode());
     }
 
-    public void setDate(long dateStart, long dateEnd) {
+    private void setDate(long dateStart, long dateEnd) {
         getViewModel().setDate(dateStart, dateEnd);
     }
 
@@ -257,8 +276,15 @@ public class ExSessionListFragment
     }
 
     public void onDateSelected(DatePickerFragment.DatePickerDialogResultData data) {
-        long unixTime = DateTimeHelper.getUnixTime(data.year, data.month, data.dayOfMonth);
-        setDate(unixTime, unixTime);
+        if (CollectionsUtils.isEmpty(data.getDays()))
+            return;
+
+        CalendarDay minDate = data.getDays().get(0);
+        CalendarDay maxDate = data.getDays().get(data.getDays().size() - 1);
+
+        long start = DateTimeHelper.getUnixTime(minDate.getYear(), minDate.getMonth(), minDate.getDay());
+        long end = DateTimeHelper.getUnixTime(maxDate.getYear(), maxDate.getMonth(), maxDate.getDay());
+        setDate(start, end);
     }
 
 
@@ -267,7 +293,8 @@ public class ExSessionListFragment
             return;
 
         ItemViewModel groupModel = (ItemViewModel) model;
-        if ((mActionMode == null) && (groupModel instanceof SessionItemViewModel))
+        if ((mActionMode == null) && (groupModel instanceof GroupItemViewModel) &&
+                ((GroupItemViewModel) groupModel).sessionsCount() == 1)
             editSession(groupModel.getId());
         else if (mActionMode != null) {
             ((ItemViewModel) model).toggleSelection();
@@ -277,8 +304,6 @@ public class ExSessionListFragment
 
     private void editSession(long sessionId) {
         navigationController.editSession(sessionId);
-//        if (getActivity() instanceof NavigationController)
-//            ((NavigationController) getActivity()).showFragment(() -> EditSessionFragment.newInstance(sessionId));
     }
 
     private void actionSelect(Object model) {

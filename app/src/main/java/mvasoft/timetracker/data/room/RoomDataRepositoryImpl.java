@@ -122,6 +122,11 @@ public class RoomDataRepositoryImpl implements DataRepository {
     }
 
     @Override
+    public Flowable<List<Session>> getSessionsRx(long start, long end) {
+        return createFlowable(() -> getDb().groupsModel().getSessionsRx(start, end));
+    }
+
+    @Override
     public Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days) {
         return createFlowable(() -> getDb().groupsModel().getDayGroupsRx(days));
     }

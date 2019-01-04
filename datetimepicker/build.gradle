@@ -36,4 +36,5 @@ dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
     implementation deps.support.design
     implementation deps.support.constraint_layout
+    implementation 'com.github.prolificinteractive:material-calendarview:2.0.0'
 }

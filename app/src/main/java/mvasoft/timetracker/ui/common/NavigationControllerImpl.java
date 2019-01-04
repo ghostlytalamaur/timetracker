@@ -14,6 +14,7 @@ import mvasoft.timetracker.ui.editdate.EditDateFragment;
 import mvasoft.timetracker.ui.editsession.EditSessionFragment;
 import mvasoft.timetracker.ui.extlist.ExSessionListFragment;
 import mvasoft.timetracker.ui.preferences.PreferencesFragment;
+import mvasoft.timetracker.vo.SessionsGroup;
 
 public class NavigationControllerImpl implements NavigationController {
 
@@ -39,8 +40,8 @@ public class NavigationControllerImpl implements NavigationController {
     @Override
     public void navigateToSessions() {
         showFragment(ExSessionListFragment.class, () -> {
-            long today = System.currentTimeMillis();
-            return ExSessionListFragment.newInstance(today, today);
+            long today = System.currentTimeMillis() / 1000;
+            return ExSessionListFragment.newInstance(SessionsGroup.GroupType.gtDay, today, today);
         }, false);
     }
 
@@ -62,7 +63,7 @@ public class NavigationControllerImpl implements NavigationController {
 
     private <F extends Fragment> void showFragment(Class<F> fragmentClass, Factory<F> factory, boolean addToBackStack) {
         Fragment curFragment = mFragmentManager.findFragmentById(R.id.content_frame);
-        if (fragmentClass.isInstance(fragmentClass)) {
+        if (fragmentClass.isInstance(curFragment)) {
             return;
         }
 
@@ -71,6 +72,7 @@ public class NavigationControllerImpl implements NavigationController {
             ft.addToBackStack(null);
         else
             mFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         ft.replace(mContainerId, factory.create());
         ft.commit();
     }

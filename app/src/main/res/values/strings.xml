@@ -37,4 +37,6 @@
     <string name="nav_backup">Backup/Restore</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_group_by">Group by</string>
+    <string name="msg_group_by">Show sessions by</string>
 </resources>

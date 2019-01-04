@@ -4,16 +4,20 @@ import android.app.Application;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.LiveDataReactiveStreams;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.util.Pair;
 
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -24,31 +28,44 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import dagger.Lazy;
+import io.reactivex.Flowable;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.processors.BehaviorProcessor;
 import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
 import mvasoft.recyclerbinding.viewmodel.ListViewModel;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
-import mvasoft.timetracker.vo.DayGroup;
+import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.Session;
+import mvasoft.timetracker.vo.SessionsGroup;
+import mvasoft.utils.CollectionsUtils;
+import timber.log.Timber;
 
 
 public class ExSessionListViewModel extends BaseViewModel {
 
-    private final Lazy<AppPreferences> mAppPreferences;
-    private final DayGroupListModel mData;
     private final DateTimeFormatters mFormatter;
+    private final Lazy<AppPreferences> mAppPreferences;
+    private final Lazy<DataRepository> mRepository;
+
+    private List<SessionsGroup> mGroups;
+    private List<DayDescription> mDayDescriptions;
+
+    private long mSummaryTime;
+    private long mTargetTime;
+
     private final ListViewModel mListModel;
     private final ScheduledExecutorService mUpdateExecutor;
-    private final LiveData<String> mSummaryTimeLiveData;
-    private final LiveData<String> mTargetDiffStrLiveData;
-    private final LiveData<Boolean> mIsTargetAchieved;
-    private final Lazy<DataRepository> mRepository;
+    private final MutableLiveData<String> mSummaryTimeLiveData;
+    private final MutableLiveData<String> mTargetDiffStrLiveData;
+    private final MutableLiveData<Boolean> mIsTargetAchieved;
     private final CompositeDisposable mDisposable;
     private ScheduledFuture<?> mUpdateFuture;
     private LiveData<Boolean> mOpenedSessionId;
+    private final BehaviorProcessor<DateRange> mDateRange;
+    private final BehaviorProcessor<SessionsGroup.GroupType> mGroupType;
 
 
     @Inject
@@ -58,29 +75,50 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         mAppPreferences = appPreferences;
         mRepository = repository;
-
         mListModel = new ListViewModel();
         mFormatter = new DateTimeFormatters();
-        mData = new DayGroupListModel(appPreferences, repository);
+        mSummaryTimeLiveData = new MutableLiveData<>();
+        mTargetDiffStrLiveData = new MutableLiveData<>();
+        mIsTargetAchieved = new MutableLiveData<>();
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
 
-        mTargetDiffStrLiveData = LiveDataReactiveStreams.fromPublisher(
-                mData.getTargetTimeDiffData()
-                        .map(mFormatter::formatDuration));
+        mGroupType = BehaviorProcessor.createDefault(SessionsGroup.GroupType.gtNone);
+        long today = System.currentTimeMillis() / 1000;
+        mDateRange = BehaviorProcessor.createDefault(new DateRange(today, today));
 
-        mIsTargetAchieved = LiveDataReactiveStreams.fromPublisher(
-                mData.getTargetTimeDiffData()
-                        .map(diff -> diff >= 0));
+        Flowable<List<Session>> sessions = mDateRange
+                .flatMap(range -> mRepository.get().getSessionsRx(range.start, range.end))
+                .doOnNext(list -> Timber.d("New sessions received"));
+        Flowable<List<SessionsGroup>> sessionsGroups = Flowable.combineLatest(sessions, mGroupType, Pair::new)
+                .map(pair -> groupSessions(pair.second, pair.first));
 
-        mSummaryTimeLiveData = LiveDataReactiveStreams.fromPublisher(
-                mData.getSummaryTimeData()
-                        .map(mFormatter::formatDuration)
-        );
+        Flowable<List<DayDescription>> dayDescriptionsFlowable = mDateRange
+                .flatMap(range -> mRepository.get().getDayDescriptionsRx(range.start, range.end))
+                .doOnNext(list -> Timber.d("New day descriptions received"));
+
         mDisposable = new CompositeDisposable();
-        mDisposable.add(mData.getItems()
-                .subscribe(groups -> mListModel.setItemsList(buildListItem(groups))));
-        mDisposable.add(mData.hasRunningSessionsData()
-                .subscribe(this::updateTimer));
+        mDisposable.add(sessionsGroups.subscribe(this::setGroups));
+        mDisposable.add(dayDescriptionsFlowable.subscribe(this::setDayDescriptions));
+    }
+
+    public void setGroupType(SessionsGroup.GroupType groupType) {
+        mGroupType.onNext(groupType);
+    }
+
+    public SessionsGroup.GroupType getGroupType() {
+        return mGroupType.getValue();
+    }
+
+    private void setDayDescriptions(List<DayDescription> dayDescriptions) {
+        mDayDescriptions = dayDescriptions;
+        updateTargetTime();
+    }
+
+    private List<SessionsGroup> groupSessions(SessionsGroup.GroupType groupType, List<Session> sessions) {
+        List<SessionsGroup> groups = new ArrayList<>();
+        for (List<Session> list : CollectionsUtils.group(sessions, SessionsGroup.getGroupFunction(groupType)))
+            groups.add(new SessionsGroup(list));
+        return groups;
     }
 
     public LiveData<String> getSummaryTime() {
@@ -95,7 +133,7 @@ public class ExSessionListViewModel extends BaseViewModel {
         return mIsTargetAchieved;
     }
 
-    public LiveData<Boolean> getOpenedSessionId() {
+    LiveData<Boolean> getOpenedSessionId() {
         if (mOpenedSessionId == null)
             mOpenedSessionId = LiveDataReactiveStreams.fromPublisher(
                     mRepository.get().getOpenedSessionsIds().map(list -> list.size() > 0));
@@ -103,15 +141,19 @@ public class ExSessionListViewModel extends BaseViewModel {
         return mOpenedSessionId;
     }
 
-    public ListViewModel getListModel() {
+    ListViewModel getListModel() {
         return mListModel;
     }
 
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    public void onStart() {
+        updateTimer(mGroups != null && CollectionsUtils.contains(mGroups, SessionsGroup::hasOpenedSessions));
+    }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     public void onStop() {
         if (mUpdateFuture != null) {
-            mUpdateFuture.cancel(true);
+            mUpdateFuture.cancel(true); // fix me: run on onStart
             mUpdateFuture = null;
         }
     }
@@ -122,7 +164,6 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     @Override
     protected void onCleared() {
-        mData.dispose();
         mDisposable.dispose();
         super.onCleared();
     }
@@ -161,16 +202,68 @@ public class ExSessionListViewModel extends BaseViewModel {
         return false;
     }
 
-    public void saveState(Bundle outState) {
+    void saveState(Bundle outState) {
         mListModel.saveState(outState);
     }
 
-    public void restoreState(Bundle state) {
+    void restoreState(Bundle state) {
         mListModel.restoreState(state);
     }
 
-    public void setDate(long dateStart, long dateEnd) {
-        mData.setDateRange(dateStart, dateEnd);
+    void setDate(long dateStart, long dateEnd) {
+        mDateRange.onNext(new DateRange(dateStart, dateEnd));
+    }
+
+    private void updateTargetTime() {
+        mTargetTime = 0;
+
+        DateRange range = mDateRange.getValue();
+        DateTime start = new DateTime(range.start).withTimeAtStartOfDay();
+        DateTime end = new DateTime(range.end).withTime(23, 59, 59, 0);
+        int daysCount = Days.daysBetween(start, end).getDays() + 1;
+        final HashSet<DateTime> remainingDays = new HashSet<>(daysCount);
+        for (int nday = 1; nday < daysCount; nday++) {
+            remainingDays.add(start);
+            start.plusDays(1);
+        }
+
+        if (mDayDescriptions != null) {
+            for (DayDescription dayDescription : mDayDescriptions) {
+                if (dayDescription.isWorkingDay()) {
+                    mTargetTime += dayDescription.getTargetDuration() * 60;
+                }
+                remainingDays.remove(new DateTime(dayDescription.getDate()).withTimeAtStartOfDay());
+            }
+        }
+        for (DateTime day : remainingDays)
+            if (mAppPreferences.get().isWorkingDay(day.getDayOfWeek()))
+                mTargetTime += mAppPreferences.get().getTargetTimeInMin() * 60;
+        updateTargetDiff();
+    }
+
+    private void updateTargetDiff() {
+        long targetDiff = mSummaryTime - mTargetTime;
+        mTargetDiffStrLiveData.postValue(mFormatter.formatDuration(targetDiff));
+        mIsTargetAchieved.postValue(targetDiff >= 0);
+    }
+
+    private void setGroups(List<SessionsGroup> groups) {
+        mGroups = groups;
+
+        mListModel.setItemsList(buildListItems(mGroups));
+        updateSummary();
+        updateTimer(CollectionsUtils.contains(groups, SessionsGroup::hasOpenedSessions));
+    }
+
+    private void updateSummary() {
+        mSummaryTime = 0;
+        if (mGroups != null)
+            for (SessionsGroup group : mGroups) {
+                mSummaryTime += group.calculateDuration();
+            }
+        mSummaryTimeLiveData.postValue(mFormatter.formatDuration(mSummaryTime));
+
+        updateTargetDiff();
     }
 
     private void updateTimer(Boolean hasRunning) {
@@ -178,7 +271,7 @@ public class ExSessionListViewModel extends BaseViewModel {
             if (mUpdateFuture != null)
                 mUpdateFuture.cancel(true);
             mUpdateFuture = null;
-            mData.invalidateValues();
+            updateSummary();
 
         } else if (mUpdateFuture == null) {
             mUpdateFuture = mUpdateExecutor.scheduleWithFixedDelay(this::updateRunningItems,
@@ -194,24 +287,16 @@ public class ExSessionListViewModel extends BaseViewModel {
                     ((BaseItemViewModel) item).updateDuration();
             }
 
-        mData.invalidateValues();
+        updateSummary();
     }
 
-    private List<ItemViewModel> buildListItem(List<DayGroup> groups) {
+    private List<ItemViewModel> buildListItems(List<SessionsGroup> groups) {
         if (groups == null || groups.isEmpty())
             return null;
 
         ArrayList<ItemViewModel> res = new ArrayList<>();
-        if (mData.isSingleDay()) {
-            DayGroup group = groups.get(0);
-            if (group.hasSessions())
-                for (Session item : group.getSessions())
-                    res.add(new SessionItemViewModel(mFormatter, item));
-        } else {
-            for (DayGroup item : groups)
-                if (item.hasSessions())
-                    res.add(new DayItemViewModel(mFormatter, item, mAppPreferences.get()));
-        }
+        for (SessionsGroup group : groups)
+            res.add(new GroupItemViewModel(mFormatter, mAppPreferences.get(), group));
 
         return res;
     }
@@ -250,5 +335,15 @@ public class ExSessionListViewModel extends BaseViewModel {
                 day = day.plusDays(2);
         }
         mRepository.get().appendAll(list);
+    }
+
+    static class DateRange {
+        long start;
+        long end;
+
+        DateRange(long start, long end) {
+            this.start = start;
+            this.end = end;
+        }
     }
 }

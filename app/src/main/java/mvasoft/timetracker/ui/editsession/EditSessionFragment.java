@@ -13,6 +13,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.prolificinteractive.materialcalendarview.CalendarDay;
+
 import javax.inject.Inject;
 
 import mvasoft.dialogs.DatePickerFragment;
@@ -155,14 +157,15 @@ public class EditSessionFragment extends BindingSupportFragment<FragmentEditSess
     }
 
     public void onDatePickerDateSelectedEvent(@NonNull DatePickerFragment.DatePickerDialogResultData data) {
+        CalendarDay day = data.getDay();
         if (data.requestCode == DLG_REQUEST_START_DATE) {
-            getViewModel().getModel().setStartDate(data.year, data.month, data.dayOfMonth);
+            getViewModel().getModel().setStartDate(day.getYear(), day.getMonth(), day.getDay());
             if (mPreferences.syncStartEndDate())
-                getViewModel().getModel().setEndDate(data.year, data.month, data.dayOfMonth);
+                getViewModel().getModel().setEndDate(day.getYear(), day.getMonth(), day.getDay());
         } else {
-            getViewModel().getModel().setEndDate(data.year, data.month, data.dayOfMonth);
+            getViewModel().getModel().setEndDate(day.getYear(), day.getMonth(), day.getDay());
             if (mPreferences.syncStartEndDate())
-                getViewModel().getModel().setStartDate(data.year, data.month, data.dayOfMonth);
+                getViewModel().getModel().setStartDate(day.getYear(), day.getMonth(), day.getDay());
         }
     }
 

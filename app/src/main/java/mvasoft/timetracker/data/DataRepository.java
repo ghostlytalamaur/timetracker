@@ -47,6 +47,7 @@ public interface DataRepository {
      */
     void updateDayDescription(DayDescription dayDescription);
 
+    Flowable<List<Session>> getSessionsRx(long start, long end);
     Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days);
     Flowable<DayDescription> getDayDescriptionRx(Long date);
     Flowable<List<DayDescription>> getDayDescriptionsRx(Long start, Long end);
