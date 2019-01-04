@@ -2,9 +2,10 @@ package mvasoft.timetracker.ui.common;
 
 import org.greenrobot.eventbus.EventBus;
 
+import androidx.appcompat.app.AppCompatActivity;
 import dagger.android.support.DaggerAppCompatActivity;
 
-public abstract class EventBusSupportActivity extends DaggerAppCompatActivity {
+public abstract class EventBusSupportActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {

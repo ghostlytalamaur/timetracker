@@ -1,14 +1,14 @@
 package mvasoft.recyclerbinding.adapter;
 
-import android.arch.lifecycle.LifecycleOwner;
-import android.arch.lifecycle.Observer;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.recyclerview.extensions.AsyncListDiffer;
-import android.support.v7.util.DiffUtil;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DiffUtil;
 
-import com.hannesdorfmann.adapterdelegates3.AbsDelegationAdapter;
-import com.hannesdorfmann.adapterdelegates3.AdapterDelegate;
+import com.hannesdorfmann.adapterdelegates4.AbsDelegationAdapter;
+import com.hannesdorfmann.adapterdelegates4.AdapterDelegate;
 
 import java.util.List;
 

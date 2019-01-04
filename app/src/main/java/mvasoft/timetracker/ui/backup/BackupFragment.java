@@ -4,9 +4,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +20,7 @@ import mvasoft.dialogs.AlertDialogFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.core.Injectable;
 import mvasoft.timetracker.databinding.FragmentBackupBinding;
 import mvasoft.timetracker.db.DatabaseProvider;
 import mvasoft.timetracker.ui.common.BaseViewModel;
@@ -27,7 +28,7 @@ import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.utils.FileUtils;
 
 public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding, BaseViewModel>
-        implements DialogResultListener {
+        implements DialogResultListener, Injectable {
 
     private static final int PERMISSION_REQUEST_STORAGE_BACKUP = 2;
     private static final int PERMISSION_REQUEST_STORAGE_RESTORE = 3;

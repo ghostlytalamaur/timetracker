@@ -1,11 +1,11 @@
 package mvasoft.timetracker.ui.editdate;
 
-import android.arch.lifecycle.ViewModelProvider;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.res.ResourcesCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +20,15 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.core.Injectable;
 import mvasoft.timetracker.databinding.FragmentDatesViewBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.NavigationController;
 import mvasoft.timetracker.utils.DateTimeHelper;
 
 public class DatesViewFragment extends
-        BindingSupportFragment<FragmentDatesViewBinding, DatesViewModel> {
+        BindingSupportFragment<FragmentDatesViewBinding, DatesViewModel>
+        implements Injectable {
 
     @Inject
     ViewModelProvider.Factory mFactory;

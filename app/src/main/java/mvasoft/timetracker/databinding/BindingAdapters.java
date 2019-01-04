@@ -1,10 +1,10 @@
 package mvasoft.timetracker.databinding;
 
-import android.databinding.BindingAdapter;
-import android.databinding.InverseMethod;
+import androidx.databinding.BindingAdapter;
+import androidx.databinding.InverseMethod;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
-import android.support.design.widget.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.view.View;
 import android.widget.ImageView;
 

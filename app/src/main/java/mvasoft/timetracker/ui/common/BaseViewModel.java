@@ -1,8 +1,8 @@
 package mvasoft.timetracker.ui.common;
 
 import android.app.Application;
-import android.arch.lifecycle.LifecycleObserver;
-import android.support.annotation.NonNull;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.annotation.NonNull;
 
 import mvasoft.timetracker.databinding.BindableAndroidViewModel;
 

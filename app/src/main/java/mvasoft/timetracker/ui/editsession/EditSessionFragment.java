@@ -1,11 +1,11 @@
 package mvasoft.timetracker.ui.editsession;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.ViewModelProvider;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,13 +23,14 @@ import mvasoft.dialogs.DialogResultListener;
 import mvasoft.dialogs.TimePickerFragment;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.core.Injectable;
 import mvasoft.timetracker.databinding.FragmentEditSessionBinding;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.EditTextUtils;
 
 public class EditSessionFragment extends BindingSupportFragment<FragmentEditSessionBinding,
-        EditSessionViewModel> implements DialogResultListener {
+        EditSessionViewModel> implements DialogResultListener, Injectable {
 
     private static final int DLG_REQUEST_START_DATE = 1;
     private static final int DLG_REQUEST_END_DATE = 2;

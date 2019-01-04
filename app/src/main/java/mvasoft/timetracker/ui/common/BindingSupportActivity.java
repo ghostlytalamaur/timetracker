@@ -1,10 +1,10 @@
 package mvasoft.timetracker.ui.common;
 
-import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
 
 public abstract class BindingSupportActivity<Binding extends ViewDataBinding,
         ViewModel extends BaseViewModel> extends EventBusSupportActivity {

@@ -7,24 +7,87 @@
  */
 
 def versions = [:]
-versions.dagger = "2.13"
+versions.dagger = "2.16"
 versions.room = "1.1.0"
 versions.lifecycle = "1.1.1"
 versions.arch_core = "1.1.1"
 versions.espresso = "3.0.1"
 versions.support = "27.1.1"
+versions.androidx_lifecycle = "2.1.0-alpha01"
+versions.androidx_room = "2.1.0-alpha03"
+versions.androidx_espresso = "3.1.1"
+versions.androidx_appcompat = "1.1.0-alpha01"
+versions.androidx_constraintlayout = "2.0.0-alpha3"
+versions.androidx_preference = "1.1.0-alpha02"
+versions.androidx_recyclerview = "1.0.0"
 
 ext.versions = versions
 
 def build_versions = [:]
 build_versions.min_sdk = 21
-build_versions.target_sdk = 27
+build_versions.target_sdk = 28
 build_versions.build_tools = "28.0.3"
 build_versions.source_compatibility = JavaVersion.VERSION_1_8
 build_versions.target_compatibility = JavaVersion.VERSION_1_8
 
 ext.build_versions = build_versions
 
+
+def androidx_lifecycle = [:]
+// ViewModel and LiveData
+androidx_lifecycle.extensions = "androidx.lifecycle:lifecycle-extensions:$versions.androidx_lifecycle"
+// alternatively - just ViewModel
+androidx_lifecycle.viewmodel = "androidx.lifecycle:lifecycle-viewmodel:$versions.androidx_lifecycle" // use -ktx for Kotlin
+// alternatively - just LiveData
+androidx_lifecycle.livedata = "androidx.lifecycle:lifecycle-livedata:$versions.androidx_lifecycle"
+// alternatively - Lifecycles only (no ViewModel or LiveData). Some UI
+//     AndroidX libraries use this lightweight import for Lifecycle
+androidx_lifecycle.lifecycle = "androidx.lifecycle:lifecycle-runtime:$versions.androidx_lifecycle"
+androidx_lifecycle.compiler = "androidx.lifecycle:lifecycle-compiler:$versions.androidx_lifecycle" // use kapt for Kotlin
+// alternately - if using Java8, use the following instead of lifecycle-compiler
+androidx_lifecycle.java8 = "androidx.lifecycle:lifecycle-common-java8:$versions.androidx_lifecycle"
+// optional - ReactiveStreams support for LiveData
+androidx_lifecycle.reactivestreams = "androidx.lifecycle:lifecycle-reactivestreams:$versions.androidx_lifecycle" // use -ktx for Kotlin
+// optional - Test helpers for LiveData
+androidx_lifecycle.test ="androidx.arch.core:core-testing:$versions.androidx_lifecycle"
+
+def androidx_room = [:]
+androidx_room.runtime = "androidx.room:room-runtime:$versions.androidx_room"
+androidx_room.compiler = "androidx.room:room-compiler:$versions.androidx_room" // use kapt for Kotlin
+// optional - RxJava support for Room
+androidx_room.rxjava = "androidx.room:room-rxjava2:$versions.androidx_room"
+// optional - Guava support for Room, including Optional and ListenableFuture
+androidx_room.guave = "androidx.room:room-guava:$versions.androidx_room"
+// optional - Coroutines support for Room
+androidx_room.coroutines = "androidx.room:room-coroutines:$versions.androidx_room"
+// Test helpers
+androidx_room.test = "androidx.room:room-testing:$versions.androidx_room"
+
+def androidx_espresso = [:]
+androidx_espresso.core = "androidx.test.espresso:espresso-core:$versions.androidx_espresso"
+
+def androidx_constraintlayout = [:]
+androidx_constraintlayout.constraintlayout = "androidx.constraintlayout:constraintlayout:$versions.androidx_constraintlayout"
+
+def androidx_preference = [:]
+androidx_preference.preference = "androidx.preference:preference:$versions.androidx_preference"
+
+def androidx_legacy = [:]
+androidx_legacy.support = "androidx.legacy:legacy-support-v4:1.0.0"
+androidx_legacy.preference = "androidx.legacy:legacy-preference-v14:1.0.0"
+
+def androidx_recyclerview = [:]
+androidx_recyclerview.recyclerview = "androidx.recyclerview:recyclerview:$versions.androidx_recyclerview"
+
+def androidx = [:]
+androidx.lifecycle = androidx_lifecycle
+androidx.room = androidx_room
+androidx.espresso = androidx_espresso
+androidx.appcompat = "androidx.appcompat:appcompat:$versions.androidx_appcompat"
+androidx.constraintlayout = androidx_constraintlayout
+androidx.preference = androidx_preference
+androidx.legacy = androidx_legacy
+androidx.recyclerview = androidx_recyclerview
 
 def dagger = [:]
 dagger.runtime = "com.google.dagger:dagger:$versions.dagger"
@@ -84,6 +147,11 @@ deps.junit = junit
 deps.espresso = espresso
 deps.eventbus = eventbus
 deps.rxjava = rxjava
+deps.androidx = androidx
+deps.material = 'com.google.android.material:material:1.1.0-alpha02'
+deps.actionhandler = 'com.drextended.actionhandler:actionhandler:2.1.3'
+deps.materialcalendarview = 'com.github.prolificinteractive:material-calendarview:2.0.0'
+deps.adapterdelegates ='com.hannesdorfmann:adapterdelegates4:4.0.0'
 ext.deps = deps
 
 static def addRepos(RepositoryHandler handler) {

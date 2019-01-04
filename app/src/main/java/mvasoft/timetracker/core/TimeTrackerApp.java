@@ -1,5 +1,7 @@
 package mvasoft.timetracker.core;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 
 import com.squareup.leakcanary.LeakCanary;
@@ -12,7 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.inject.Inject;
 
 import dagger.android.AndroidInjector;
-import dagger.android.support.DaggerApplication;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.HasActivityInjector;
 import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.TimeTrackerEventBusIndex;
 import mvasoft.timetracker.events.SessionToggledEvent;
@@ -20,11 +23,13 @@ import mvasoft.timetracker.ui.widget.WidgetHelper;
 import timber.log.Timber;
 
 
-public class TimeTrackerApp extends DaggerApplication {
+public class TimeTrackerApp extends Application implements HasActivityInjector {
 
     @Inject
     WidgetHelper mWidgetHelper;
 
+    @Inject
+    DispatchingAndroidInjector<Activity> dispatchingActivityInjector;
     private RefWatcher mRefWatcher;
 
     @Override
@@ -42,6 +47,7 @@ public class TimeTrackerApp extends DaggerApplication {
             Timber.plant(new DebugPrefixTree());
         }
 
+        AppInjector.init(this);
         Timber.d("create TimeTrackerApp");
     }
 
@@ -51,10 +57,10 @@ public class TimeTrackerApp extends DaggerApplication {
         super.onTerminate();
     }
 
-    @Override
-    protected AndroidInjector<? extends DaggerApplication> applicationInjector() {
-        return DaggerAppComponent.builder().create(this);
-    }
+//    @Override
+//    protected AndroidInjector<? extends DaggerApplication> applicationInjector() {
+//        return DaggerAppComponent.builder().create(this);
+//    }
 
     public static RefWatcher getRefWatcher(Context context) {
         TimeTrackerApp app = (TimeTrackerApp) context.getApplicationContext();
@@ -64,6 +70,11 @@ public class TimeTrackerApp extends DaggerApplication {
     @Subscribe
     public void onSessionToggledEvent(SessionToggledEvent e) {
         mWidgetHelper.updateWidget();
+    }
+
+    @Override
+    public AndroidInjector<Activity> activityInjector() {
+        return dispatchingActivityInjector;
     }
 
     public class DebugPrefixTree extends Timber.DebugTree {

@@ -27,7 +27,7 @@ android {
         targetSdkVersion build_versions.target_sdk
         versionCode 3
         versionName "2.1"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Specify string resource: @string/app_name which used in AndroidManifest.xml
         resValue "string", "app_name", "TimeTracker 2"
@@ -73,26 +73,34 @@ dependencies {
     implementation deps.dagger.android_support
     annotationProcessor deps.dagger.compiler
     annotationProcessor deps.dagger.android_support_compiler
-    implementation deps.support.app_compat
-    implementation deps.support.support
-    implementation deps.support.design
-    implementation deps.support.constraint_layout
-    implementation deps.support.preferencev7
-    implementation deps.support.preferencev14
 
     implementation deps.rxjava.rxjava2
-    implementation deps.lifecycle.reactivestreams
-    implementation deps.lifecycle.extensions
-    implementation deps.room.runtime
-    implementation deps.room.rxjava2
-    testImplementation deps.room.testing
-    testImplementation deps.arch_core.testing
-    annotationProcessor deps.lifecycle.compiler
-    annotationProcessor deps.room.compiler
+    implementation deps.androidx.lifecycle.extensions
+    implementation deps.androidx.lifecycle.reactivestreams
+//    annotationProcessor deps.androidx.lifecycle.compiler
+    implementation deps.androidx.lifecycle.java8
+//
+    implementation deps.androidx.room.runtime
+    implementation deps.androidx.room.rxjava
+    annotationProcessor deps.androidx.room.compiler
+//    testImplementation 'androidx.room:room-testing:2.1.0-alpha03'
+//    testImplementation 'androidx.arch.core:core-testing:2.0.0'
+
+    implementation deps.androidx.appcompat
+    implementation deps.androidx.constraintlayout.constraintlayout
+
+    implementation deps.androidx.preference.preference
+
+    implementation deps.androidx.legacy.support
+    implementation deps.androidx.legacy.preference
+
+    implementation deps.androidx.recyclerview.recyclerview
+    implementation deps.material
+
     implementation deps.eventbus.eventbus
     annotationProcessor deps.eventbus.compiler
 
-    implementation 'com.github.prolificinteractive:material-calendarview:2.0.0'
+    implementation deps.materialcalendarview
 
     api 'com.google.guava:guava:25.1-android'
     implementation 'com.jakewharton.timber:timber:4.7.1'
@@ -101,13 +109,10 @@ dependencies {
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
 
     testImplementation deps.junit.junit
-    androidTestImplementation(deps.espresso.core, {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-    })
+    androidTestImplementation deps.androidx.espresso.core
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'joda-time:joda-time:2.9.9'
-    implementation 'com.drextended.actionhandler:actionhandler:0.1.16'
+    implementation deps.actionhandler
 
     implementation project(path: ':datetimepicker')
     implementation project(path: ':utils')

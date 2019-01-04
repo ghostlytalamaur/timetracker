@@ -1,7 +1,7 @@
 package mvasoft.timetracker.ui.editsession;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;

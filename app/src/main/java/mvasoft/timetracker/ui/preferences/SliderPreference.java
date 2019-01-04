@@ -20,8 +20,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.v7.preference.Preference;
-import android.support.v7.preference.PreferenceViewHolder;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceViewHolder;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
@@ -143,7 +143,7 @@ public class SliderPreference extends Preference {
     }
 
     public SliderPreference(Context context, AttributeSet attrs) {
-        this(context, attrs, android.support.v7.preference.R.attr.seekBarPreferenceStyle);
+        this(context, attrs, androidx.preference.R.attr.seekBarPreferenceStyle);
     }
 
     public SliderPreference(Context context) {
@@ -166,8 +166,8 @@ public class SliderPreference extends Preference {
     public void onBindViewHolder(PreferenceViewHolder view) {
         super.onBindViewHolder(view);
         view.itemView.setOnKeyListener(mSeekBarKeyListener);
-        mSeekBar = (SeekBar) view.findViewById(android.support.v7.preference.R.id.seekbar);
-        mSeekBarValueTextView = (TextView) view.findViewById(android.support.v7.preference.R.id.seekbar_value);
+        mSeekBar = (SeekBar) view.findViewById(androidx.preference.R.id.seekbar);
+        mSeekBarValueTextView = (TextView) view.findViewById(androidx.preference.R.id.seekbar_value);
         if (mShowSeekBarValue) {
             mSeekBarValueTextView.setVisibility(View.VISIBLE);
         } else {

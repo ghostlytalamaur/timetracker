@@ -1,7 +1,7 @@
 package mvasoft.timetracker.ui.common;
 
-import android.support.annotation.DrawableRes;
-import android.support.design.widget.FloatingActionButton;
+import androidx.annotation.DrawableRes;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public interface FabProvider {
     void setImageResource(@DrawableRes int id);

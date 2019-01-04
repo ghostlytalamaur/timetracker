@@ -1,8 +1,8 @@
 package mvasoft.recyclerbinding.delegate;
 
-import android.arch.lifecycle.LifecycleOwner;
-import android.databinding.ViewDataBinding;
-import android.support.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.databinding.ViewDataBinding;
+import androidx.annotation.NonNull;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
@@ -13,39 +13,40 @@ import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
 import mvasoft.recyclerbinding.viewmodel.ListViewModel;
 
 public class BindableListDelegate<VB extends ViewDataBinding>
-        extends BindableDelegate<ListViewModel, VB>  {
+        extends BindableDelegate<ItemViewModel, VB>  {
 
     private final int mModelVariableId;
     private final int mItemModelVariableId;
     private final Class<? extends ItemViewModel> mClass;
     private ActionClickListener mActionHandler;
     private int mActionHandlerId;
+    private final ListViewModel mItemsModel;
 
-    public BindableListDelegate(LifecycleOwner lifecycleOwner, int layoutRes, int modelVariableId,
+    public BindableListDelegate(LifecycleOwner lifecycleOwner, ListViewModel itemsModel, int layoutRes, int modelVariableId,
                                 int itemModelVariableId,
                                 Class<? extends ItemViewModel> itemViewModelClass) {
         super(lifecycleOwner, layoutRes);
         mModelVariableId = modelVariableId;
         mItemModelVariableId = itemModelVariableId;
         mClass = itemViewModelClass;
+        mItemsModel = itemsModel;
     }
 
     @Override
-    protected void onBindVariables(BindableHolder<VB> bindableHolder, @NonNull ListViewModel items, int position) {
-        List<ItemViewModel> list = items.getItemsData().getValue();
-        bindableHolder.getBinding().setVariable(mModelVariableId, items);
-        if ((list != null) && (position >= 0 && position < list.size()))
-            bindableHolder.getBinding().setVariable(mItemModelVariableId, list.get(position));
+    protected void onBindVariables(BindableHolder<VB> bindableHolder, @NonNull List<ItemViewModel> items, int position) {
+        ItemViewModel item = items.get(position);
+//        List<ItemViewModel> list = item.getItemsData().getValue();
+        bindableHolder.getBinding().setVariable(mModelVariableId, mItemsModel);
+        bindableHolder.getBinding().setVariable(mItemModelVariableId, item);
         if (mActionHandler != null && mActionHandlerId > 0)
             bindableHolder.getBinding().setVariable(mActionHandlerId, mActionHandler);
     }
 
     @Override
-    protected boolean isForViewType(@NonNull ListViewModel items, int position) {
-        List<ItemViewModel> list = items.getItemsData().getValue();
-        return (list != null) &&
-                (position >= 0 && position < list.size()) &&
-                mClass.isAssignableFrom(list.get(position).getClass());
+    protected boolean isForViewType(@NonNull List<ItemViewModel> items, int position) {
+        ItemViewModel item = items.get(position);
+//        List<ItemViewModel> list = items.getItemsData().getValue();
+        return mClass.isAssignableFrom(item.getClass());
     }
 
     public void setActionHandler(int variableId, ActionClickListener handler) {

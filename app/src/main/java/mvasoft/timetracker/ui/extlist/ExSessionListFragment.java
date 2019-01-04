@@ -1,19 +1,20 @@
 package mvasoft.timetracker.ui.extlist;
 
-import android.arch.lifecycle.ViewModelProvider;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,12 +24,15 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
+import com.hannesdorfmann.adapterdelegates4.AdapterDelegatesManager;
+import com.hannesdorfmann.adapterdelegates4.AsyncListDifferDelegationAdapter;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.inject.Inject;
@@ -37,12 +41,12 @@ import mvasoft.dialogs.AlertDialogFragment;
 import mvasoft.dialogs.DatePickerFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
-import mvasoft.recyclerbinding.adapter.BindableListAdapter;
 import mvasoft.recyclerbinding.delegate.BindableListDelegate;
 import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.core.Injectable;
 import mvasoft.timetracker.databinding.FragmentSessionListExBinding;
 import mvasoft.timetracker.databinding.ListItemSessionsGroupsBinding;
 import mvasoft.timetracker.events.SessionToggledEvent;
@@ -60,7 +64,7 @@ import static mvasoft.dialogs.DatePickerFragment.SELECTION_MODE_RANGE;
 
 public class ExSessionListFragment
         extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel>
-        implements DialogResultListener {
+        implements DialogResultListener, Injectable {
 
     private static final String ARGS_DATE_START = "args_date_MIN";
     private static final String ARGS_DATE_END = "args_date_MAX";
@@ -228,17 +232,16 @@ public class ExSessionListFragment
 
         ExSessionListActionHandler actionHandler = new ExSessionListActionHandler();
         BindableListDelegate<ListItemSessionsGroupsBinding> groupsDelegate =
-                new BindableListDelegate<>(this, R.layout.list_item_sessions_groups,
-                        BR.list_model, BR.view_model, GroupItemViewModel.class);
+                new BindableListDelegate<>(this, getViewModel().getListModel(),
+                        R.layout.list_item_sessions_groups, BR.list_model, BR.view_model, GroupItemViewModel.class);
         groupsDelegate.setActionHandler(BR.actionHandler, actionHandler);
 
-        //noinspection unchecked
-        BindableListAdapter adapter = new BindableListAdapter(this,
-                getViewModel().getListModel(),
-                groupsDelegate
-        );
+        AdapterDelegatesManager<List<ItemViewModel>> delegatesManager = new AdapterDelegatesManager<>();
+        delegatesManager.addDelegate(groupsDelegate);
 
+        AsyncListDifferDelegationAdapter<ItemViewModel> adapter = new AsyncListDifferDelegationAdapter<>(new DiffUtilItemViewModelCallback(), delegatesManager);
         adapter.setHasStableIds(true);
+        getViewModel().getListModel().getItemsData().observe(this, adapter::setItems);
 
         LinearLayoutManager lm = new LinearLayoutManager(getContext());
         lm.setStackFromEnd(true);
@@ -422,6 +425,18 @@ public class ExSessionListFragment
                     actionSelect(model);
                     break;
             }
+        }
+    }
+
+    static class DiffUtilItemViewModelCallback extends DiffUtil.ItemCallback<ItemViewModel> {
+        @Override
+        public boolean areItemsTheSame(@NonNull ItemViewModel oldItem, @NonNull ItemViewModel newItem) {
+            return false;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull ItemViewModel oldItem, @NonNull ItemViewModel newItem) {
+            return false;
         }
     }
 }

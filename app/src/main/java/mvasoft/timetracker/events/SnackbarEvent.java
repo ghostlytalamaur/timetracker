@@ -1,6 +1,6 @@
 package mvasoft.timetracker.events;
 
-import android.support.annotation.StringRes;
+import androidx.annotation.StringRes;
 
 public class SnackbarEvent {
     public final @StringRes

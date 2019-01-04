@@ -18,7 +18,7 @@ package com.drextended.rvdatabinding.adapter;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 
 /**

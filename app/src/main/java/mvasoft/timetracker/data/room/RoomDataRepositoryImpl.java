@@ -1,8 +1,8 @@
 package mvasoft.timetracker.data.room;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Transformations;
-import android.support.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Transformations;
+import androidx.annotation.NonNull;
 
 import org.greenrobot.eventbus.EventBus;
 

@@ -1,9 +1,9 @@
 package mvasoft.timetracker.ui.editdate;
 
 import android.app.Application;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.LiveDataReactiveStreams;
-import android.support.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.LiveDataReactiveStreams;
+import androidx.annotation.NonNull;
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 

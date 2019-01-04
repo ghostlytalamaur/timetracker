@@ -1,8 +1,8 @@
 package mvasoft.timetracker.ui.preferences;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.preference.PreferenceFragmentCompat;
+import androidx.annotation.Nullable;
+import androidx.preference.PreferenceFragmentCompat;
 
 import mvasoft.timetracker.R;
 

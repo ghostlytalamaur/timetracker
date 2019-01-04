@@ -3,15 +3,17 @@ package mvasoft.timetracker.ui;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.GravityCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.view.Gravity;
+import androidx.annotation.NonNull;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.core.view.GravityCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+
 import android.view.MenuItem;
 import android.view.View;
 
@@ -20,6 +22,9 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import javax.inject.Inject;
 
+import dagger.android.AndroidInjector;
+import dagger.android.DispatchingAndroidInjector;
+import dagger.android.support.HasSupportFragmentInjector;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.events.SnackbarEvent;
 import mvasoft.timetracker.databinding.ActivityNavigationDrawerBinding;
@@ -30,10 +35,12 @@ import mvasoft.timetracker.ui.common.NavigationController;
 
 public class NavigationDrawerActivity
         extends BindingSupportActivity<ActivityNavigationDrawerBinding, BaseViewModel>
-        implements NavigationView.OnNavigationItemSelectedListener, FabProvider {
+        implements NavigationView.OnNavigationItemSelectedListener, FabProvider, HasSupportFragmentInjector {
 
     @Inject
     NavigationController navigationController;
+    @Inject
+    DispatchingAndroidInjector<Fragment> dispatchingAndroidInjector;
     private View.OnClickListener mFabListener;
 
     @Override
@@ -60,6 +67,11 @@ public class NavigationDrawerActivity
     @Override
     public void setClickListener(FloatingActionButton.OnClickListener listener) {
         mFabListener = listener;
+    }
+
+    @Override
+    public AndroidInjector<Fragment> supportFragmentInjector() {
+        return dispatchingAndroidInjector;
     }
 
     @Override

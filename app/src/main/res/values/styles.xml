@@ -12,7 +12,7 @@
         <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormal</item>
         <item name="actionButtonColor">@android:color/white</item>
         <!--<item name="colorControlNormal">@color/color_actionbar_icon</item>-->
-        <item name="coordinatorLayoutStyle">@style/Widget.Design.CoordinatorLayout</item>
+        <!--<item name="coordinatorLayoutStyle">@style/Widget.Design.CoordinatorLayout</item>-->
 
         <item name="preferenceTheme">
             @style/PreferenceThemeOverlay.v14.Material

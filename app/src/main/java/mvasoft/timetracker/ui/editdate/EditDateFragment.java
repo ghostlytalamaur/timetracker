@@ -1,11 +1,11 @@
 package mvasoft.timetracker.ui.editdate;
 
-import android.arch.lifecycle.ViewModelProvider;
-import android.arch.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +24,7 @@ import mvasoft.dialogs.DialogResultListener;
 import mvasoft.dialogs.TimePickerFragment;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.core.Injectable;
 import mvasoft.timetracker.events.DayDescriptionSavedEvent;
 import mvasoft.timetracker.databinding.FragmentEditDateBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
@@ -31,7 +32,7 @@ import mvasoft.timetracker.ui.common.EditTextUtils;
 
 public class EditDateFragment extends
         BindingSupportFragment<FragmentEditDateBinding, EditDateViewModel> implements
-        DialogResultListener {
+        DialogResultListener, Injectable {
 
     private static final int DLG_REQUEST_TARGET_TIME = 1;
     private static final String ARGS_UNIXTIME = "args_unixtime";

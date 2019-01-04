@@ -1,12 +1,12 @@
 package mvasoft.timetracker.ui.common;
 
-import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,11 +15,12 @@ import com.squareup.leakcanary.RefWatcher;
 
 import org.greenrobot.eventbus.EventBus;
 
+import androidx.fragment.app.Fragment;
 import dagger.android.support.DaggerFragment;
 import mvasoft.timetracker.core.TimeTrackerApp;
 
 public abstract class BindingSupportFragment<Binding extends ViewDataBinding,
-        ViewModel extends BaseViewModel> extends DaggerFragment {
+        ViewModel extends BaseViewModel> extends Fragment {
 
     private Binding mBinding;
     private ViewModel mViewModel;

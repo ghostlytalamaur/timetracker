@@ -10,7 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -25,16 +25,13 @@ android {
 }
 
 dependencies {
-    androidTestImplementation(deps.espresso.core, {
-        exclude group: 'com.android.support', module: 'support-annotations'
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-    })
-    implementation deps.support.support
-    implementation deps.support.app_compat
+    androidTestImplementation deps.androidx.espresso.core
+    implementation deps.androidx.legacy.support
+    implementation deps.androidx.appcompat
 
     testImplementation deps.junit.junit
     api fileTree(include: ['*.jar'], dir: 'libs')
-    implementation deps.support.design
-    implementation deps.support.constraint_layout
-    implementation 'com.github.prolificinteractive:material-calendarview:2.0.0'
+    implementation deps.material
+    implementation deps.androidx.constraintlayout.constraintlayout
+    implementation deps.materialcalendarview
 }

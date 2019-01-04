@@ -17,13 +17,13 @@
 package com.drextended.rvdatabinding;
 
 import android.content.Context;
-import android.support.annotation.IntRange;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.LayoutManager;
-import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import androidx.annotation.IntRange;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.LayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 
 import com.drextended.rvdatabinding.adapter.ColorDividerItemDecoration;
 import com.drextended.rvdatabinding.adapter.DividerItemDecoration;
@@ -138,7 +138,7 @@ public class ListConfig {
         }
 
         /**
-         * Set {@link android.support.v7.widget.RecyclerView.ItemAnimator}
+         * Set {@link RecyclerView.ItemAnimator}
          *
          * @param itemAnimator the item animator
          * @return the builder
@@ -149,7 +149,7 @@ public class ListConfig {
         }
 
         /**
-         * Set {@link android.support.v7.widget.RecyclerView.ItemDecoration}
+         * Set {@link RecyclerView.ItemDecoration}
          *
          * @param itemDecoration the item decoration. Can be set any custom item decoration
          *                       or used one of simple: {@link DividerItemDecoration} or
@@ -165,7 +165,7 @@ public class ListConfig {
         }
 
         /**
-         * Set {@link android.support.v7.widget.RecyclerView.OnScrollListener}
+         * Set {@link RecyclerView.OnScrollListener}
          *
          * @param onScrollListener the scroll listener. Can be set any custom or used one of
          *                         simple: {@link com.drextended.rvdatabinding.adapter.LoadMoreScrollListener}
@@ -238,7 +238,7 @@ public class ListConfig {
                 mLayoutManagerProvider = new SimpleLinearLayoutManagerProvider();
             if (mDefaultDividerSize >= 0) {
                 if (mDefaultDividerSize == 0) mDefaultDividerSize = context.getResources()
-                        .getDimensionPixelSize(android.support.v4.R.dimen.compat_control_corner_material);
+                        .getDimensionPixelSize(androidx.core.R.dimen.compat_control_corner_material);
                 addItemDecoration(new DividerItemDecoration(mDefaultDividerSize));
             }
 
