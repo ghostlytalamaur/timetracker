@@ -2,6 +2,8 @@ package mvasoft.timetracker.core;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 
 import com.squareup.leakcanary.LeakCanary;
@@ -16,6 +18,8 @@ import javax.inject.Inject;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasActivityInjector;
+import dagger.android.HasBroadcastReceiverInjector;
+import dagger.android.HasServiceInjector;
 import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.TimeTrackerEventBusIndex;
 import mvasoft.timetracker.events.SessionToggledEvent;
@@ -23,13 +27,24 @@ import mvasoft.timetracker.ui.widget.WidgetHelper;
 import timber.log.Timber;
 
 
-public class TimeTrackerApp extends Application implements HasActivityInjector {
+public class TimeTrackerApp extends Application
+        implements HasActivityInjector,
+        HasBroadcastReceiverInjector,
+        HasServiceInjector
+{
 
     @Inject
     WidgetHelper mWidgetHelper;
 
     @Inject
     DispatchingAndroidInjector<Activity> dispatchingActivityInjector;
+
+    @Inject
+    DispatchingAndroidInjector<BroadcastReceiver> dispatchingReceiverInjector;
+
+    @Inject
+    DispatchingAndroidInjector<Service> dispatchingServiceInjector;
+
     private RefWatcher mRefWatcher;
 
     @Override
@@ -57,11 +72,6 @@ public class TimeTrackerApp extends Application implements HasActivityInjector {
         super.onTerminate();
     }
 
-//    @Override
-//    protected AndroidInjector<? extends DaggerApplication> applicationInjector() {
-//        return DaggerAppComponent.builder().create(this);
-//    }
-
     public static RefWatcher getRefWatcher(Context context) {
         TimeTrackerApp app = (TimeTrackerApp) context.getApplicationContext();
         return app.mRefWatcher;
@@ -75,6 +85,16 @@ public class TimeTrackerApp extends Application implements HasActivityInjector {
     @Override
     public AndroidInjector<Activity> activityInjector() {
         return dispatchingActivityInjector;
+    }
+
+    @Override
+    public AndroidInjector<BroadcastReceiver> broadcastReceiverInjector() {
+        return dispatchingReceiverInjector;
+    }
+
+    @Override
+    public AndroidInjector<Service> serviceInjector() {
+        return dispatchingServiceInjector;
     }
 
     public class DebugPrefixTree extends Timber.DebugTree {
