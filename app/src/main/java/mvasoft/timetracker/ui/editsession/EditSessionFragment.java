@@ -37,23 +37,11 @@ public class EditSessionFragment extends BindingSupportFragment<FragmentEditSess
     private static final int DLG_REQUEST_START_TIME = 3;
     private static final int DLG_REQUEST_END_TIME = 4;
 
-    private static final String ARGS_SESSION_ID = "session_id";
-
     @Inject
     ViewModelProvider.Factory mFactory;
 
     @Inject
     AppPreferences mPreferences;
-
-    static public EditSessionFragment newInstance(long sessionId) {
-
-        Bundle args = new Bundle();
-        args.putLong(ARGS_SESSION_ID, sessionId);
-
-        EditSessionFragment fragment = new EditSessionFragment();
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,7 +49,7 @@ public class EditSessionFragment extends BindingSupportFragment<FragmentEditSess
         if (savedInstanceState != null)
             getViewModel().getModel().restoreState(savedInstanceState);
         else if (getArguments() != null) {
-            long id = getArguments().getLong(ARGS_SESSION_ID, -1);
+            long id = EditSessionFragmentArgs.fromBundle(getArguments()).getSessionId();
             if (id >= 0)
                 getViewModel().getModel().setId(id);
         }

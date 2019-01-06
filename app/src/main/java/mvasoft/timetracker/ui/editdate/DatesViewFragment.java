@@ -19,11 +19,11 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import androidx.navigation.fragment.NavHostFragment;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.core.Injectable;
 import mvasoft.timetracker.databinding.FragmentDatesViewBinding;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
-import mvasoft.timetracker.ui.common.NavigationController;
 import mvasoft.timetracker.utils.DateTimeHelper;
 
 public class DatesViewFragment extends
@@ -32,8 +32,6 @@ public class DatesViewFragment extends
 
     @Inject
     ViewModelProvider.Factory mFactory;
-    @Inject
-    NavigationController navigationController;
     private DayDecorator mDayDecorator;
 
 
@@ -65,9 +63,8 @@ public class DatesViewFragment extends
     }
 
     private void showDate(long unixTime) {
-        navigationController.editDate(unixTime);
-//        if (getActivity() instanceof NavigationController)
-//            ((NavigationController) getActivity()).showFragment(() -> EditDateFragment.makeInstance(unixTime));
+        NavHostFragment.findNavController(this).navigate(
+                DatesViewFragmentDirections.actionEditDate().setDayUnixTime(unixTime));
     }
 
     @Override

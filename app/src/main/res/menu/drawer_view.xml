@@ -6,20 +6,20 @@
     >
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_sessions"
+            android:id="@+id/exSessionListFragment"
             android:title="@string/nav_sessions"
             />
 
         <item
-            android:id="@+id/nav_dates"
+            android:id="@+id/datesViewFragment"
             android:title="@string/nav_days"
             />
         <item
-            android:id="@+id/nav_settings"
+            android:id="@+id/preferencesFragment"
             android:title="@string/nav_settings"
             />
         <item
-            android:id="@+id/nav_backup"
+            android:id="@+id/backupFragment"
             android:title="@string/nav_backup"
             />
     </group>

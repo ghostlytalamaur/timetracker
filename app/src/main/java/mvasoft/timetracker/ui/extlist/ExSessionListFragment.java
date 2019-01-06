@@ -32,6 +32,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.selection.ItemKeyProvider;
 import androidx.recyclerview.selection.SelectionTracker;
 import androidx.recyclerview.selection.StorageStrategy;
@@ -60,7 +61,6 @@ import mvasoft.timetracker.events.SessionsDeletedEvent;
 import mvasoft.timetracker.events.SnackbarEvent;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
 import mvasoft.timetracker.ui.common.FabProvider;
-import mvasoft.timetracker.ui.common.NavigationController;
 import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.SessionsGroup;
 import mvasoft.utils.CollectionsUtils;
@@ -72,10 +72,6 @@ public class ExSessionListFragment
         extends BindingSupportFragment<FragmentSessionListExBinding, ExSessionListViewModel>
         implements DialogResultListener, Injectable {
 
-    private static final String ARGS_DATE_START = "args_date_MIN";
-    private static final String ARGS_DATE_END = "args_date_MAX";
-    private static final String ARGS_GROUP_TYPE = "args_group_type";
-
     private static final int DLG_REQUEST_DELETE_SESSION = 1;
     private static final int DLG_REQUEST_DATE = 2;
     private static final String DATE_PICKER_TAG = "ExSessionListFragmentSelectDateDlg";
@@ -86,34 +82,14 @@ public class ExSessionListFragment
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
-    @Inject
-    NavigationController navigationController;
+
     private FabProvider mFabProvider;
     private View.OnClickListener mFabListener;
     private SelectionTracker<Long> mSelectionTracker;
 
-    public static ExSessionListFragment newInstance(SessionsGroup.GroupType groupType, long minDate, long maxDate) {
-        ExSessionListFragment fragment = new ExSessionListFragment();
-        Bundle args = new Bundle();
-        args.putLong(ARGS_DATE_START, minDate);
-        args.putLong(ARGS_DATE_END, maxDate);
-        args.putInt(ARGS_GROUP_TYPE, groupType.ordinal());
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (savedInstanceState == null && getArguments() != null) {
-            Bundle args = getArguments();
-            long now = System.currentTimeMillis() / 1000;
-            setDate(args.getLong(ARGS_DATE_START, now),
-                    args.getLong(ARGS_DATE_END, now));
-            getViewModel().setGroupType(SessionsGroup.GroupType.values()[args.getInt(ARGS_GROUP_TYPE)]);
-        }
-
         mActionModeCallbacks = new ActionModeCallbacks();
         setHasOptionsMenu(true);
     }
@@ -398,8 +374,10 @@ public class ExSessionListFragment
     public class ExSessionListActionHandler {
 
         public void onItemClick(GroupItemViewModel item) {
-            if ((mActionMode == null) && (item.sessionsCount() == 1))
-                navigationController.editSession(item.getId());
+            if ((mActionMode == null) && (item.sessionsCount() == 1)) {
+                NavHostFragment.findNavController(ExSessionListFragment.this).navigate(
+                        ExSessionListFragmentDirections.actionEditSession().setSessionId(item.getId()));
+            }
             else if (mActionMode != null) {
                 long id = item.getId();
                 if (mSelectionTracker.isSelected(id))

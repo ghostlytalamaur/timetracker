@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'androidx.navigation.safeargs'
 
 // Create a variable called keystorePropertiesFile, and initialize it to your
 // keystore.properties file, in the rootProject folder.
@@ -97,6 +98,12 @@ dependencies {
     implementation deps.androidx.recyclerview.recyclerview
     implementation deps.androidx.recyclerview.selection
     implementation deps.material
+
+    def nav_version = "1.0.0-alpha09"
+
+    implementation "android.arch.navigation:navigation-fragment:$nav_version" // use -ktx for Kotlin
+    implementation "android.arch.navigation:navigation-ui:$nav_version" // use -ktx for Kotlin
+
 
     implementation deps.eventbus.eventbus
     annotationProcessor deps.eventbus.compiler

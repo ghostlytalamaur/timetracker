@@ -35,25 +35,16 @@ public class EditDateFragment extends
         DialogResultListener, Injectable {
 
     private static final int DLG_REQUEST_TARGET_TIME = 1;
-    private static final String ARGS_UNIXTIME = "args_unixtime";
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
-
-    public static EditDateFragment makeInstance(long unixTime) {
-        Bundle args = new Bundle();
-        args.putLong(ARGS_UNIXTIME, unixTime);
-        EditDateFragment f = new EditDateFragment();
-        f.setArguments(args);
-        return f;
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         if (getArguments() != null)
-            setDate(getArguments().getLong(ARGS_UNIXTIME));
+            setDate(EditDateFragmentArgs.fromBundle(getArguments()).getDayUnixTime());
     }
 
     @Nullable
