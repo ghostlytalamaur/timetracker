@@ -1,16 +1,14 @@
 package mvasoft.timetracker.data;
 
-import androidx.lifecycle.LiveData;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.lifecycle.LiveData;
 import io.reactivex.Flowable;
 import mvasoft.timetracker.events.SessionSavedEvent;
 import mvasoft.timetracker.events.SessionToggledEvent;
 import mvasoft.timetracker.events.SessionsDeletedEvent;
 import mvasoft.timetracker.vo.DayDescription;
-import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
 
 public interface DataRepository {
@@ -48,7 +46,6 @@ public interface DataRepository {
     void updateDayDescription(DayDescription dayDescription);
 
     Flowable<List<Session>> getSessionsRx(long start, long end);
-    Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days);
     Flowable<DayDescription> getDayDescriptionRx(Long date);
     Flowable<List<DayDescription>> getDayDescriptionsRx(Long start, Long end);
 

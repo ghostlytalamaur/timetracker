@@ -5,7 +5,7 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "sessions")
-public class Session implements TimeInfoProvider {
+public class Session {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "_id")

@@ -23,6 +23,7 @@ import dagger.android.HasServiceInjector;
 import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.TimeTrackerEventBusIndex;
 import mvasoft.timetracker.events.SessionToggledEvent;
+import mvasoft.timetracker.events.SessionsDeletedEvent;
 import mvasoft.timetracker.ui.widget.WidgetHelper;
 import timber.log.Timber;
 
@@ -75,6 +76,11 @@ public class TimeTrackerApp extends Application
     public static RefWatcher getRefWatcher(Context context) {
         TimeTrackerApp app = (TimeTrackerApp) context.getApplicationContext();
         return app.mRefWatcher;
+    }
+
+    @Subscribe
+    public void onSessionsDeleted(SessionsDeletedEvent e) {
+        mWidgetHelper.updateWidget();
     }
 
     @Subscribe

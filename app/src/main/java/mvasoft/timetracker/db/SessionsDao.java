@@ -1,24 +1,17 @@
 package mvasoft.timetracker.db;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-import androidx.room.Transaction;
 import androidx.room.Update;
-import androidx.collection.LongSparseArray;
-import android.util.Pair;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import io.reactivex.Flowable;
-import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayDescription;
-import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
-import timber.log.Timber;
 
 
 @Dao
@@ -67,85 +60,11 @@ public abstract class SessionsDao {
     @Query("SELECT * from days WHERE date(dayDate, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
     public abstract Flowable<List<DayDescription>> getDayDescriptionsRx(long start, long end);
 
-    @Query("SELECT * from days WHERE date(:date, 'unixepoch', 'localtime') = date(dayDate, 'unixepoch', 'localtime')")
-    public abstract DayDescription getDayDescriptionRaw(long date);
-
-    @Transaction
-    public List<DayGroup> getDayGroups(List<Long> days) {
-        ArrayList<DayGroup> res = null;
-        for (Long day : days) {
-            DayDescription dayDescription = getDayDescriptionRaw(day);
-            List<Session> sessions = getSessionForDateRaw(day);
-            if (dayDescription == null && (sessions == null || sessions.size() == 0))
-                continue;
-
-            if (res == null)
-                res = new ArrayList<>();
-            res.add(new DayGroup(day, dayDescription, sessions == null || sessions.size() == 0 ? null : sessions));
-        }
-        return res;
-    }
-
     @Query("SELECT * from sessions WHERE date(startTime, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
     public abstract Flowable<List<Session>> getSessionsRx(long start, long end);
 
     @Query("SELECT * from days WHERE date(dayDate, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
     abstract Flowable<List<DayDescription>> getDayDescriptionsForDays(long start, long end);
-
-    public Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days) {
-        Flowable<List<Session>> sessionsFlowable =
-                getSessionsRx(days.get(0), days.get(days.size() - 1));
-        Flowable<List<DayDescription>> dayDescriptionsFlowable =
-                getDayDescriptionsForDays(days.get(0), days.get(days.size() - 1));
-        return Flowable
-                .combineLatest(sessionsFlowable, dayDescriptionsFlowable, Pair::new)
-                .map(daysAndSessions ->
-                        buildGroups(daysAndSessions.first, daysAndSessions.second));
-    }
-
-    private static List<DayGroup> buildGroups(List<Session> sessions, List<DayDescription> days) {
-
-        LongSparseArray<MutablePair<DayDescription, List<Session>>> map = new LongSparseArray<>();
-        if (sessions != null)
-            for (Session s : sessions) {
-                long day = DateTimeHelper.startOfDay(s.getStartTime());
-
-                MutablePair<DayDescription, List<Session>> pair = map.get(day);
-                if (pair == null) {
-                    pair = new MutablePair<>();
-                    pair.second = new ArrayList<>();
-                    map.put(day, pair);
-                }
-
-                pair.second.add(s);
-            }
-
-        if (days != null)
-            for (DayDescription dd : days) {
-                long day = DateTimeHelper.startOfDay(dd.getDate());
-                MutablePair<DayDescription, List<Session>> pair = map.get(day);
-                if (pair == null) {
-                    pair = new MutablePair<>();
-                    map.put(day, pair);
-                }
-
-                if (pair.first != null)
-                    Timber.e("DayDescription already set for day %d", day);
-                pair.first = dd;
-            }
-
-
-        List<DayGroup> resList = new ArrayList<>(map.size());
-        for (int i = 0; i < map.size(); i++) {
-            long day = map.keyAt(i);
-            MutablePair<DayDescription, List<Session>> v = map.get(day);
-            resList.add(new DayGroup(day, v.first, v.second));
-        }
-
-        return resList;
-    }
-
-
 
     @Insert
     public abstract void appendAll(ArrayList<Session> list);

@@ -16,8 +16,8 @@ public class DateTimeHelper {
     }
 
     public static boolean sameDays(long first, long second) {
-        return Days.daysBetween(new DateTime(first * 1000),
-                new DateTime(second * 1000)).getDays() == 0;
+        return new DateTime(first * 1000).withTimeAtStartOfDay()
+                .equals(new DateTime(second * 1000).withTimeAtStartOfDay());
     }
 
 

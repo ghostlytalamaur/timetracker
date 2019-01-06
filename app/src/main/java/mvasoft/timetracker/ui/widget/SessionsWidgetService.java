@@ -21,8 +21,8 @@ import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.NavigationDrawerActivity;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.utils.DateTimeHelper;
-import mvasoft.timetracker.vo.DayGroup;
-import mvasoft.timetracker.vo.DayGroupsUtils;
+import mvasoft.timetracker.vo.SessionUtils;
+import mvasoft.timetracker.vo.Session;
 import timber.log.Timber;
 
 import static mvasoft.timetracker.utils.DateTimeFormatters.DateTimeFormattersType.dtft_Clipboard;
@@ -99,12 +99,14 @@ public class SessionsWidgetService extends JobIntentService {
         long today = System.currentTimeMillis() / 1000;
         List<Long> days = DateTimeHelper.daysList(
                 DateTimeHelper.startOfMonthWeek(today), DateTimeHelper.endOfMonthWeek(today));
-        updateWidget(mRepository.get().getDayGroupsRx(days)
+        List<Session> sessions = mRepository.get()
+                .getSessionsRx(DateTimeHelper.startOfMonthWeek(today), DateTimeHelper.endOfMonthWeek(today))
                 .first(Collections.emptyList())
-                .blockingGet());
+                .blockingGet();
+        updateWidget(sessions);
     }
 
-    private void updateWidget(List<DayGroup> groups) {
+    private void updateWidget(List<Session> sessions) {
         AppWidgetManager widgetMan = AppWidgetManager.getInstance(this);
         int[] ids = widgetMan.getAppWidgetIds(new ComponentName(this, SessionsWidget.class));
         if (ids.length <= 0) {
@@ -113,35 +115,34 @@ public class SessionsWidgetService extends JobIntentService {
 
         RemoteViews views = new RemoteViews(getPackageName(), R.layout.sessions_widget);
 
-        bindViews(views, groups);
+        bindViews(views, sessions);
         widgetMan.updateAppWidget(ids, views);
     }
 
-    private void bindViews(RemoteViews views, List<DayGroup> groups) {
+    private void bindViews(RemoteViews views, List<Session> sessions) {
         if (views == null)
             return;
 
         Timber.d("bindViews()");
-        DayGroupsUtils.sortGroups(groups);
+//        SessionUtils.sortGroups(sessions);
         // Bind text views
         String todayText;
         String stateText;
         String weekText;
         int btnImageId;
 
-        DayGroup todayGroup = DayGroupsUtils.getDayGroupForDay(groups,
-                System.currentTimeMillis() / 1000);
-        if (todayGroup != null) {
+        List<Session> todaySessions = SessionUtils.getSessionsForDay(sessions,System.currentTimeMillis() / 1000);
+        if (todaySessions != null) {
             todayText = String.format(getString(R.string.appwidget_text_today),
-                    getFormatters().formatDuration(todayGroup.getDuration()));
+                    getFormatters().formatDuration(SessionUtils.getDuration(todaySessions)));
 
         } else {
             todayText = getString(R.string.appwidget_text_today_empty);
         }
 
-        if (groups.size() > 0) {
+        if (sessions.size() > 0) {
             weekText = String.format(getString(R.string.appwidget_text_week),
-                    getFormatters().formatDuration(DayGroupsUtils.getDuration(groups)));
+                    getFormatters().formatDuration(SessionUtils.getDuration(sessions)));
         }
         else {
             weekText = getString(R.string.appwidget_text_week_empty);

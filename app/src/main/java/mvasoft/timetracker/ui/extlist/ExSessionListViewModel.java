@@ -9,7 +9,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -23,7 +22,6 @@ import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
-import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.LiveDataReactiveStreams;
@@ -39,6 +37,7 @@ import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.Session;
+import mvasoft.timetracker.vo.SessionUtils;
 import mvasoft.timetracker.vo.SessionsGroup;
 import mvasoft.utils.CollectionsUtils;
 import timber.log.Timber;
@@ -92,25 +91,13 @@ public class ExSessionListViewModel extends BaseViewModel {
         Flowable<List<SessionsGroup>> sessionsGroups = Flowable.combineLatest(sessions, mGroupType, Pair::new)
                 .map(pair -> groupSessions(pair.second, pair.first));
 
-        Flowable<List<DayDescription>> dayDescriptionsFlowable = mDateRange
+        Flowable<List<DayDescription>> dayDescriptions = mDateRange
                 .flatMap(range -> mRepository.get().getDayDescriptionsRx(range.start, range.end))
                 .doOnNext(list -> Timber.d("New day descriptions received"));
 
         mDisposable = new CompositeDisposable();
         mDisposable.add(sessionsGroups.subscribe(this::setGroups));
-        mDisposable.add(dayDescriptionsFlowable.subscribe(this::setDayDescriptions));
-
-        new DefaultLifecycleObserver() {
-            @Override
-            public void onStop(@NonNull LifecycleOwner owner) {
-                onStop(owner);
-            }
-
-            @Override
-            public void onStart(@NonNull LifecycleOwner owner) {
-                onStart(owner);
-            }
-        };
+        mDisposable.add(dayDescriptions.subscribe(this::setDayDescriptions));
     }
 
     void setGroupType(SessionsGroup.GroupType groupType) {
@@ -129,21 +116,11 @@ public class ExSessionListViewModel extends BaseViewModel {
     private List<SessionsGroup> groupSessions(SessionsGroup.GroupType groupType, List<Session> sessions) {
         List<SessionsGroup> groups = new ArrayList<>();
         for (List<Session> list : CollectionsUtils.group(sessions, SessionsGroup.getGroupFunction(groupType))) {
-            Collections.sort(list, (l, r) -> {
-                int res = Long.compare(l.getStartTime(), r.getStartTime());
-                if (res == 0)
-                    res = Long.compare(l.getEndTime(), r.getEndTime());
-                return res;
-            });
+            SessionUtils.sortSessions(list);
             groups.add(new SessionsGroup(list));
         }
 
-        Collections.sort(groups, (l, r) -> {
-            int res = Long.compare(l.getStart(), r.getStart());
-            if (res == 0)
-                res = Long.compare(l.getEnd(), r.getEnd());
-            return res;
-        });
+        SessionUtils.sortGroups(groups);
         return groups;
     }
 
@@ -239,7 +216,7 @@ public class ExSessionListViewModel extends BaseViewModel {
         DateTime end = new DateTime(range.end).withTime(23, 59, 59, 0);
         int daysCount = Days.daysBetween(start, end).getDays() + 1;
         final HashSet<DateTime> remainingDays = new HashSet<>(daysCount);
-        for (int nday = 1; nday < daysCount; nday++) {
+        for (int nDay = 1; nDay < daysCount; nDay++) {
             remainingDays.add(start);
             start.plusDays(1);
         }
@@ -331,7 +308,6 @@ public class ExSessionListViewModel extends BaseViewModel {
         return ids;
     }
 
-
     void fillFakeSessions() {
         DateTime day = new DateTime(System.currentTimeMillis())
                 .minusYears(1)
@@ -355,8 +331,8 @@ public class ExSessionListViewModel extends BaseViewModel {
     }
 
     static class DateRange {
-        long start;
-        long end;
+        final long start;
+        final long end;
 
         DateRange(long start, long end) {
             this.start = start;

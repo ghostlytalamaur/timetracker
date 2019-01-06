@@ -1,9 +1,5 @@
 package mvasoft.timetracker.data.room;
 
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Transformations;
-import androidx.annotation.NonNull;
-
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
@@ -13,20 +9,22 @@ import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Transformations;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposables;
 import io.reactivex.functions.Action;
 import mvasoft.timetracker.core.AppExecutors;
 import mvasoft.timetracker.data.DataRepository;
+import mvasoft.timetracker.db.AppDatabase;
+import mvasoft.timetracker.db.DatabaseProvider;
 import mvasoft.timetracker.events.DayDescriptionSavedEvent;
 import mvasoft.timetracker.events.SessionSavedEvent;
 import mvasoft.timetracker.events.SessionToggledEvent;
 import mvasoft.timetracker.events.SessionsDeletedEvent;
-import mvasoft.timetracker.db.AppDatabase;
-import mvasoft.timetracker.db.DatabaseProvider;
 import mvasoft.timetracker.vo.DayDescription;
-import mvasoft.timetracker.vo.DayGroup;
 import mvasoft.timetracker.vo.Session;
 import timber.log.Timber;
 
@@ -124,11 +122,6 @@ public class RoomDataRepositoryImpl implements DataRepository {
     @Override
     public Flowable<List<Session>> getSessionsRx(long start, long end) {
         return createFlowable(() -> getDb().groupsModel().getSessionsRx(start, end));
-    }
-
-    @Override
-    public Flowable<List<DayGroup>> getDayGroupsRx(List<Long> days) {
-        return createFlowable(() -> getDb().groupsModel().getDayGroupsRx(days));
     }
 
     @Override
