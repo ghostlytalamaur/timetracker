@@ -6,8 +6,8 @@
 
     <data>
         <variable
-            name="list_model"
-            type="mvasoft.recyclerbinding.viewmodel.ListViewModel"
+            name="isSelected"
+            type="boolean"
             />
         <variable
             name="view_model"
@@ -16,10 +16,7 @@
 
         <variable
             name="actionHandler"
-            type="com.drextended.actionhandler.listener.ActionClickListener"/>
-        <import
-            alias="ActionType"
-            type="mvasoft.timetracker.ui.extlist.ExSessionListFragment.ExSessionListActionType" />
+            type="mvasoft.timetracker.ui.extlist.ExSessionListFragment.ExSessionListActionHandler"/>
         <import
             alias="v"
             type="android.view.View" />
@@ -29,11 +26,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:animateLayoutChanges="true"
+        android:onClick="@{(view) -> actionHandler.onItemClick(view_model)}"
         style="@style/ListSelectedBackground"
-        app:actionHandler="@{actionHandler}"
-        app:actionType="@{ActionType.CLICK}"
-        app:actionTypeLongClick="@{ActionType.SELECT}"
-        app:model="@{view_model}">
+        >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             style="@style/ListSelectedBackground"
@@ -135,8 +130,8 @@
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
-                android:checked="@{safeUnbox(view_model.isSelected)}"
-                android:visibility="@{safeUnbox(list_model.hasSelectedItems) ? v.VISIBLE : v.GONE}"
+                android:checked="@{isSelected}"
+                android:visibility="@{isSelected ? v.VISIBLE : v.GONE}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

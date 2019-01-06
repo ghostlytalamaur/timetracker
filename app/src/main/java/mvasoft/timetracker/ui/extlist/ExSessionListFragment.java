@@ -1,20 +1,6 @@
 package mvasoft.timetracker.ui.extlist;
 
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import androidx.annotation.IdRes;
-import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.view.ActionMode;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,9 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.drextended.actionhandler.listener.ActionClickListener;
-import com.hannesdorfmann.adapterdelegates4.AdapterDelegatesManager;
-import com.hannesdorfmann.adapterdelegates4.AsyncListDifferDelegationAdapter;
+import com.google.android.material.snackbar.Snackbar;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 
 import org.greenrobot.eventbus.EventBus;
@@ -37,12 +21,34 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
+import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.selection.ItemKeyProvider;
+import androidx.recyclerview.selection.SelectionTracker;
+import androidx.recyclerview.selection.StorageStrategy;
+import androidx.recyclerview.widget.AdapterListUpdateCallback;
+import androidx.recyclerview.widget.AsyncDifferConfig;
+import androidx.recyclerview.widget.AsyncListDiffer;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import mvasoft.dialogs.AlertDialogFragment;
 import mvasoft.dialogs.DatePickerFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
-import mvasoft.recyclerbinding.delegate.BindableListDelegate;
-import mvasoft.recyclerbinding.viewmodel.ItemViewModel;
+import mvasoft.recyclerbinding.DiffUtilItemViewModelCallback;
+import mvasoft.recyclerbinding.ItemViewModelDetailsLookup;
+import mvasoft.recyclerbinding.ItemViewModelKeyProvider;
+import mvasoft.recyclerbinding.ItemViewModel;
 import mvasoft.timetracker.BR;
 import mvasoft.timetracker.BuildConfig;
 import mvasoft.timetracker.R;
@@ -84,6 +90,7 @@ public class ExSessionListFragment
     NavigationController navigationController;
     private FabProvider mFabProvider;
     private View.OnClickListener mFabListener;
+    private SelectionTracker<Long> mSelectionTracker;
 
     public static ExSessionListFragment newInstance(SessionsGroup.GroupType groupType, long minDate, long maxDate) {
         ExSessionListFragment fragment = new ExSessionListFragment();
@@ -115,7 +122,7 @@ public class ExSessionListFragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = super.onCreateView(inflater, container, savedInstanceState);
-        initAdapter();
+        initAdapter(savedInstanceState);
         updateFab(false);
         getViewModel().getOpenedSessionId().observe(this, b -> updateFab(b != null && b));
         return v;
@@ -134,14 +141,12 @@ public class ExSessionListFragment
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-        if (savedInstanceState != null)
-            getViewModel().restoreState(savedInstanceState);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        getViewModel().saveState(outState);
+        mSelectionTracker.onSaveInstanceState(outState);
     }
 
     @Override
@@ -226,22 +231,14 @@ public class ExSessionListFragment
         return BR.view_model;
     }
 
-    private void initAdapter() {
+    private void initAdapter(Bundle savedInstanceState) {
         if (getContext() == null)
             return;
 
         ExSessionListActionHandler actionHandler = new ExSessionListActionHandler();
-        BindableListDelegate<ListItemSessionsGroupsBinding> groupsDelegate =
-                new BindableListDelegate<>(this, getViewModel().getListModel(),
-                        R.layout.list_item_sessions_groups, BR.list_model, BR.view_model, GroupItemViewModel.class);
-        groupsDelegate.setActionHandler(BR.actionHandler, actionHandler);
-
-        AdapterDelegatesManager<List<ItemViewModel>> delegatesManager = new AdapterDelegatesManager<>();
-        delegatesManager.addDelegate(groupsDelegate);
-
-        AsyncListDifferDelegationAdapter<ItemViewModel> adapter = new AsyncListDifferDelegationAdapter<>(new DiffUtilItemViewModelCallback(), delegatesManager);
+        ItemsViewModelAdapter adapter = new ItemsViewModelAdapter(this, actionHandler);
         adapter.setHasStableIds(true);
-        getViewModel().getListModel().getItemsData().observe(this, adapter::setItems);
+        getViewModel().getListModel().observe(this, adapter::submitList);
 
         LinearLayoutManager lm = new LinearLayoutManager(getContext());
         lm.setStackFromEnd(true);
@@ -253,8 +250,24 @@ public class ExSessionListFragment
         recyclerView.setLayoutManager(lm);
         recyclerView.setAdapter(adapter);
 
-        getViewModel().getListModel().hasSelectedItems().observe(this, (ignored) ->
-                updateActionMode());
+        ItemViewModelKeyProvider keyProvider = new ItemViewModelKeyProvider(adapter, ItemKeyProvider.SCOPE_CACHED);
+        mSelectionTracker = new SelectionTracker.Builder<>(
+                "selection-id",
+                recyclerView,
+                keyProvider,
+                new ItemViewModelDetailsLookup(recyclerView, keyProvider),
+                StorageStrategy.createLongStorage()
+        ).build();
+        mSelectionTracker.addObserver(new SelectionTracker.SelectionObserver<Long>() {
+            @Override
+            public void onItemStateChanged(@NonNull Long key, boolean selected) {
+                super.onItemStateChanged(key, selected);
+                updateActionMode();
+            }
+        });
+        adapter.setSelectionTracker(mSelectionTracker);
+        if (savedInstanceState != null)
+            mSelectionTracker.onRestoreInstanceState(savedInstanceState);
     }
 
     private void setDate(long dateStart, long dateEnd) {
@@ -266,7 +279,7 @@ public class ExSessionListFragment
     public void onDialogResult(@NonNull DialogResultData data) {
         switch (data.requestCode) {
             case DLG_REQUEST_DELETE_SESSION: {
-                getViewModel().deleteSelected();
+                getViewModel().deleteSelected(CollectionsUtils.asSet(mSelectionTracker.getSelection()));
                 if (mActionMode != null)
                     mActionMode.finish();
                 break;
@@ -290,37 +303,12 @@ public class ExSessionListFragment
         setDate(start, end);
     }
 
-
-    private void actionClick(Object model) {
-        if (!(model instanceof ItemViewModel))
-            return;
-
-        ItemViewModel groupModel = (ItemViewModel) model;
-        if ((mActionMode == null) && (groupModel instanceof GroupItemViewModel) &&
-                ((GroupItemViewModel) groupModel).sessionsCount() == 1)
-            editSession(groupModel.getId());
-        else if (mActionMode != null) {
-            ((ItemViewModel) model).toggleSelection();
-        }
-
-    }
-
-    private void editSession(long sessionId) {
-        navigationController.editSession(sessionId);
-    }
-
-    private void actionSelect(Object model) {
-        if (!(model instanceof ItemViewModel))
-            return;
-
-        ((ItemViewModel) model).setIsSelected(true);
-    }
-
     private void updateActionMode() {
         if (getActivity() == null)
             return;
 
-        int cnt = getViewModel().getListModel().getSelectedItemsCount();
+
+        int cnt = mSelectionTracker.getSelection().size(); // getViewModel().getListModel().getSelectedItemsCount();
         if (cnt > 0) {
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
@@ -337,7 +325,7 @@ public class ExSessionListFragment
     }
 
     private void copyToClipboard() {
-        if (getViewModel().copySelectedToClipboard())
+        if (getViewModel().copyToClipboard(CollectionsUtils.asSet(mSelectionTracker.getSelection())))
             Toast.makeText(getContext(), R.string.msg_selected_items_copied_to_clipboard,
                     Toast.LENGTH_LONG).show();
         else
@@ -402,41 +390,107 @@ public class ExSessionListFragment
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             mActionMode = null;
-            getViewModel().getListModel().deselectAll();
+            mSelectionTracker.clearSelection();
         }
 
     }
 
-    public static class ExSessionListActionType {
-        public static final String CLICK = "click";
-        public static final String SELECT = "select";
-    }
+    public class ExSessionListActionHandler {
 
-    private class ExSessionListActionHandler implements ActionClickListener {
-
-        @Override
-        public void onActionClick(View view, String actionType, Object model) {
-            switch (actionType) {
-                case ExSessionListActionType.CLICK:
-                    actionClick(model);
-                    break;
-
-                case ExSessionListActionType.SELECT:
-                    actionSelect(model);
-                    break;
+        public void onItemClick(GroupItemViewModel item) {
+            if ((mActionMode == null) && (item.sessionsCount() == 1))
+                navigationController.editSession(item.getId());
+            else if (mActionMode != null) {
+                long id = item.getId();
+                if (mSelectionTracker.isSelected(id))
+                    mSelectionTracker.deselect(id);
+                else
+                    mSelectionTracker.select(id);
             }
         }
+
     }
 
-    static class DiffUtilItemViewModelCallback extends DiffUtil.ItemCallback<ItemViewModel> {
+    static class ItemViewHolder extends RecyclerView.ViewHolder {
+
+        private final ListItemSessionsGroupsBinding mBinding;
+
+        static ItemViewHolder newInstance(@NonNull ViewGroup parent) {
+            final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+            ListItemSessionsGroupsBinding binding = DataBindingUtil.inflate(inflater,
+                    R.layout.list_item_sessions_groups, parent, false);
+            return new ItemViewHolder(binding);
+        }
+
+        ItemViewHolder(ListItemSessionsGroupsBinding binding) {
+            super(binding.getRoot());
+            mBinding = binding;
+        }
+
+        void bindTo(LifecycleOwner lifecycleOwner, SelectionTracker<Long> selectionTracker,
+                    ExSessionListActionHandler actionHandler, ItemViewModel item) {
+            mBinding.setLifecycleOwner(lifecycleOwner);
+            mBinding.setIsSelected(selectionTracker != null && selectionTracker.isSelected(item.getId()));
+            mBinding.setActionHandler(actionHandler);
+            mBinding.setViewModel((GroupItemViewModel) item);
+
+            mBinding.executePendingBindings();
+        }
+    }
+
+    static class ItemsViewModelAdapter extends RecyclerView.Adapter<ItemViewHolder>
+            implements ItemViewModelKeyProvider.ItemsProvider {
+
+        private final AsyncListDiffer<ItemViewModel> mHelper;
+
+        private SelectionTracker<Long> mSelectionTracker;
+        private ExSessionListActionHandler mActionHandler;
+        private LifecycleOwner mLifecycleOwner;
+
+        public ItemsViewModelAdapter(LifecycleOwner lifecycleOwner, ExSessionListActionHandler actionHandler) {
+            mLifecycleOwner = lifecycleOwner;
+            mActionHandler = actionHandler;
+            mHelper = new AsyncListDiffer<>(
+                    new AdapterListUpdateCallback(this),
+                    new AsyncDifferConfig.Builder<>(new DiffUtilItemViewModelCallback()).build());
+        }
+
+        @NonNull
         @Override
-        public boolean areItemsTheSame(@NonNull ItemViewModel oldItem, @NonNull ItemViewModel newItem) {
-            return false;
+        public ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return ItemViewHolder.newInstance(parent);
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull ItemViewModel oldItem, @NonNull ItemViewModel newItem) {
-            return false;
+        public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
+            holder.bindTo(mLifecycleOwner, mSelectionTracker, mActionHandler, getItem(position));
+        }
+
+        public ItemViewModel getItem(int pos) {
+            return mHelper.getCurrentList().get(pos);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mHelper.getCurrentList().size();
+        }
+
+        @Override
+        public List<ItemViewModel> getItems() {
+            return mHelper.getCurrentList();
+        }
+
+        void submitList(List<ItemViewModel> list) {
+            mHelper.submitList(list);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return mHelper.getCurrentList().get(position).getId();
+        }
+
+        void setSelectionTracker(SelectionTracker<Long> selectionTracker) {
+            mSelectionTracker = selectionTracker;
         }
     }
 }

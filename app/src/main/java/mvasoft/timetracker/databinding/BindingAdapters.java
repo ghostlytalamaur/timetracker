@@ -8,8 +8,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.drextended.actionhandler.listener.ActionClickListener;
-
 
 public class BindingAdapters {
 
@@ -48,7 +46,7 @@ public class BindingAdapters {
      * @param actionType          The action type, which will be handled on view clicked
      * @param actionTypeLongClick The action type, which will be handled on view long clicked
      * @param model               The model which will be handled
-     */
+
     @BindingAdapter(
             value = {"actionHandler", "actionType", "actionTypeLongClick", "model"},
             requireAll = false
@@ -73,7 +71,7 @@ public class BindingAdapters {
             }
         }
     }
-
+     */
     @BindingAdapter(value = {"activated"})
     public static void setActivated(final View view, boolean isActivated) {
         if (view.isActivated() == isActivated)

@@ -6,19 +6,20 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
+import mvasoft.recyclerbinding.ItemViewModel;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.utils.DateTimeFormatters;
 import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.SessionsGroup;
 
-public class GroupItemViewModel extends BaseItemViewModel {
+public class GroupItemViewModel extends ItemViewModel {
 
     private final SessionsGroup mGroup;
     private final DateTimeFormatters mFormatter;
     private final AppPreferences mPreferences;
     private final MutableLiveData<String> mDurationData;
 
-    public GroupItemViewModel(DateTimeFormatters formatter, AppPreferences preferences, SessionsGroup group) {
+    GroupItemViewModel(DateTimeFormatters formatter, AppPreferences preferences, SessionsGroup group) {
         mFormatter = formatter;
         mPreferences = preferences;
         mGroup = group;
@@ -31,17 +32,14 @@ public class GroupItemViewModel extends BaseItemViewModel {
         return mGroup.getId();
     }
 
-    @Override
     public boolean getIsRunning() {
         return mGroup.hasOpenedSessions();
     }
 
-    @Override
     void appendSessionIds(List<Long> destList) {
         mGroup.collectIds(destList);
     }
 
-    @Override
     void updateDuration() {
         mDurationData.postValue(mFormatter.formatDuration(mGroup.calculateDuration()));
     }
@@ -65,7 +63,6 @@ public class GroupItemViewModel extends BaseItemViewModel {
     }
 
 
-    @Override
     String getClipboardString(@Nullable DateTimeFormatters formatter) {
         if (formatter == null)
             formatter = mFormatter;

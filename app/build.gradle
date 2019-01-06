@@ -95,6 +95,7 @@ dependencies {
     implementation deps.androidx.legacy.preference
 
     implementation deps.androidx.recyclerview.recyclerview
+    implementation deps.androidx.recyclerview.selection
     implementation deps.material
 
     implementation deps.eventbus.eventbus
@@ -112,7 +113,6 @@ dependencies {
     androidTestImplementation deps.androidx.espresso.core
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'joda-time:joda-time:2.9.9'
-    implementation deps.actionhandler
 
     implementation project(path: ':datetimepicker')
     implementation project(path: ':utils')

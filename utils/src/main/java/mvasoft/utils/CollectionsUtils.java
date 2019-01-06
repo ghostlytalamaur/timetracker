@@ -3,11 +3,20 @@ package mvasoft.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class CollectionsUtils {
     private CollectionsUtils() {}
+
+    public static <T> Set<T> asSet(Iterable<T> iterable) {
+        HashSet<T> set = new HashSet<>();
+        for (T item : iterable)
+            set.add(item);
+        return set;
+    }
 
     public static boolean isEmpty(Collection<?> collection) {
         return collection == null || collection.isEmpty();

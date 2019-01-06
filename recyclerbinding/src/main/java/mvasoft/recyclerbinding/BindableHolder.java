@@ -1,4 +1,4 @@
-package mvasoft.recyclerbinding.adapter;
+package mvasoft.recyclerbinding;
 
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
@@ -58,5 +58,7 @@ public class BindableHolder<VB extends ViewDataBinding> extends RecyclerView.Vie
     public VB getBinding() {
         return mBinding;
     }
+
+
 
 }
