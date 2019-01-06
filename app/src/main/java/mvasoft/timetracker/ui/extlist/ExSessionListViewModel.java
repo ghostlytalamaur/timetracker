@@ -60,6 +60,7 @@ public class ExSessionListViewModel extends BaseViewModel {
     private final MutableLiveData<String> mSummaryTimeLiveData;
     private final MutableLiveData<String> mTargetDiffStrLiveData;
     private final MutableLiveData<Boolean> mIsTargetAchieved;
+    private final MutableLiveData<Boolean> mHasSessions;
     private final CompositeDisposable mDisposable;
     private ScheduledFuture<?> mUpdateFuture;
     private LiveData<Boolean> mOpenedSessionId;
@@ -78,7 +79,8 @@ public class ExSessionListViewModel extends BaseViewModel {
         mFormatter = new DateTimeFormatters();
         mSummaryTimeLiveData = new MutableLiveData<>();
         mTargetDiffStrLiveData = new MutableLiveData<>();
-        mIsTargetAchieved = new MutableLiveData<>();
+        mIsTargetAchieved = new MutableLiveData<>(false);
+        mHasSessions = new MutableLiveData<>(false);
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
 
         mGroupType = BehaviorProcessor.createDefault(SessionsGroup.GroupType.gtNone);
@@ -134,6 +136,10 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     public LiveData<Boolean> getIsTargetAchieved() {
         return mIsTargetAchieved;
+    }
+
+    public LiveData<Boolean> getHasSessions() {
+        return mHasSessions;
     }
 
     LiveData<Boolean> getOpenedSessionId() {
@@ -204,21 +210,25 @@ public class ExSessionListViewModel extends BaseViewModel {
         return false;
     }
 
-    void setDate(long dateStart, long dateEnd) {
-        mDateRange.onNext(new DateRange(dateStart, dateEnd));
+    DateRange getDateRange() {
+        return mDateRange.getValue();
+    }
+
+    void setDate(DateRange range) {
+        mDateRange.onNext(range);
     }
 
     private void updateTargetTime() {
         mTargetTime = 0;
 
         DateRange range = mDateRange.getValue();
-        DateTime start = new DateTime(range.start).withTimeAtStartOfDay();
-        DateTime end = new DateTime(range.end).withTime(23, 59, 59, 0);
+        DateTime start = new DateTime(range.start * 1000).withTimeAtStartOfDay();
+        DateTime end = new DateTime(range.end * 1000).withTime(23, 59, 59, 0);
         int daysCount = Days.daysBetween(start, end).getDays() + 1;
         final HashSet<DateTime> remainingDays = new HashSet<>(daysCount);
-        for (int nDay = 1; nDay < daysCount; nDay++) {
+        for (int nDay = 0; nDay < daysCount; nDay++) {
             remainingDays.add(start);
-            start.plusDays(1);
+            start = start.plusDays(1);
         }
 
         if (mDayDescriptions != null) {
@@ -226,7 +236,7 @@ public class ExSessionListViewModel extends BaseViewModel {
                 if (dayDescription.isWorkingDay()) {
                     mTargetTime += dayDescription.getTargetDuration() * 60;
                 }
-                remainingDays.remove(new DateTime(dayDescription.getDate()).withTimeAtStartOfDay());
+                remainingDays.remove(new DateTime(dayDescription.getDate() * 1000).withTimeAtStartOfDay());
             }
         }
         for (DateTime day : remainingDays)
@@ -243,7 +253,7 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     private void setGroups(List<SessionsGroup> groups) {
         mGroups = groups;
-
+        mHasSessions.postValue(!CollectionsUtils.isEmpty(groups));
         mListModel.postValue(buildListItems(mGroups));
         updateSummary();
         updateTimer(CollectionsUtils.contains(groups, SessionsGroup::hasOpenedSessions));

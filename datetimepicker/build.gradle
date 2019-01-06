@@ -34,4 +34,5 @@ dependencies {
     implementation deps.material
     implementation deps.androidx.constraintlayout.constraintlayout
     implementation deps.materialcalendarview
+    implementation deps.joda_time
 }

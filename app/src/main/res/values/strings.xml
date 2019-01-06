@@ -39,4 +39,5 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_group_by">Group by</string>
     <string name="msg_group_by">Show sessions by</string>
+    <string name="msg_no_sessions_for_date">No sessions for selected date range</string>
 </resources>

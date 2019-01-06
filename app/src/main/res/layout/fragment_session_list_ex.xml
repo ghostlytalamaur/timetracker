@@ -20,6 +20,24 @@
         android:layout_height="match_parent">
 
         <TextView
+            android:id="@+id/tvNoSessions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/msg_no_sessions_for_date"
+            android:textSize="22sp"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:isGone="@{view_model.hasSessions}"
+            />
+
+        <TextView
             android:id="@+id/tvSummary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -30,6 +48,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/imgSummary"
             app:layout_constraintStart_toEndOf="@+id/imgSummary"
             app:layout_constraintTop_toTopOf="@+id/imgSummary"
+            app:isGone="@{!view_model.hasSessions}"
             tools:text="TextView" />
 
         <TextView
@@ -44,6 +63,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/imgTarget"
             app:layout_constraintStart_toEndOf="@+id/imgTarget"
             app:layout_constraintTop_toTopOf="@+id/imgTarget"
+            app:isGone="@{!view_model.hasSessions}"
             tools:text="TextView" />
 
         <ImageView
@@ -54,6 +74,7 @@
             android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:isGone="@{!view_model.hasSessions}"
             app:srcCompat="@drawable/ic_today" />
 
         <ImageView
@@ -68,6 +89,7 @@
             app:layout_constraintTop_toTopOf="@+id/imgSummary"
             app:layout_constraintVertical_bias="0.0"
             app:srcCompat="@{safeUnbox(view_model.isTargetAchieved) ? @drawable/ic_timer : @drawable/ic_timer_off}"
+            app:isGone="@{!view_model.hasSessions}"
             tools:srcCompat="@drawable/ic_timer" />
 
         <androidx.constraintlayout.widget.Guideline
@@ -75,6 +97,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            app:isGone="@{!view_model.hasSessions}"
             app:layout_constraintGuide_percent="0.5" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -91,6 +114,7 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imgTarget"
+            app:isGone="@{!view_model.hasSessions}"
             tools:listitem="@layout/list_item_sessions_groups" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -119,7 +119,7 @@ dependencies {
     testImplementation deps.junit.junit
     androidTestImplementation deps.androidx.espresso.core
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'joda-time:joda-time:2.9.9'
+    implementation deps.joda_time
 
     implementation project(path: ':datetimepicker')
     implementation project(path: ':utils')

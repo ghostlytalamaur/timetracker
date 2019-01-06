@@ -184,8 +184,10 @@ public class ExSessionListFragment
     }
 
     private void selectDate() {
+        ExSessionListViewModel.DateRange range = getViewModel().getDateRange();
         new DatePickerFragment.Builder(DLG_REQUEST_DATE)
-                .withUnixTime(System.currentTimeMillis() / 1000)
+                .setStartDate(range.start)
+                .setEndDate(range.end)
                 .setSelectionMode(SELECTION_MODE_RANGE)
                 .show(this, DATE_PICKER_TAG);
     }
@@ -246,11 +248,6 @@ public class ExSessionListFragment
             mSelectionTracker.onRestoreInstanceState(savedInstanceState);
     }
 
-    private void setDate(long dateStart, long dateEnd) {
-        getViewModel().setDate(dateStart, dateEnd);
-    }
-
-
     @Override
     public void onDialogResult(@NonNull DialogResultData data) {
         switch (data.requestCode) {
@@ -276,7 +273,7 @@ public class ExSessionListFragment
 
         long start = DateTimeHelper.getUnixTime(minDate.getYear(), minDate.getMonth(), minDate.getDay());
         long end = DateTimeHelper.getUnixTime(maxDate.getYear(), maxDate.getMonth(), maxDate.getDay());
-        setDate(start, end);
+        getViewModel().setDate(new ExSessionListViewModel.DateRange(start, end));
     }
 
     private void updateActionMode() {

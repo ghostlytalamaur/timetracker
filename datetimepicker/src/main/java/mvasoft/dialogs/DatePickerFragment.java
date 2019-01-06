@@ -12,8 +12,13 @@ import android.view.View;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import mvasoft.datetimepicker.R;
@@ -39,7 +44,7 @@ public class DatePickerFragment extends BaseDialogFragment {
         else if (getArguments() != null)
             mState = getArguments().getParcelable(STATE_TAG);
         else
-            mState = new DialogConfig(0, 0, 1, 0, SELECTION_MODE_SINGLE, null);
+            mState = new DialogConfig(0, SELECTION_MODE_SINGLE, null);
 
         mDialogOkListener = (dialog, which) -> {
             DatePickerDialogResultData data = getResultData();
@@ -83,7 +88,11 @@ public class DatePickerFragment extends BaseDialogFragment {
         mCalendarView = view.findViewById(R.id.calendarView);
         mCalendarView.setSelectionMode(mState.selectionMode);
         mCalendarView.setShowOtherDates(MaterialCalendarView.SHOW_OTHER_MONTHS);
-        mCalendarView.setSelectedDate(CalendarDay.from(mState.initYear, mState.initMonth, mState.initDayOfMonth));
+        if (mState.selectedDays != null) {
+            mCalendarView.clearSelection();
+            for (CalendarDay day : mState.selectedDays)
+                mCalendarView.setDateSelected(day, true);
+        }
 
         return dlg;
     }
@@ -107,26 +116,17 @@ public class DatePickerFragment extends BaseDialogFragment {
 
     private static class DialogConfig implements Parcelable {
         int requestCode;
-        int initYear;
-        int initMonth;
-        int initDayOfMonth;
         int selectionMode;
         List<CalendarDay> selectedDays;
 
-        DialogConfig(int requestCode, int year, int month, int dayOfMonth, int selectionMode, List<CalendarDay> selectedDays) {
+        DialogConfig(int requestCode, int selectionMode, List<CalendarDay> selectedDays) {
             this.requestCode = requestCode;
-            this.initYear = year;
-            this.initMonth = month;
-            this.initDayOfMonth = dayOfMonth;
             this.selectionMode = selectionMode;
             this.selectedDays = selectedDays;
         }
 
         DialogConfig(Parcel in) {
             requestCode = in.readInt();
-            initYear = in.readInt();
-            initMonth = in.readInt();
-            initDayOfMonth = in.readInt();
             selectionMode = in.readInt();
             if (in.readInt() != -1) {
                 selectedDays = new ArrayList<>();
@@ -137,9 +137,6 @@ public class DatePickerFragment extends BaseDialogFragment {
         @Override
         public void writeToParcel(Parcel dest, int flags) {
             dest.writeInt(requestCode);
-            dest.writeInt(initYear);
-            dest.writeInt(initMonth);
-            dest.writeInt(initDayOfMonth);
             dest.writeInt(selectionMode);
             if (selectedDays != null) {
                 dest.writeInt(1);
@@ -165,11 +162,25 @@ public class DatePickerFragment extends BaseDialogFragment {
                 return new DialogConfig[size];
             }
         };
+
+        public static Parcelable from(Builder builder) {
+            DateTime start = new DateTime(builder.startDate * 1000);
+            DateTime end = new DateTime(builder.endDate * 1000);
+            int daysCount = Days.daysBetween(start, end).getDays() + 1;
+            ArrayList<CalendarDay> selDays = new ArrayList<>(daysCount);
+            for (int i = 0; i < daysCount; i++) {
+                selDays.add(CalendarDay.from(start.getYear(), start.getMonthOfYear(), start.getDayOfMonth()));
+                start = start.plusDays(1);
+            }
+
+            return new DialogConfig(builder.requestCode, builder.selectionMode, selDays);
+        }
     }
 
     public static class Builder extends BaseDialogFragment.Builder {
 
-        private long unixTime;
+        private long startDate;
+        private long endDate;
         private int selectionMode;
 
         public Builder(int requestCode) {
@@ -185,16 +196,22 @@ public class DatePickerFragment extends BaseDialogFragment {
         @Override
         Bundle makeArgs() {
             Bundle b = new Bundle();
-            Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(unixTime * 1000);
-            b.putParcelable(STATE_TAG,
-                    new DialogConfig(requestCode, c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1,
-                            c.get(Calendar.DAY_OF_MONTH), selectionMode, null));
+            b.putParcelable(STATE_TAG, DialogConfig.from(this));
             return b;
         }
 
         public Builder withUnixTime(long unixTime) {
-            this.unixTime = unixTime;
+            this.startDate = unixTime;
+            return this;
+        }
+
+        public Builder setStartDate(long unixTime) {
+            this.startDate = unixTime;
+            return this;
+        }
+
+        public Builder setEndDate(long unixTime) {
+            this.endDate = unixTime;
             return this;
         }
 

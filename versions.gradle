@@ -151,6 +151,7 @@ deps.rxjava = rxjava
 deps.androidx = androidx
 deps.material = 'com.google.android.material:material:1.1.0-alpha02'
 deps.materialcalendarview = 'com.github.prolificinteractive:material-calendarview:2.0.0'
+deps.joda_time = 'joda-time:joda-time:2.9.9'
 ext.deps = deps
 
 static def addRepos(RepositoryHandler handler) {

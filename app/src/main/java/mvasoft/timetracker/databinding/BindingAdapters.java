@@ -11,6 +11,14 @@ import android.widget.ImageView;
 
 public class BindingAdapters {
 
+    @BindingAdapter("isGone")
+    public static void bindIsGone(View view, Boolean isGone) {
+        if (isGone)
+            view.setVisibility(View.GONE);
+        else
+            view.setVisibility(View.VISIBLE);
+    }
+
     @BindingAdapter("srcCompat")
     public static void setSrcCompat(FloatingActionButton fab, Drawable drawable) {
         fab.setImageDrawable(drawable);
