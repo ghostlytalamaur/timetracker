@@ -1,12 +1,6 @@
 package mvasoft.timetracker.ui.editsession;
 
 import android.app.Application;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.OnLifecycleEvent;
-import androidx.lifecycle.Transformations;
-import androidx.annotation.NonNull;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,6 +9,11 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.Transformations;
 import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
@@ -116,13 +115,13 @@ public class EditSessionViewModel extends BaseViewModel {
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    public void onStart() {
+    @Override
+    public void onStart(@NonNull LifecycleOwner owner) {
         mData.getIsChangedData().observeForever(mIsChangedObserver);
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    public void onStop() {
+    @Override
+    public void onStop(@NonNull LifecycleOwner owner) {
         mData.getIsChangedData().removeObserver(mIsChangedObserver);
         if (mUpdateFuture != null) {
             mUpdateFuture.cancel(true);

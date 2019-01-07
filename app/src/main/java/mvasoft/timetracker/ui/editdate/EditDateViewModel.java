@@ -25,7 +25,6 @@ public class EditDateViewModel extends BaseViewModel {
     private final DateTimeFormatters mFormatter;
     private final LiveData<String> mTargetTimeData;
     private final LiveData<Boolean> mIsWorkingDayData;
-    private final LiveData<String> mIdData;
     private final LiveData<Boolean> mIsChangedData;
     private final LiveData<String> mDateData;
     private Disposable mDisposable;
@@ -47,7 +46,6 @@ public class EditDateViewModel extends BaseViewModel {
 
         mFormatter = new DateTimeFormatters();
 
-        mIdData = Transformations.map(mDayDescriptionData, dd -> String.valueOf(dd.getId()));
         mDateData = Transformations.map(mDayDescriptionData, dd ->
                 mFormatter.formatDate(dd.getDate()));
         mTargetTimeData = Transformations.map(mDayDescriptionData, dd ->
@@ -67,10 +65,6 @@ public class EditDateViewModel extends BaseViewModel {
 
     public LiveData<Boolean> getIsWorkingDay() {
         return mIsWorkingDayData;
-    }
-
-    public LiveData<String> getDayId() {
-        return mIdData;
     }
 
     DayDescription getDayDescription() {
