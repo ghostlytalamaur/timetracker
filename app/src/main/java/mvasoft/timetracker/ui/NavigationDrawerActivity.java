@@ -73,10 +73,12 @@ public class NavigationDrawerActivity
 
         setSupportActionBar(getBinding().mainContent.toolbar);
         NavController navController = Navigation.findNavController(this, R.id.nav_fragment);
-
+        navController.addOnDestinationChangedListener((controller, destination, arguments) ->
+                setTitle(destination.getLabel()));
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph())
                 .setDrawerLayout(getBinding().drawerLayout)
                 .build();
+
         NavigationUI.setupWithNavController(getBinding().mainContent.toolbar, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(getBinding().navView, navController);
 

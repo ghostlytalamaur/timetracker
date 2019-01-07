@@ -9,7 +9,7 @@
     <fragment
         android:id="@+id/exSessionListFragment"
         android:name="mvasoft.timetracker.ui.extlist.ExSessionListFragment"
-        android:label="ExSessionListFragment"
+        android:label="@string/label_session_list"
         tools:layout="@layout/fragment_session_list_ex"
         >
         <action
@@ -23,7 +23,7 @@
     <fragment
         android:id="@+id/editSessionFragment"
         android:name="mvasoft.timetracker.ui.editsession.EditSessionFragment"
-        android:label="EditSessionFragment"
+        android:label="@string/label_edit_session"
         tools:layout="@layout/fragment_edit_session"
         >
         <argument
@@ -35,7 +35,7 @@
     <fragment
         android:id="@+id/datesViewFragment"
         android:name="mvasoft.timetracker.ui.editdate.DatesViewFragment"
-        android:label="DatesViewFragment"
+        android:label="@string/label_dates_view"
         tools:layout="@layout/fragment_dates_view">
         <action
             android:id="@+id/action_edit_date"
@@ -48,7 +48,7 @@
     <fragment
         android:id="@+id/editDateFragment"
         android:name="mvasoft.timetracker.ui.editdate.EditDateFragment"
-        android:label="EditDateFragment"
+        android:label="@string/label_edit_date"
         tools:layout="@layout/fragment_edit_date">
         <argument
             android:name="dayUnixTime"
@@ -59,11 +59,11 @@
     <fragment
         android:id="@+id/preferencesFragment"
         android:name="mvasoft.timetracker.ui.preferences.PreferencesFragment"
-        android:label="PreferencesFragment"
+        android:label="@string/label_preferences"
         />
     <fragment
         android:id="@+id/backupFragment"
         android:name="mvasoft.timetracker.ui.backup.BackupFragment"
-        android:label="BackupFragment"
+        android:label="@string/label_backup"
         tools:layout="@layout/fragment_backup"/>
 </navigation>

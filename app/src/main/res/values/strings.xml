@@ -41,4 +41,10 @@
     <string name="action_group_by">Group by</string>
     <string name="msg_group_by">Show sessions by</string>
     <string name="msg_no_sessions_for_date">No sessions for selected date range</string>
+    <string name="label_session_list">Sessions list</string>
+    <string name="label_edit_session">Edit session</string>
+    <string name="label_dates_view">Days</string>
+    <string name="label_edit_date">Edit day</string>
+    <string name="label_preferences">Settings</string>
+    <string name="label_backup">Backup/Restore</string>
 </resources>
