@@ -4,6 +4,9 @@ import android.app.Application;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -21,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
@@ -35,6 +39,7 @@ import mvasoft.timetracker.data.DataRepository;
 import mvasoft.timetracker.preferences.AppPreferences;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.utils.DateTimeFormatters;
+import mvasoft.timetracker.utils.DateTimeHelper;
 import mvasoft.timetracker.vo.DayDescription;
 import mvasoft.timetracker.vo.Session;
 import mvasoft.timetracker.vo.SessionUtils;
@@ -74,6 +79,7 @@ public class ExSessionListViewModel extends BaseViewModel {
         super(application);
 
         mAppPreferences = appPreferences;
+        mAppPreferences.get(); // create in main thread
         mRepository = repository;
         mListModel = new MutableLiveData<>();
         mFormatter = new DateTimeFormatters();
@@ -88,12 +94,14 @@ public class ExSessionListViewModel extends BaseViewModel {
         mDateRange = BehaviorProcessor.createDefault(new DateRange(today, today));
 
         Flowable<List<Session>> sessions = mDateRange
+                .distinctUntilChanged()
                 .flatMap(range -> mRepository.get().getSessionsRx(range.start, range.end))
                 .doOnNext(list -> Timber.d("New sessions received"));
-        Flowable<List<SessionsGroup>> sessionsGroups = Flowable.combineLatest(sessions, mGroupType, Pair::new)
+        Flowable<List<SessionsGroup>> sessionsGroups = Flowable.combineLatest(sessions, mGroupType.distinctUntilChanged(), Pair::new)
                 .map(pair -> groupSessions(pair.second, pair.first));
 
         Flowable<List<DayDescription>> dayDescriptions = mDateRange
+                .distinctUntilChanged()
                 .flatMap(range -> mRepository.get().getDayDescriptionsRx(range.start, range.end))
                 .doOnNext(list -> Timber.d("New day descriptions received"));
 
@@ -165,6 +173,17 @@ public class ExSessionListViewModel extends BaseViewModel {
             mUpdateFuture.cancel(true); // fix me: run on onStart
             mUpdateFuture = null;
         }
+    }
+
+    void saveState(Bundle state) {
+        state.putParcelable("ExSessionListViewModelState", new ModelState(this));
+        Timber.d("State saved");
+    }
+
+    void restoreState(Bundle state) {
+        ModelState modelState = state.getParcelable("ExSessionListViewModelState");
+        modelState.apply(this);
+        Timber.d("State restored");
     }
 
     void toggleSession() {
@@ -348,5 +367,58 @@ public class ExSessionListViewModel extends BaseViewModel {
             this.start = start;
             this.end = end;
         }
+
+        @Override
+        public boolean equals(@Nullable Object obj) {
+            if (!(obj instanceof DateRange))
+                return false;
+
+            return DateTimeHelper.sameDays(start, ((DateRange) obj).start) &&
+                    DateTimeHelper.sameDays(end, ((DateRange) obj).end);
+        }
+    }
+
+    static class ModelState implements Parcelable {
+        private DateRange mDateRange;
+        private SessionsGroup.GroupType mGroupType;
+
+        ModelState(ExSessionListViewModel model) {
+            mDateRange = model.mDateRange.getValue();
+            mGroupType = model.mGroupType.getValue();
+        }
+
+        void apply(ExSessionListViewModel model) {
+            model.mDateRange.onNext(mDateRange);
+            model.mGroupType.onNext(mGroupType);
+        }
+
+        ModelState(Parcel in) {
+            mDateRange = new DateRange(in.readLong(), in.readLong());
+            mGroupType = SessionsGroup.GroupType.values()[in.readInt()];
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeLong(mDateRange.start);
+            dest.writeLong(mDateRange.end);
+            dest.writeInt(mGroupType.ordinal());
+        }
+
+        public static final Creator<ModelState> CREATOR = new Creator<ModelState>() {
+            @Override
+            public ModelState createFromParcel(Parcel in) {
+                return new ModelState(in);
+            }
+
+            @Override
+            public ModelState[] newArray(int size) {
+                return new ModelState[size];
+            }
+        };
     }
 }

@@ -26,6 +26,7 @@
     <string name="appwidget_text_state_opened">Opened</string>
     <string name="appwidget_text_state_closed">Closed</string>
     <string name="msg_selected_session_will_removed">Selected sessions will be removed.</string>
+    <string name="msg_all_session_will_removed">All sessions will be removed.</string>
     <string name="menu_copy_to_clipboard">Copy to clipboard</string>
     <string name="action_save">Save</string>
     <string name="action_select_date">Select date</string>

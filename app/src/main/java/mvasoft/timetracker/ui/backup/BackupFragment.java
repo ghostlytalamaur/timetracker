@@ -54,7 +54,7 @@ public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding
                 Manifest.permission.WRITE_EXTERNAL_STORAGE, PERMISSION_REQUEST_STORAGE_BACKUP));
         getBinding().btnRestore.setOnClickListener(v ->
                 new AlertDialogFragment.Builder(DLG_REQUEST_RESTORE_DB)
-                        .withMessage(getString(R.string.msg_selected_session_will_removed))
+                        .withMessage(getString(R.string.msg_all_session_will_removed))
                         .show(this, "BackupFragment" + DLG_REQUEST_RESTORE_DB));
         return rootView;
     }
@@ -87,7 +87,7 @@ public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding
 
     private void checkPermission(@NonNull String permission, int requestCode) {
         if (getActivity() != null)
-            ActivityCompat.requestPermissions(getActivity(), new String[]{permission}, requestCode);
+            requestPermissions(new String[]{permission}, requestCode);
     }
 
     /* Checks if external storage is available for read and write */

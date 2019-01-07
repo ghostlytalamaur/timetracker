@@ -2,6 +2,8 @@ package mvasoft.timetracker.preferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Looper;
+
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 
@@ -26,6 +28,8 @@ public class AppPreferencesImpl extends AppPreferences {
     }
 
     private void setDefaults(@NonNull Context context) {
+        if (Looper.myLooper() == null)
+            throw new RuntimeException("Should create preference in thread with Looper.");
         try {
             PreferenceManager.setDefaultValues(context, R.xml.preferences, false);
         } catch (Throwable e){

@@ -92,6 +92,8 @@ public class ExSessionListFragment
         super.onCreate(savedInstanceState);
         mActionModeCallbacks = new ActionModeCallbacks();
         setHasOptionsMenu(true);
+        if (savedInstanceState != null)
+            getViewModel().restoreState(savedInstanceState);
     }
 
     @Nullable
@@ -123,6 +125,7 @@ public class ExSessionListFragment
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mSelectionTracker.onSaveInstanceState(outState);
+        getViewModel().saveState(outState);
     }
 
     @Override
@@ -264,7 +267,7 @@ public class ExSessionListFragment
         }
     }
 
-    public void onDateSelected(DatePickerFragment.DatePickerDialogResultData data) {
+    private void onDateSelected(DatePickerFragment.DatePickerDialogResultData data) {
         if (CollectionsUtils.isEmpty(data.getDays()))
             return;
 

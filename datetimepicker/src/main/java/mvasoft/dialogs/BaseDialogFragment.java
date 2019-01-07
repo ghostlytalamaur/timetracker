@@ -11,10 +11,8 @@ public class BaseDialogFragment extends DialogFragment{
 
     void sendResult(DialogResultData data) {
         Fragment fragment = getParentFragment();
-        if (fragment != null) {
-            if (fragment instanceof DialogResultListener)
-                ((DialogResultListener) fragment).onDialogResult(data);
-        }
+        if (fragment instanceof DialogResultListener)
+            ((DialogResultListener) fragment).onDialogResult(data);
         else if (getActivity() instanceof DialogResultListener) {
             ((DialogResultListener) getActivity()).onDialogResult(data);
         }

@@ -5,8 +5,6 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.View;
 
 import com.prolificinteractive.materialcalendarview.CalendarDay;
@@ -15,23 +13,22 @@ import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import mvasoft.datetimepicker.R;
 
 
 public class DatePickerFragment extends BaseDialogFragment {
 
+    @SuppressWarnings("WeakerAccess")
     public static final int SELECTION_MODE_SINGLE = MaterialCalendarView.SELECTION_MODE_SINGLE;
     public static final int SELECTION_MODE_RANGE = MaterialCalendarView.SELECTION_MODE_RANGE;
 
     private static final String STATE_TAG = "TimePickerFragment_DialogState";
 
-    private AlertDialog.OnClickListener mDialogOkListener;
     private DialogConfig mState;
     private MaterialCalendarView mCalendarView;
 
@@ -45,12 +42,6 @@ public class DatePickerFragment extends BaseDialogFragment {
             mState = getArguments().getParcelable(STATE_TAG);
         else
             mState = new DialogConfig(0, SELECTION_MODE_SINGLE, null);
-
-        mDialogOkListener = (dialog, which) -> {
-            DatePickerDialogResultData data = getResultData();
-            sendResult(data);
-            dialog.dismiss();
-        };
     }
 
     private DatePickerDialogResultData getResultData() {
@@ -81,7 +72,11 @@ public class DatePickerFragment extends BaseDialogFragment {
         View view = getActivity().getLayoutInflater().inflate(R.layout.dialog_datepicker, null);
         Dialog dlg = new AlertDialog.Builder(getContext())
                 .setView(view)
-                .setPositiveButton(android.R.string.ok, mDialogOkListener)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    DatePickerDialogResultData data = getResultData();
+                    sendResult(data);
+                    dialog.dismiss();
+                })
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel())
                 .create();
 
@@ -167,7 +162,7 @@ public class DatePickerFragment extends BaseDialogFragment {
             DateTime start = new DateTime(builder.startDate * 1000);
             DateTime end = new DateTime(builder.endDate * 1000);
             int daysCount = Days.daysBetween(start, end).getDays() + 1;
-            ArrayList<CalendarDay> selDays = new ArrayList<>(daysCount);
+            ArrayList<CalendarDay> selDays = new ArrayList<>();
             for (int i = 0; i < daysCount; i++) {
                 selDays.add(CalendarDay.from(start.getYear(), start.getMonthOfYear(), start.getDayOfMonth()));
                 start = start.plusDays(1);
@@ -202,6 +197,7 @@ public class DatePickerFragment extends BaseDialogFragment {
 
         public Builder withUnixTime(long unixTime) {
             this.startDate = unixTime;
+            this.endDate = unixTime;
             return this;
         }
 
