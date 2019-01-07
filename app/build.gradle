@@ -26,8 +26,8 @@ android {
         applicationId "mvasoft.timetracker.new"
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
-        versionCode 3
-        versionName "2.1"
+        versionCode 4
+        versionName "2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Specify string resource: @string/app_name which used in AndroidManifest.xml
