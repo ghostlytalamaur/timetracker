@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/datetimepicker/datetimepicker.iml" filepath="$PROJECT_DIR$/datetimepicker/datetimepicker.iml" />
       <module fileurl="file://$PROJECT_DIR$/recyclerbinding/recyclerbinding.iml" filepath="$PROJECT_DIR$/recyclerbinding/recyclerbinding.iml" />
+      <module fileurl="file://$PROJECT_DIR$/timetracker.iml" filepath="$PROJECT_DIR$/timetracker.iml" />
       <module fileurl="file://$PROJECT_DIR$/utils/utils.iml" filepath="$PROJECT_DIR$/utils/utils.iml" />
     </modules>
   </component>
