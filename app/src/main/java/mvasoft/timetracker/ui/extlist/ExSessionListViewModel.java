@@ -4,9 +4,7 @@ import android.app.Application;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.content.SharedPreferences;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -53,6 +51,7 @@ public class ExSessionListViewModel extends BaseViewModel {
     private final DateTimeFormatters mFormatter;
     private final Lazy<AppPreferences> mAppPreferences;
     private final Lazy<DataRepository> mRepository;
+    private final ModelSettings mModelSettings;
 
     private List<SessionsGroup> mGroups;
     private List<DayDescription> mDayDescriptions;
@@ -81,6 +80,7 @@ public class ExSessionListViewModel extends BaseViewModel {
         mAppPreferences = appPreferences;
         mAppPreferences.get(); // create in main thread
         mRepository = repository;
+        mModelSettings = new ModelSettings(getApplication());
         mListModel = new MutableLiveData<>();
         mFormatter = new DateTimeFormatters();
         mSummaryTimeLiveData = new MutableLiveData<>();
@@ -89,9 +89,8 @@ public class ExSessionListViewModel extends BaseViewModel {
         mHasSessions = new MutableLiveData<>(false);
         mUpdateExecutor = Executors.newSingleThreadScheduledExecutor();
 
-        mGroupType = BehaviorProcessor.createDefault(SessionsGroup.GroupType.gtNone);
-        long today = System.currentTimeMillis() / 1000;
-        mDateRange = BehaviorProcessor.createDefault(new DateRange(today, today));
+        mGroupType = BehaviorProcessor.createDefault(mModelSettings.getGroupType());
+        mDateRange = BehaviorProcessor.createDefault(mModelSettings.getDateRange());
 
         Flowable<List<Session>> sessions = mDateRange
                 .distinctUntilChanged()
@@ -112,6 +111,7 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     void setGroupType(SessionsGroup.GroupType groupType) {
         mGroupType.onNext(groupType);
+        mModelSettings.setGroupType(groupType);
     }
 
     SessionsGroup.GroupType getGroupType() {
@@ -175,17 +175,6 @@ public class ExSessionListViewModel extends BaseViewModel {
         }
     }
 
-    void saveState(Bundle state) {
-        state.putParcelable("ExSessionListViewModelState", new ModelState(this));
-        Timber.d("State saved");
-    }
-
-    void restoreState(Bundle state) {
-        ModelState modelState = state.getParcelable("ExSessionListViewModelState");
-        modelState.apply(this);
-        Timber.d("State restored");
-    }
-
     void toggleSession() {
         mRepository.get().toggleSession();
     }
@@ -235,6 +224,7 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     void setDate(DateRange range) {
         mDateRange.onNext(range);
+        mModelSettings.setDateRange(range);
     }
 
     private void updateTargetTime() {
@@ -378,47 +368,43 @@ public class ExSessionListViewModel extends BaseViewModel {
         }
     }
 
-    static class ModelState implements Parcelable {
-        private DateRange mDateRange;
-        private SessionsGroup.GroupType mGroupType;
+    private static class ModelSettings {
 
-        ModelState(ExSessionListViewModel model) {
-            mDateRange = model.mDateRange.getValue();
-            mGroupType = model.mGroupType.getValue();
+        private static final String PREF_KEY_DATE_RANGE_START = "date_range_start";
+        private static final String PREF_KEY_DATE_RANGE_END = "date_range_end";
+        private static final String PREF_KEY_GROUP_TYPE = "group_type";
+        private final SharedPreferences mPreferences;
+
+        ModelSettings(@NonNull Application application) {
+            mPreferences = application.getSharedPreferences(
+                    "mvasoft.ExSessionListViewModel", Context.MODE_PRIVATE);
         }
 
-        void apply(ExSessionListViewModel model) {
-            model.mDateRange.onNext(mDateRange);
-            model.mGroupType.onNext(mGroupType);
+        DateRange getDateRange() {
+            long start = mPreferences.getLong(PREF_KEY_DATE_RANGE_START,
+                    System.currentTimeMillis() / 1000);
+            long end = mPreferences.getLong(PREF_KEY_DATE_RANGE_END, start);
+            return new DateRange(start, end);
         }
 
-        ModelState(Parcel in) {
-            mDateRange = new DateRange(in.readLong(), in.readLong());
-            mGroupType = SessionsGroup.GroupType.values()[in.readInt()];
+        void setDateRange(@NonNull DateRange range) {
+            mPreferences.edit()
+                    .putLong(PREF_KEY_DATE_RANGE_START, range.start)
+                    .putLong(PREF_KEY_DATE_RANGE_END, range.end)
+                    .apply();
         }
 
-        @Override
-        public int describeContents() {
-            return 0;
+        SessionsGroup.GroupType getGroupType() {
+            String value = mPreferences.getString(PREF_KEY_GROUP_TYPE,
+                    SessionsGroup.GroupType.gtNone.toString());
+            return SessionsGroup.GroupType.valueOf(value);
         }
 
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            dest.writeLong(mDateRange.start);
-            dest.writeLong(mDateRange.end);
-            dest.writeInt(mGroupType.ordinal());
+        void setGroupType(SessionsGroup.GroupType groupType) {
+            mPreferences.edit()
+                    .putString(PREF_KEY_GROUP_TYPE, groupType.toString())
+                    .apply();
         }
-
-        public static final Creator<ModelState> CREATOR = new Creator<ModelState>() {
-            @Override
-            public ModelState createFromParcel(Parcel in) {
-                return new ModelState(in);
-            }
-
-            @Override
-            public ModelState[] newArray(int size) {
-                return new ModelState[size];
-            }
-        };
     }
+
 }
