@@ -49,7 +49,7 @@ import timber.log.Timber;
 public class ExSessionListViewModel extends BaseViewModel {
 
     private final DateTimeFormatters mFormatter;
-    private final Lazy<AppPreferences> mAppPreferences;
+    private final AppPreferences mAppPreferences;
     private final Lazy<DataRepository> mRepository;
     private final ModelSettings mModelSettings;
 
@@ -74,11 +74,10 @@ public class ExSessionListViewModel extends BaseViewModel {
 
     @Inject
     ExSessionListViewModel(@NonNull Application application, Lazy<DataRepository> repository,
-                           Lazy<AppPreferences> appPreferences) {
+                           AppPreferences appPreferences) {
         super(application);
 
         mAppPreferences = appPreferences;
-        mAppPreferences.get(); // create in main thread
         mRepository = repository;
         mModelSettings = new ModelSettings(getApplication());
         mListModel = new MutableLiveData<>();
@@ -249,8 +248,8 @@ public class ExSessionListViewModel extends BaseViewModel {
             }
         }
         for (DateTime day : remainingDays)
-            if (mAppPreferences.get().isWorkingDay(day.getDayOfWeek()))
-                mTargetTime += mAppPreferences.get().getTargetTimeInMin() * 60;
+            if (mAppPreferences.isWorkingDay(day.getDayOfWeek()))
+                mTargetTime += mAppPreferences.getTargetTimeInMin() * 60;
         updateTargetDiff();
     }
 
@@ -309,7 +308,7 @@ public class ExSessionListViewModel extends BaseViewModel {
 
         ArrayList<ItemViewModel> res = new ArrayList<>();
         for (SessionsGroup group : groups)
-            res.add(new GroupItemViewModel(mFormatter, mAppPreferences.get(), group));
+            res.add(new GroupItemViewModel(mFormatter, mAppPreferences, group));
 
         return res;
     }

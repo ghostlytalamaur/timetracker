@@ -32,17 +32,12 @@ public abstract class SessionsDao {
 
     @Query("SELECT * FROM sessions WHERE _id = :id")
     public abstract LiveData<Session> getSessionById(long id);
-    @Query("SELECT * FROM sessions WHERE _id = :id")
-    public abstract Flowable<Session> getSessionByIdRx(long id);
 
     @Update
     public abstract int updateSession(Session session);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract long appendSession(Session entity);
-
-    @Query("SELECT * from sessions WHERE date(StartTime, 'unixepoch', 'localtime') = date(:date, 'unixepoch', 'localtime')")
-    public abstract List<Session> getSessionForDateRaw(long date);
 
     @Query("SELECT _id from sessions ORDER BY startTime DESC")
     public abstract Flowable<List<Long>> getSessionsIdsRx();
@@ -63,18 +58,7 @@ public abstract class SessionsDao {
     @Query("SELECT * from sessions WHERE date(startTime, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
     public abstract Flowable<List<Session>> getSessionsRx(long start, long end);
 
-    @Query("SELECT * from days WHERE date(dayDate, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
-    abstract Flowable<List<DayDescription>> getDayDescriptionsForDays(long start, long end);
-
     @Insert
     public abstract void appendAll(ArrayList<Session> list);
 
-
-    private static class MutablePair<F, S> {
-        F first;
-        S second;
-    }
-
-//    @RawQuery("UPDATE sessions SET EndTime = strftime('%s', 'now') WHERE EndTime = 0 OR EndTime IS NULL; INSERT INTO sessions (StartTime) SELECT strftime('%s', 'now') WHERE (SELECT Changes() = 0);")
-//    public abstract void toggleOpenedSession();
 }
