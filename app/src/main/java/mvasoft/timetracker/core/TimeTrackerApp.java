@@ -48,6 +48,9 @@ public class TimeTrackerApp extends Application
 
     private RefWatcher mRefWatcher;
 
+    @Inject
+    SyncManager syncManager;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -69,6 +72,7 @@ public class TimeTrackerApp extends Application
 
     @Override
     public void onTerminate() {
+        syncManager.clear();
         EventBus.getDefault().unregister(this);
         super.onTerminate();
     }

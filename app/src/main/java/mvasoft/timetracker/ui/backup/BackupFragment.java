@@ -4,9 +4,6 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +13,8 @@ import java.io.File;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import mvasoft.dialogs.AlertDialogFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
@@ -121,7 +120,7 @@ public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding
             return;
         }
 
-        File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getOpenHelper().getDatabaseName());
+        File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getValue().getOpenHelper().getDatabaseName());
         File backup = getBackupFilePath();
         if (!backup.exists()) {
             showToast("There are no any backups");
@@ -132,7 +131,7 @@ public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding
             return;
         }
 
-        mDatabaseProvider.getDatabase().close();
+        mDatabaseProvider.getDatabase().getValue().close();
         try {
             if (!FileUtils.copyFile(backup, dbFile)) {
                 showToast("Cannot restore database");
@@ -161,9 +160,9 @@ public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding
             return;
         }
 
-        mDatabaseProvider.getDatabase().close();
+        mDatabaseProvider.getDatabase().getValue().close();
         try {
-            File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getOpenHelper().getDatabaseName());
+            File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getValue().getOpenHelper().getDatabaseName());
 
             File backupPath = getBackupFilePath();
             if (FileUtils.copyFile(dbFile, backupPath))

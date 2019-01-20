@@ -2,47 +2,32 @@ package mvasoft.timetracker.db;
 
 import android.content.Context;
 
-import java.util.EventListener;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import mvasoft.utils.Announcer;
+import io.reactivex.processors.BehaviorProcessor;
+import timber.log.Timber;
 
 
 @Singleton
 public class DatabaseProvider {
 
-    private AppDatabase mDatabase;
-    private final Announcer<Observer> mAnnouncer;
+    private BehaviorProcessor<AppDatabase> mDatabaseObservable;
 
     @Inject
     public DatabaseProvider(Context context) {
-        mAnnouncer = new Announcer<>(Observer.class);
-        reinitDatabase(context);
+        mDatabaseObservable = BehaviorProcessor.createDefault(AppDatabase.getDatabase(context));
+        Timber.d("Create DatabaseProvider");
     }
 
-    public AppDatabase getDatabase() {
-        return mDatabase;
+    public BehaviorProcessor<AppDatabase> getDatabase() {
+        return mDatabaseObservable;
     }
 
     public void reinitDatabase(Context context) {
-        if (mDatabase != null && mDatabase.isOpen())
-            mDatabase.close();
+        if (mDatabaseObservable.getValue().isOpen())
+            mDatabaseObservable.getValue().close();
 
-        mDatabase = AppDatabase.getDatabase(context);
-        mAnnouncer.announce().onDatabaseChanged();
-    }
-
-    public void addObserver(Observer observer) {
-        mAnnouncer.addListener(observer);
-    }
-
-    public void removeObserver(Observer observer) {
-        mAnnouncer.addListener(observer);
-    }
-
-    public interface Observer extends EventListener {
-        void onDatabaseChanged();
+        mDatabaseObservable.onNext(AppDatabase.getDatabase(context));
     }
 }

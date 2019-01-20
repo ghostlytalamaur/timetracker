@@ -3,7 +3,6 @@ package mvasoft.timetracker.db;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -31,7 +30,7 @@ public abstract class SessionsDao {
     public abstract int closeOpenedSessions();
 
     @Query("SELECT * FROM sessions WHERE _id = :id")
-    public abstract LiveData<Session> getSessionById(long id);
+    public abstract Flowable<Session> getSessionByIdRx(long id);
 
     @Update
     public abstract int updateSession(Session session);
@@ -60,5 +59,4 @@ public abstract class SessionsDao {
 
     @Insert
     public abstract void appendAll(ArrayList<Session> list);
-
 }
