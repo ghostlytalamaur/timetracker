@@ -20,7 +20,8 @@ versions.androidx_appcompat = "1.1.0-alpha01"
 versions.androidx_constraintlayout = "2.0.0-alpha3"
 versions.androidx_preference = "1.1.0-alpha02"
 versions.androidx_recyclerview = "1.0.0"
-
+versions.androidx_nav_version = "1.0.0-alpha09"
+versions.androidx_work_version = "1.0.0-beta02"
 ext.versions = versions
 
 def build_versions = [:]
@@ -80,6 +81,16 @@ def androidx_recyclerview = [:]
 androidx_recyclerview.recyclerview = "androidx.recyclerview:recyclerview:$versions.androidx_recyclerview"
 androidx_recyclerview.selection = "androidx.recyclerview:recyclerview-selection:$versions.androidx_recyclerview"
 
+def androidx_navigation =[:]
+androidx_navigation.fragment = "android.arch.navigation:navigation-fragment:$versions.androidx_nav_version" // use -ktx for Kotlin
+androidx_navigation.ui = "android.arch.navigation:navigation-ui:$versions.androidx_nav_version" // use -ktx for Kotlin
+
+def androidx_work = [:]
+androidx_work.work = "android.arch.work:work-runtime:$versions.androidx_work_version" // use -ktx for Kotlin+Coroutines
+androidx_work.rxjava = "android.arch.work:work-rxjava2:$versions.androidx_work_version"
+androidx_work.test = "android.arch.work:work-testing:$versions.androidx_work_version"
+
+
 def androidx = [:]
 androidx.lifecycle = androidx_lifecycle
 androidx.room = androidx_room
@@ -89,6 +100,9 @@ androidx.constraintlayout = androidx_constraintlayout
 androidx.preference = androidx_preference
 androidx.legacy = androidx_legacy
 androidx.recyclerview = androidx_recyclerview
+androidx.navigation = androidx_navigation
+androidx.work = androidx_work
+
 
 def dagger = [:]
 dagger.runtime = "com.google.dagger:dagger:$versions.dagger"
@@ -152,6 +166,7 @@ deps.androidx = androidx
 deps.material = 'com.google.android.material:material:1.1.0-alpha02'
 deps.materialcalendarview = 'com.github.prolificinteractive:material-calendarview:2.0.0'
 deps.joda_time = 'joda-time:joda-time:2.9.9'
+deps.gson = 'com.google.code.gson:gson:2.8.5'
 ext.deps = deps
 
 static def addRepos(RepositoryHandler handler) {

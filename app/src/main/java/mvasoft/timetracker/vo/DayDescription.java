@@ -1,5 +1,7 @@
 package mvasoft.timetracker.vo;
 
+import com.google.gson.annotations.SerializedName;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -8,16 +10,20 @@ import mvasoft.timetracker.utils.DateTimeHelper;
 
 @Entity(tableName = "days")
 public class DayDescription {
+    @SerializedName("id")
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "dayId")
     private final long mId;
 
+    @SerializedName("date")
     @ColumnInfo(name = "dayDate")
     private final long mDate;
 
+    @SerializedName("targetDuration")
     @ColumnInfo(name = "targetDuration")
     private final long mTargetDuration;
 
+    @SerializedName("isWorkingDay")
     @ColumnInfo(name = "isWorkingDay")
     private final boolean mIsWorkingDay;
 

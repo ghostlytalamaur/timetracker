@@ -78,14 +78,11 @@ dependencies {
     implementation deps.rxjava.rxjava2
     implementation deps.androidx.lifecycle.extensions
     implementation deps.androidx.lifecycle.reactivestreams
-//    annotationProcessor deps.androidx.lifecycle.compiler
     implementation deps.androidx.lifecycle.java8
-//
+
     implementation deps.androidx.room.runtime
     implementation deps.androidx.room.rxjava
     annotationProcessor deps.androidx.room.compiler
-//    testImplementation 'androidx.room:room-testing:2.1.0-alpha03'
-//    testImplementation 'androidx.arch.core:core-testing:2.0.0'
 
     implementation deps.androidx.appcompat
     implementation deps.androidx.constraintlayout.constraintlayout
@@ -99,18 +96,18 @@ dependencies {
     implementation deps.androidx.recyclerview.selection
     implementation deps.material
 
-    def nav_version = "1.0.0-alpha09"
 
-    implementation "android.arch.navigation:navigation-fragment:$nav_version" // use -ktx for Kotlin
-    implementation "android.arch.navigation:navigation-ui:$nav_version" // use -ktx for Kotlin
+    implementation deps.androidx.navigation.fragment
+    implementation deps.androidx.navigation.ui
 
+    implementation deps.gson
+    implementation deps.androidx.work.work
 
     implementation deps.eventbus.eventbus
     annotationProcessor deps.eventbus.compiler
 
     implementation deps.materialcalendarview
 
-    api 'com.google.guava:guava:25.1-android'
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'

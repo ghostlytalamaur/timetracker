@@ -47,4 +47,11 @@
     <string name="label_edit_date">Edit day</string>
     <string name="label_preferences">Settings</string>
     <string name="label_backup">Backup/Restore</string>
+    <string name="msg_cannot_backup_db">Cannot backup database</string>
+    <string name="msg_cannot_restore_db">Cannot restore database</string>
+    <string name="msg_backup_db_succeeded">Database backup completed</string>
+    <string name="msg_restore_db_succeeded">Database restored</string>
+    <string name="msg_backup_db_cancelled">Database backup cancelled</string>
+    <string name="msg_restore_db_cancelled">Database restoring cancelled</string>
+    <string name="msg_external_storage_unavailable">External storage unavailable</string>
 </resources>

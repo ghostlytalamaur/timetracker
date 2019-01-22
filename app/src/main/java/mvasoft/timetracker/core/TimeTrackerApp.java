@@ -15,6 +15,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 
+import androidx.work.Configuration;
+import androidx.work.WorkManager;
+import androidx.work.WorkerFactory;
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
 import dagger.android.HasActivityInjector;
@@ -49,11 +52,20 @@ public class TimeTrackerApp extends Application
     private RefWatcher mRefWatcher;
 
     @Inject
-    SyncManager syncManager;
+    WorkerFactory mWorkerFactory;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Timber.d("create TimeTrackerApp");
+
+        AppInjector.init(this);
+        Configuration configuration = new Configuration.Builder()
+                .setWorkerFactory(mWorkerFactory)
+                .build();
+        WorkManager.initialize(this, configuration);
+
+
         // TimeTrackerEventBusIndex generated at compile-time by EventBus annotation processor.
         // Better performance and compile-time checks
         EventBus.builder().addIndex(new TimeTrackerEventBusIndex()).installDefaultEventBus();
@@ -63,16 +75,12 @@ public class TimeTrackerApp extends Application
         mRefWatcher = LeakCanary.install(this);
         EventBus.getDefault().register(this);
         if (BuildConfig.DEBUG) {
-            Timber.plant(new DebugPrefixTree());
+            Timber.plant(new DebugPrefixTree(String.format("timberlog[%d]", hashCode())));
         }
-
-        AppInjector.init(this);
-        Timber.d("create TimeTrackerApp");
     }
 
     @Override
     public void onTerminate() {
-        syncManager.clear();
         EventBus.getDefault().unregister(this);
         super.onTerminate();
     }
@@ -108,9 +116,16 @@ public class TimeTrackerApp extends Application
     }
 
     public class DebugPrefixTree extends Timber.DebugTree {
+
+        final String mTag;
+
+        DebugPrefixTree(String tag) {
+            mTag = tag;
+        }
+
         @Override
         protected void log(int priority, String tag, @NotNull String message, Throwable t) {
-            super.log(priority, "timberlog." + tag, message, t);
+            super.log(priority, mTag + tag, message, t);
         }
     }
 }

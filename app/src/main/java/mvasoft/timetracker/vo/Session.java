@@ -1,5 +1,7 @@
 package mvasoft.timetracker.vo;
 
+import com.google.gson.annotations.SerializedName;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -7,13 +9,16 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "sessions")
 public class Session {
 
+    @SerializedName("id")
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "_id")
     private final long mId;
 
+    @SerializedName("start")
     @ColumnInfo(name = "startTime")
     private final long mStartTime;
 
+    @SerializedName("end")
     @ColumnInfo(name = "endTime")
     private final long mEndTime;
 

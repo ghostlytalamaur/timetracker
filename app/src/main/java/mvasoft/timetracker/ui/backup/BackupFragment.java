@@ -9,32 +9,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import java.io.File;
-
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.lifecycle.Observer;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 import mvasoft.dialogs.AlertDialogFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.timetracker.R;
-import mvasoft.timetracker.core.Injectable;
 import mvasoft.timetracker.databinding.FragmentBackupBinding;
-import mvasoft.timetracker.db.DatabaseProvider;
+import mvasoft.timetracker.sync.LocalBackupWorker;
 import mvasoft.timetracker.ui.common.BaseViewModel;
 import mvasoft.timetracker.ui.common.BindingSupportFragment;
-import mvasoft.utils.FileUtils;
 
 public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding, BaseViewModel>
-        implements DialogResultListener, Injectable {
+        implements DialogResultListener {
 
     private static final int PERMISSION_REQUEST_STORAGE_BACKUP = 2;
     private static final int PERMISSION_REQUEST_STORAGE_RESTORE = 3;
     private static final int DLG_REQUEST_RESTORE_DB = 1;
-
-    @Inject
-    DatabaseProvider mDatabaseProvider;
 
     @Override
     public void onDialogResult(@NonNull DialogResultData dialogResultData) {
@@ -74,10 +70,10 @@ public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding
 
         switch (requestCode) {
             case PERMISSION_REQUEST_STORAGE_BACKUP:
-                backupDb();
+                doBackupRestoreDb(true);
                 break;
             case PERMISSION_REQUEST_STORAGE_RESTORE:
-                restoreDb();
+                doBackupRestoreDb(false);
                 break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -102,76 +98,43 @@ public class BackupFragment extends BindingSupportFragment<FragmentBackupBinding
                 Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
     }
 
-    private void showToast(String msg) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+    private void showToast(@StringRes int resId) {
+        Toast.makeText(getContext(), resId, Toast.LENGTH_LONG).show();
     }
 
-    private boolean isValidSQLiteDB(File backupDb) {
-        return backupDb != null && backupDb.exists();
-    }
-
-
-    private void restoreDb() {
-        if (getActivity() == null)
-            return;
-
-        if (!isExternalStorageReadable()) {
-            showToast("External storage unavailable");
+    private void doBackupRestoreDb(boolean isBackup) {
+        if (!isBackup && !isExternalStorageReadable() ||
+                isBackup && !isExternalStorageWritable()) {
+            showToast(R.string.msg_external_storage_unavailable);
             return;
         }
 
-        File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getValue().getOpenHelper().getDatabaseName());
-        File backup = getBackupFilePath();
-        if (!backup.exists()) {
-            showToast("There are no any backups");
-            return;
-        }
-        if (!isValidSQLiteDB(backup)) {
-            showToast("Backup database corrupted");
-            return;
-        }
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(LocalBackupWorker.class)
+                .setInputData(LocalBackupWorker.makeArgs(isBackup))
+                .build();
+        WorkManager.getInstance()
+                .beginWith(request)
+                .enqueue();
 
-        mDatabaseProvider.getDatabase().getValue().close();
-        try {
-            if (!FileUtils.copyFile(backup, dbFile)) {
-                showToast("Cannot restore database");
-                return;
+        Observer<? super WorkInfo> workInfoObserver = workInfo -> {
+            switch (workInfo.getState()) {
+                case FAILED: {
+                    showToast(isBackup ? R.string.msg_cannot_backup_db : R.string.msg_cannot_restore_db);
+                    break;
+                }
+                case SUCCEEDED: {
+                    showToast(isBackup ? R.string.msg_backup_db_succeeded : R.string.msg_restore_db_succeeded);
+                    break;
+                }
+                case CANCELLED: {
+                    showToast(isBackup ? R.string.msg_backup_db_cancelled : R.string.msg_restore_db_cancelled);
+                    break;
+                }
             }
+        };
 
-
-            showToast("Database restored");
-        } finally{
-            mDatabaseProvider.reinitDatabase(getActivity().getApplication());
-        }
-    }
-
-    private File getBackupFilePath() {
-        return new File(
-                new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "TimeTrackerBackups"),
-                "timetracker_backup.db");
-    }
-
-    private void backupDb() {
-        if (getActivity() == null)
-            return;
-
-        if (!isExternalStorageWritable()) {
-            showToast("External storage unavailable");
-            return;
-        }
-
-        mDatabaseProvider.getDatabase().getValue().close();
-        try {
-            File dbFile = getActivity().getDatabasePath(mDatabaseProvider.getDatabase().getValue().getOpenHelper().getDatabaseName());
-
-            File backupPath = getBackupFilePath();
-            if (FileUtils.copyFile(dbFile, backupPath))
-                showToast("Database saved in " + backupPath);
-            else
-                showToast("Cannot backup database");
-        } finally {
-            mDatabaseProvider.reinitDatabase(getActivity().getApplication());
-        }
+        WorkManager.getInstance().getWorkInfoByIdLiveData(request.getId())
+                .observe(this, workInfoObserver);
     }
 
 }

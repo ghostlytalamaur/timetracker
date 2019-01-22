@@ -1,6 +1,5 @@
 package mvasoft.timetracker.db;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import androidx.room.Dao;
@@ -54,9 +53,24 @@ public abstract class SessionsDao {
     @Query("SELECT * from days WHERE date(dayDate, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
     public abstract Flowable<List<DayDescription>> getDayDescriptionsRx(long start, long end);
 
+    @Query("SELECT * from days")
+    public abstract Flowable<List<DayDescription>> getDayDescriptionsRx();
+
     @Query("SELECT * from sessions WHERE date(startTime, 'unixepoch', 'localtime') BETWEEN date(:start, 'unixepoch', 'localtime') AND date(:end, 'unixepoch', 'localtime')")
     public abstract Flowable<List<Session>> getSessionsRx(long start, long end);
 
+    @Query("SELECT * FROM sessions")
+    public abstract Flowable<List<Session>> getSessionsRx();
+
     @Insert
-    public abstract void appendAll(ArrayList<Session> list);
+    public abstract void appendAll(List<Session> list);
+
+    @Insert
+    abstract void appendDays(List<DayDescription> days);
+
+    @Query("DELETE FROM sessions")
+    abstract void clearSessions();
+
+    @Query("DELETE FROM days")
+    abstract void clearDays();
 }

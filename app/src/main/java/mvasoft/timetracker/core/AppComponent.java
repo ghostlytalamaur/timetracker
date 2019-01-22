@@ -17,7 +17,9 @@ import mvasoft.timetracker.ui.widget.WidgetModule;
         NavigationDrawerActivityModule.class,
         WidgetModule.class,
         AppPreferenceModule.class,
-        SyncModule.class})
+        SyncModule.class,
+        WorkManagerModule.class
+})
 public interface AppComponent extends AndroidInjector<TimeTrackerApp> {
 
     @Component.Builder
