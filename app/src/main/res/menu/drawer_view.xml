@@ -18,9 +18,5 @@
             android:id="@+id/preferencesFragment"
             android:title="@string/nav_settings"
             />
-        <item
-            android:id="@+id/backupFragment"
-            android:title="@string/nav_backup"
-            />
     </group>
 </menu>

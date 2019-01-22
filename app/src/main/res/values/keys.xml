@@ -14,6 +14,14 @@
         pref_sync_start_end_date
     </xliff:g></string>
 
+    <string name="prefs_key_perform_backup"><xliff:g id="preference_key">
+        pref_perform_backup
+    </xliff:g></string>
+
+    <string name="prefs_key_perform_restore"><xliff:g id="preference_key">
+        pref_perform_restore
+    </xliff:g></string>
+
     <string-array name="prefs_values_day_of_week_numbers">
         <item><xliff:g id="preference_value">1</xliff:g></item>
         <item><xliff:g id="preference_value">2</xliff:g></item>

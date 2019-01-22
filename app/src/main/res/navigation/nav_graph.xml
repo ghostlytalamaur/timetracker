@@ -61,9 +61,4 @@
         android:name="mvasoft.timetracker.ui.preferences.PreferencesFragment"
         android:label="@string/label_preferences"
         />
-    <fragment
-        android:id="@+id/backupFragment"
-        android:name="mvasoft.timetracker.ui.backup.BackupFragment"
-        android:label="@string/label_backup"
-        tools:layout="@layout/fragment_backup"/>
 </navigation>

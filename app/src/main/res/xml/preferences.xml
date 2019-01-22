@@ -52,5 +52,20 @@ to use this ensure that support.14 preference library added to build.gradle:
         android:title="@string/prefs_caption_sync_start_end_date"
         android:summary="@string/prefs_summary_sync_start_end_date" />
 
+    <PreferenceCategory
+        android:title="Backup"
+        >
+        <Preference
+            android:key="@string/prefs_key_perform_backup"
+            android:title="Backup"
+            android:summary="Backup database to external storage"
+            />
+        <Preference
+            android:key="@string/prefs_key_perform_restore"
+            android:title="Restore"
+            android:summary="Restore database from external storage"
+            />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>
