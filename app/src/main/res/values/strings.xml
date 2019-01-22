@@ -54,4 +54,10 @@
     <string name="msg_backup_db_cancelled">Database backup cancelled</string>
     <string name="msg_restore_db_cancelled">Database restoring cancelled</string>
     <string name="msg_external_storage_unavailable">External storage unavailable</string>
+    <string name="prefs_caption_category_backup">Backup</string>
+    <string name="prefs_caption_backup">Backup</string>
+    <string name="prefs_summary_backup">Backup database to external storage</string>
+    <string name="prefs_caption_restore">Restore</string>
+    <string name="prefs_summary_restore">Restore database from external storage</string>
+    <string name="prefs_caption_category_common">Common</string>
 </resources>

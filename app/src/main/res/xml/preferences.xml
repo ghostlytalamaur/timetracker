@@ -15,56 +15,54 @@ to use this ensure that support.14 preference library added to build.gradle:
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <MultiSelectListPreference
-        android:defaultValue="@array/prefs_values_default_working_days"
-        android:entries="@array/day_of_week_names"
-        android:entryValues="@array/prefs_values_day_of_week_numbers"
-        android:key="@string/prefs_key_working_days"
-        android:summary="@string/prefs_summary_working_days"
-        android:title="@string/prefs_caption_working_days" />
+    <PreferenceCategory android:title="@string/prefs_caption_category_common">
+        <MultiSelectListPreference
+            android:defaultValue="@array/prefs_values_default_working_days"
+            android:entries="@array/day_of_week_names"
+            android:entryValues="@array/prefs_values_day_of_week_numbers"
+            android:key="@string/prefs_key_working_days"
+            android:summary="@string/prefs_summary_working_days"
+            android:title="@string/prefs_caption_working_days" />
 
 
-    <!--suppress AndroidElementNotAllowed -->
-    <mvasoft.timetracker.ui.preferences.SliderPreference
-        android:defaultValue="480"
-        android:key="@string/prefs_key_target_time_min"
-        android:summary="@string/prefs_summary_target_min"
-        android:title="@string/prefs_caption_target_min"
-        app:adjustable="true"
-        app:maxValue="1440"
-        app:seekBarIncrement="30"
-        app:showSeekBarValue="true"
-        app:stepValue="30" />
+        <!--suppress AndroidElementNotAllowed -->
+        <mvasoft.timetracker.ui.preferences.SliderPreference
+            android:defaultValue="480"
+            android:key="@string/prefs_key_target_time_min"
+            android:summary="@string/prefs_summary_target_min"
+            android:title="@string/prefs_caption_target_min"
+            app:adjustable="true"
+            app:maxValue="1440"
+            app:seekBarIncrement="30"
+            app:showSeekBarValue="true"
+            app:stepValue="30" />
 
-    <!--suppress AndroidElementNotAllowed -->
-    <mvasoft.timetracker.ui.preferences.SliderPreference
-        android:defaultValue="5"
-        android:key="@string/prefs_key_round_duration_to_min"
-        android:summary="@string/prefs_summary_round_to"
-        android:title="@string/prefs_caption_round_to"
-        app:adjustable="true"
-        app:maxValue="60"
-        app:showSeekBarValue="true" />
+        <!--suppress AndroidElementNotAllowed -->
+        <mvasoft.timetracker.ui.preferences.SliderPreference
+            android:defaultValue="5"
+            android:key="@string/prefs_key_round_duration_to_min"
+            android:summary="@string/prefs_summary_round_to"
+            android:title="@string/prefs_caption_round_to"
+            app:adjustable="true"
+            app:maxValue="60"
+            app:showSeekBarValue="true" />
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="@string/prefs_key_sync_start_end_date"
-        android:title="@string/prefs_caption_sync_start_end_date"
-        android:summary="@string/prefs_summary_sync_start_end_date" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/prefs_key_sync_start_end_date"
+            android:summary="@string/prefs_summary_sync_start_end_date"
+            android:title="@string/prefs_caption_sync_start_end_date" />
+    </PreferenceCategory>
 
-    <PreferenceCategory
-        android:title="Backup"
-        >
+    <PreferenceCategory android:title="@string/prefs_caption_category_backup">
         <Preference
             android:key="@string/prefs_key_perform_backup"
-            android:title="Backup"
-            android:summary="Backup database to external storage"
-            />
+            android:summary="@string/prefs_summary_backup"
+            android:title="@string/prefs_caption_backup" />
         <Preference
             android:key="@string/prefs_key_perform_restore"
-            android:title="Restore"
-            android:summary="Restore database from external storage"
-            />
+            android:summary="@string/prefs_summary_restore"
+            android:title="@string/prefs_caption_restore" />
 
     </PreferenceCategory>
 
