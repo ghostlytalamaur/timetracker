@@ -7,7 +7,7 @@
  */
 
 def versions = [:]
-versions.dagger = "2.16"
+versions.dagger = "2.21"
 versions.room = "1.1.0"
 versions.lifecycle = "1.1.1"
 versions.arch_core = "1.1.1"
@@ -20,7 +20,7 @@ versions.androidx_appcompat = "1.1.0-alpha01"
 versions.androidx_constraintlayout = "2.0.0-alpha3"
 versions.androidx_preference = "1.1.0-alpha02"
 versions.androidx_recyclerview = "1.0.0"
-versions.androidx_nav_version = "1.0.0-alpha09"
+versions.androidx_nav_version = "1.0.0-alpha11"
 versions.androidx_work_version = "1.0.0-beta02"
 ext.versions = versions
 
@@ -122,7 +122,7 @@ support.preferencev7 = "com.android.support:preference-v7:$versions.support"
 support.preferencev14 = "com.android.support:preference-v14:$versions.support"
 
 def rxjava = [:]
-rxjava.rxjava2 = "io.reactivex.rxjava2:rxjava:2.1.14"
+rxjava.rxjava2 = "io.reactivex.rxjava2:rxjava:2.2.6"
 
 def room = [:]
 room.runtime = "android.arch.persistence.room:runtime:$versions.room"
@@ -164,7 +164,7 @@ deps.eventbus = eventbus
 deps.rxjava = rxjava
 deps.androidx = androidx
 deps.material = 'com.google.android.material:material:1.1.0-alpha02'
-deps.materialcalendarview = 'com.github.prolificinteractive:material-calendarview:2.0.0'
+deps.materialcalendarview = 'com.github.prolificinteractive:material-calendarview:2.0.1'
 deps.joda_time = 'joda-time:joda-time:2.9.9'
 deps.gson = 'com.google.code.gson:gson:2.8.5'
 ext.deps = deps

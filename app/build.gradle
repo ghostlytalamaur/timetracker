@@ -65,6 +65,7 @@ android {
         exclude 'android/databinding/DataBinderMapper.java'
         exclude 'android/databinding/DataBindingComponent.java'
         exclude 'android/databinding/DynamicUtil.java'
+        exclude 'META-INF/DEPENDENCIES'
     }
 }
 
@@ -76,32 +77,28 @@ dependencies {
     annotationProcessor deps.dagger.android_support_compiler
 
     implementation deps.rxjava.rxjava2
+
     implementation deps.androidx.lifecycle.extensions
     implementation deps.androidx.lifecycle.reactivestreams
     implementation deps.androidx.lifecycle.java8
-
     implementation deps.androidx.room.runtime
     implementation deps.androidx.room.rxjava
     annotationProcessor deps.androidx.room.compiler
-
     implementation deps.androidx.appcompat
     implementation deps.androidx.constraintlayout.constraintlayout
-
     implementation deps.androidx.preference.preference
-
     implementation deps.androidx.legacy.support
     implementation deps.androidx.legacy.preference
-
     implementation deps.androidx.recyclerview.recyclerview
     implementation deps.androidx.recyclerview.selection
     implementation deps.material
-
-
     implementation deps.androidx.navigation.fragment
     implementation deps.androidx.navigation.ui
 
     implementation deps.gson
-    implementation deps.androidx.work.work
+    implementation(deps.androidx.work.work) {
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+    }
 
     implementation deps.eventbus.eventbus
     annotationProcessor deps.eventbus.compiler
@@ -110,8 +107,18 @@ dependencies {
 
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.3'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
+
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    implementation 'com.google.http-client:google-http-client-gson:1.28.0'
+    implementation('com.google.api-client:google-api-client-android:1.28.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev136-1.25.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+
 
     testImplementation deps.junit.junit
     androidTestImplementation deps.androidx.espresso.core

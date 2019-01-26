@@ -5,6 +5,7 @@ import androidx.work.WorkerFactory;
 import dagger.Binds;
 import dagger.Module;
 import dagger.multibindings.IntoMap;
+import mvasoft.timetracker.sync.DriveBackupWorker;
 import mvasoft.timetracker.sync.LocalBackupWorker;
 
 @SuppressWarnings("unused")
@@ -16,6 +17,12 @@ abstract class WorkManagerModule {
     @WorkerKey(LocalBackupWorker.class)
     abstract InternalWorkerFactory<? extends ListenableWorker> bindLocalBackupWorker(
             LocalBackupWorker.Factory factory);
+
+    @Binds
+    @IntoMap
+    @WorkerKey(DriveBackupWorker.class)
+    abstract InternalWorkerFactory<? extends ListenableWorker> bindDriveBackupWorker(
+            DriveBackupWorker.Factory factory);
 
     @Binds
     abstract WorkerFactory bindWorkerFactory(DIWorkerFactory factory);

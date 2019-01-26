@@ -6,12 +6,19 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.Scope;
+import com.google.api.services.drive.DriveScopes;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.lifecycle.Observer;
 import androidx.preference.PreferenceFragmentCompat;
-
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
@@ -19,6 +26,7 @@ import mvasoft.dialogs.AlertDialogFragment;
 import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.timetracker.R;
+import mvasoft.timetracker.sync.DriveBackupWorker;
 import mvasoft.timetracker.sync.LocalBackupWorker;
 
 public class PreferencesFragment extends PreferenceFragmentCompat
@@ -103,17 +111,32 @@ public class PreferencesFragment extends PreferenceFragmentCompat
     }
 
     private void doBackupRestoreDb(boolean isBackup) {
+        if (getContext() == null)
+            return;
+
         if (!isBackup && !isExternalStorageReadable() ||
                 isBackup && !isExternalStorageWritable()) {
             showToast(R.string.msg_external_storage_unavailable);
             return;
         }
 
+        if (GoogleSignIn.getLastSignedInAccount(getContext()) == null) {
+            requestSignIn();
+            return;
+        }
+
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(LocalBackupWorker.class)
                 .setInputData(LocalBackupWorker.makeArgs(isBackup))
                 .build();
+        Constraints driveConstraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+        OneTimeWorkRequest driveRequest = new OneTimeWorkRequest.Builder(DriveBackupWorker.class)
+                .setConstraints(driveConstraints)
+                .build();
         WorkManager.getInstance()
                 .beginWith(request)
+                .then(driveRequest)
                 .enqueue();
 
         Observer<? super WorkInfo> workInfoObserver = workInfo -> {
@@ -136,4 +159,17 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         WorkManager.getInstance().getWorkInfoByIdLiveData(request.getId())
                 .observe(this, workInfoObserver);
     }
+
+    private void requestSignIn() {
+        if (getContext() == null)
+            return;
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder()
+                .requestEmail()
+                .requestScopes(new Scope(DriveScopes.DRIVE_APPDATA))
+                .build();
+        GoogleSignInClient client = GoogleSignIn.getClient(getContext(), gso);
+        startActivity(client.getSignInIntent());
+    }
+
 }

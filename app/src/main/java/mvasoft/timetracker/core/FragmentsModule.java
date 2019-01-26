@@ -23,7 +23,4 @@ abstract class FragmentsModule {
 
     @ContributesAndroidInjector()
     abstract DatesViewFragment DatesViewFragmentInjector();
-
-    @ContributesAndroidInjector()
-    abstract NavigationDrawerActivity NavigationDrawerActivityInjector();
 }
