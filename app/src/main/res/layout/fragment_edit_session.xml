@@ -32,7 +32,9 @@
             style="@style/NotEditableEditTextStyle"
             app:layout_constraintBaseline_toBaselineOf="@+id/lblStart"
             app:layout_constraintEnd_toStartOf="@+id/edtStartTime"
-            tools:text="Mon, 12 September 2018" />
+            tools:text="Mon, 12 September 2018"
+            tools:ignore="Autofill"
+            android:inputType="date" />
 
         <TextView
             android:id="@+id/lblStart"
@@ -42,6 +44,7 @@
             android:layout_marginTop="24dp"
             android:text="Start"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:labelFor="@id/edtStartDate"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -52,9 +55,10 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="24dp"
-            android:enabled="@{!view_model.isRunning}"
+            android:enabled="@{!safeUnbox(view_model.isRunning)}"
             android:text="End"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:labelFor="@id/edtEndDate"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/lblStart" />
@@ -90,7 +94,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="24dp"
-            android:checked="@{view_model.isRunning}"
+            android:checked="@{safeUnbox(view_model.isRunning)}"
             android:text="Running"
             style="@style/TextAppearance.AppCompat.Small"
             app:layout_constraintEnd_toEndOf="parent"
@@ -103,8 +107,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
-            android:visibility="@{!view_model.isRunning ? v.VISIBLE : v.GONE}"
-            android:enabled="@{!view_model.isRunning}"
+            android:visibility="@{!safeUnbox(view_model.isRunning) ? v.VISIBLE : v.GONE}"
+            android:enabled="@{!safeUnbox(view_model.isRunning)}"
             android:ems="10"
             android:text="@{view_model.endDate}"
             android:labelFor="@id/lvlEnd"
@@ -112,7 +116,9 @@
             app:layout_constraintBaseline_toBaselineOf="@+id/lvlEnd"
             app:layout_constraintEnd_toEndOf="@+id/edtStartDate"
             app:layout_constraintStart_toStartOf="@+id/edtStartDate"
-            tools:text="Mon, 12 September 2018" />
+            tools:text="Mon, 12 September 2018"
+            tools:ignore="Autofill"
+            android:inputType="date" />
 
         <EditText
             android:id="@+id/edtStartTime"
@@ -125,7 +131,9 @@
             style="@style/NotEditableEditTextStyle"
             app:layout_constraintBaseline_toBaselineOf="@+id/edtStartDate"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="08:10" />
+            tools:text="08:10"
+            tools:ignore="Autofill,LabelFor"
+            android:inputType="time" />
 
         <EditText
             android:id="@+id/edtEndTime"
@@ -133,15 +141,17 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
-            android:visibility="@{!view_model.isRunning ? v.VISIBLE : v.GONE}"
-            android:enabled="@{!view_model.isRunning}"
+            android:visibility="@{!safeUnbox(view_model.isRunning) ? v.VISIBLE : v.GONE}"
+            android:enabled="@{!safeUnbox(view_model.isRunning)}"
             android:ems="3"
             android:text="@{view_model.endTime}"
             android:labelFor="@id/lvlEnd"
             style="@style/NotEditableEditTextStyle"
             app:layout_constraintBaseline_toBaselineOf="@+id/edtEndDate"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="10:10" />
+            tools:text="10:10"
+            tools:ignore="Autofill,LabelFor"
+            android:inputType="time" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

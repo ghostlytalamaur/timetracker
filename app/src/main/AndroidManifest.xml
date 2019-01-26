@@ -20,11 +20,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning"
-        >
+        android:fullBackupContent="@xml/backup_descriptor">
 
         <provider
             android:name="androidx.work.impl.WorkManagerInitializer"
             android:authorities="${applicationId}.workmanager-init"
+            android:exported="false"
             android:enabled="false" />
 
         <activity
@@ -76,32 +77,6 @@
                 <action android:name="mvasoft.timetracker.action.widget.toggle_session" />
             </intent-filter>
         </receiver>
-
-        <service
-            android:name=".sync.AuthenticatorService" >
-            <intent-filter>
-                <action android:name="android.accounts.AccountAuthenticator" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accounts.AccountAuthenticator"
-                android:resource="@xml/authenticator" />
-        </service>
-        <provider
-            android:authorities="mvasoft.timetracker.sync.provider"
-            android:name=".sync.StubProvider"
-            android:exported="false"
-            android:syncable="true" />
-        <service
-            android:name=".sync.SyncService"
-            android:exported="true"
-            android:process=":sync" >
-            <intent-filter>
-                <action android:name="android.content.SyncAdapter" />
-            </intent-filter>
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/syncadapter" />
-        </service>
     </application>
 
 </manifest>

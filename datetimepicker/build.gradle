@@ -14,7 +14,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -30,7 +30,6 @@ dependencies {
     implementation deps.androidx.appcompat
 
     testImplementation deps.junit.junit
-    api fileTree(include: ['*.jar'], dir: 'libs')
     implementation deps.material
     implementation deps.androidx.constraintlayout.constraintlayout
     implementation deps.materialcalendarview

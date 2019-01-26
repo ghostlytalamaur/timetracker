@@ -19,8 +19,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-
-        <!--android:text="@={conv.toString(view_model.targetTime, view_model.targetTime)}"-->
         <EditText
             android:id="@+id/edtTarget"
             style="@style/NotEditableEditTextStyle"
@@ -32,7 +30,8 @@
             android:inputType="none|numberDecimal"
             android:text="@{view_model.targetTimeData}"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvDate" />
+            app:layout_constraintTop_toBottomOf="@+id/tvDate"
+            tools:ignore="Autofill" />
 
         <Switch
             android:id="@+id/swWorkDay"
@@ -41,9 +40,9 @@
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:checked="@{view_model.isWorkingDay}"
+            android:checked="@{safeUnbox(view_model.isWorkingDay)}"
             style="@style/TextAppearance.AppCompat.Small"
-            android:text="Working day"
+            android:text="@string/lbl_edit_date_working_day"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
@@ -54,7 +53,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Target Time"
+            android:text="@string/lbl_edt_date_target_time"
+            android:labelFor="@id/edtTarget"
             app:layout_constraintBaseline_toBaselineOf="@+id/edtTarget"
             app:layout_constraintStart_toStartOf="parent" />
 

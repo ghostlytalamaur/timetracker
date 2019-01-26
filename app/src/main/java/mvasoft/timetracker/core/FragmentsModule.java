@@ -2,7 +2,6 @@ package mvasoft.timetracker.core;
 
 import dagger.Module;
 import dagger.android.ContributesAndroidInjector;
-import mvasoft.timetracker.ui.NavigationDrawerActivity;
 import mvasoft.timetracker.ui.editdate.DatesViewFragment;
 import mvasoft.timetracker.ui.editdate.EditDateFragment;
 import mvasoft.timetracker.ui.editsession.EditSessionFragment;

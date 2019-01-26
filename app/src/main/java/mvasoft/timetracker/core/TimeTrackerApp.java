@@ -75,7 +75,7 @@ public class TimeTrackerApp extends Application
         mRefWatcher = LeakCanary.install(this);
         EventBus.getDefault().register(this);
         if (BuildConfig.DEBUG) {
-            Timber.plant(new DebugPrefixTree(String.format("timberlog[%d]", hashCode())));
+            Timber.plant(new DebugPrefixTree("timberlog[" + hashCode() + "]"));
         }
     }
 

@@ -47,7 +47,8 @@ android {
             resValue "string", "app_name", "TimeTracker Debug"
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.signApk
         }
@@ -62,10 +63,14 @@ android {
         enabled = true
     }
     packagingOptions {
-        exclude 'android/databinding/DataBinderMapper.java'
-        exclude 'android/databinding/DataBindingComponent.java'
-        exclude 'android/databinding/DynamicUtil.java'
+        exclude 'androidx/databinding/DataBinderMapper.java'
+        exclude 'androidx/databinding/DataBindingComponent.java'
+        exclude 'androidx/databinding/DynamicUtil.java'
         exclude 'META-INF/DEPENDENCIES'
+    }
+
+    lintOptions {
+        abortOnError false
     }
 }
 
@@ -119,11 +124,10 @@ dependencies {
         exclude group: 'org.apache.httpcomponents'
     }
 
-
     testImplementation deps.junit.junit
     androidTestImplementation deps.androidx.espresso.core
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation deps.joda_time
+    implementation deps.joda_time_convert
 
     implementation project(path: ':datetimepicker')
     implementation project(path: ':utils')

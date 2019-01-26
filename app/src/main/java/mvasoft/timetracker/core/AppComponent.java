@@ -7,7 +7,6 @@ import dagger.android.AndroidInjector;
 import dagger.android.support.AndroidSupportInjectionModule;
 import mvasoft.timetracker.data.RepositoryModule;
 import mvasoft.timetracker.preferences.AppPreferenceModule;
-import mvasoft.timetracker.sync.SyncModule;
 import mvasoft.timetracker.ui.widget.WidgetModule;
 
 @Singleton
@@ -17,7 +16,6 @@ import mvasoft.timetracker.ui.widget.WidgetModule;
         NavigationDrawerActivityModule.class,
         WidgetModule.class,
         AppPreferenceModule.class,
-        SyncModule.class,
         WorkManagerModule.class
 })
 public interface AppComponent extends AndroidInjector<TimeTrackerApp> {

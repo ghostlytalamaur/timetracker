@@ -34,7 +34,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:isGone="@{view_model.hasSessions}"
+            app:isGone="@{safeUnbox(view_model.hasSessions)}"
             />
 
         <TextView
@@ -48,7 +48,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/imgSummary"
             app:layout_constraintStart_toEndOf="@+id/imgSummary"
             app:layout_constraintTop_toTopOf="@+id/imgSummary"
-            app:isGone="@{!view_model.hasSessions}"
+            app:isGone="@{!safeUnbox(view_model.hasSessions)}"
             tools:text="TextView" />
 
         <TextView
@@ -63,7 +63,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/imgTarget"
             app:layout_constraintStart_toEndOf="@+id/imgTarget"
             app:layout_constraintTop_toTopOf="@+id/imgTarget"
-            app:isGone="@{!view_model.hasSessions}"
+            app:isGone="@{!safeUnbox(view_model.hasSessions)}"
             tools:text="TextView" />
 
         <ImageView
@@ -74,8 +74,9 @@
             android:layout_marginTop="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:isGone="@{!view_model.hasSessions}"
-            app:srcCompat="@drawable/ic_today" />
+            app:isGone="@{!safeUnbox(view_model.hasSessions)}"
+            app:srcCompat="@drawable/ic_today"
+            android:contentDescription="@string/img_description_summary" />
 
         <ImageView
             android:id="@+id/imgTarget"
@@ -89,15 +90,16 @@
             app:layout_constraintTop_toTopOf="@+id/imgSummary"
             app:layout_constraintVertical_bias="0.0"
             app:srcCompat="@{safeUnbox(view_model.isTargetAchieved) ? @drawable/ic_timer : @drawable/ic_timer_off}"
-            app:isGone="@{!view_model.hasSessions}"
-            tools:srcCompat="@drawable/ic_timer" />
+            app:isGone="@{!safeUnbox(view_model.hasSessions)}"
+            tools:srcCompat="@drawable/ic_timer"
+            android:contentDescription="@string/img_description_target" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline8"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:isGone="@{!view_model.hasSessions}"
+            app:isGone="@{!safeUnbox(view_model.hasSessions)}"
             app:layout_constraintGuide_percent="0.5" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -114,7 +116,7 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imgTarget"
-            app:isGone="@{!view_model.hasSessions}"
+            app:isGone="@{!safeUnbox(view_model.hasSessions)}"
             tools:listitem="@layout/list_item_sessions_groups" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

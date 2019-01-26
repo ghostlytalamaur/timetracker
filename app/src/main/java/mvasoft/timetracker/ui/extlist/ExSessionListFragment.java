@@ -15,6 +15,7 @@ import com.prolificinteractive.materialcalendarview.CalendarDay;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -126,7 +127,7 @@ public class ExSessionListFragment
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NotNull Menu menu, @NotNull MenuInflater inflater) {
         inflater.inflate(R.menu.menu_sessions, menu);
         if (!BuildConfig.DEBUG)
             menu.removeItem(R.id.action_fill_fake_session);
@@ -135,7 +136,7 @@ public class ExSessionListFragment
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(@NotNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_select_date:
                 selectDate();
@@ -286,7 +287,8 @@ public class ExSessionListFragment
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
             if (mActionMode != null)
-                mActionMode.setTitle(String.format(getString(R.string.title_session_selected), cnt));
+                mActionMode.setTitle(
+                        getResources().getQuantityString(R.plurals.title_session_selected, cnt));
         } else if (mActionMode != null)
             mActionMode.finish();
     }
@@ -422,7 +424,8 @@ public class ExSessionListFragment
         private ExSessionListActionHandler mActionHandler;
         private LifecycleOwner mLifecycleOwner;
 
-        public ItemsViewModelAdapter(LifecycleOwner lifecycleOwner, ExSessionListActionHandler actionHandler) {
+        ItemsViewModelAdapter(LifecycleOwner lifecycleOwner,
+                              ExSessionListActionHandler actionHandler) {
             mLifecycleOwner = lifecycleOwner;
             mActionHandler = actionHandler;
             mHelper = new AsyncListDiffer<>(
@@ -441,7 +444,7 @@ public class ExSessionListFragment
             holder.bindTo(mLifecycleOwner, mSelectionTracker, mActionHandler, getItem(position));
         }
 
-        public ItemViewModel getItem(int pos) {
+        ItemViewModel getItem(int pos) {
             return mHelper.getCurrentList().get(pos);
         }
 

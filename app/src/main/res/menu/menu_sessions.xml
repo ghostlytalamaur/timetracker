@@ -14,9 +14,8 @@
         android:title="@string/action_select_date"
         android:icon="@drawable/ic_calendar"
         app:showAsAction="ifRoom" />
-        />
     <item
         android:id="@+id/action_fill_fake_session"
-        android:title="Fill with fake sessions"
+        android:title="@string/fill_with_fake_sessions"
         app:showAsAction="never" />
 </menu>

@@ -97,7 +97,8 @@
                 app:layout_constraintEnd_toEndOf="@+id/imgStart"
                 app:layout_constraintStart_toStartOf="@+id/imgStart"
                 app:layout_constraintTop_toBottomOf="@+id/imgStart"
-                app:srcCompat="@drawable/ic_clock_out" />
+                app:srcCompat="@drawable/ic_clock_out"
+                android:contentDescription="@string/img_description_end_time" />
 
             <ImageView
                 android:id="@+id/imgStart"
@@ -107,7 +108,8 @@
                 android:layout_marginTop="8dp"
                 app:layout_constraintStart_toEndOf="@+id/cbSelected"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_clock_in" />
+                app:srcCompat="@drawable/ic_clock_in"
+                android:contentDescription="@string/img_description_start_time" />
 
             <ImageView
                 android:id="@+id/imgDuration"
@@ -119,7 +121,8 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/tvElapsed"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_clock_progress" />
+                app:srcCompat="@drawable/ic_clock_progress"
+                android:contentDescription="@string/img_description_duration" />
 
             <CheckBox
                 android:id="@+id/cbSelected"
