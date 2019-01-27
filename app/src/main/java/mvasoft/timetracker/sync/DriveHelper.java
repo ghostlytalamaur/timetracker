@@ -5,7 +5,11 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 
@@ -79,6 +83,24 @@ class DriveHelper {
             e.printStackTrace();
         }
         return false;
+    }
+
+    InputStream getFileContent(String folder, String name) {
+        File dir = searchFolder(folder);
+        if (dir == null) {
+            return null;
+        }
+
+        File file = searchFile(name, dir.getId());
+        if (file == null) {
+            return null;
+        }
+        try {
+            return mDrive.files().get(file.getId()).executeMediaAsInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private Map<String, String> getProps() {

@@ -9,13 +9,18 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
@@ -23,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
+import androidx.work.Data;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 import mvasoft.timetracker.R;
@@ -33,6 +39,9 @@ import timber.log.Timber;
 
 public class DriveBackupWorker extends Worker {
 
+    private static final String BACKUP_DIR = "timetracker_backup";
+    private static final String BACKUP_FILE = "timetracker_backup.json";
+    private static final String ARGS_IS_BACKUP = "args_is_backup";
 
     private final DatabaseProvider mDatabaseProvider;
 
@@ -51,12 +60,20 @@ public class DriveBackupWorker extends Worker {
             return Result.failure();
         }
 
-        String dir = drive.createFolder("timetracker_backup");
-        if (dir == null)
+        boolean isBackup = getInputData().getBoolean(ARGS_IS_BACKUP, true);
+        if (isBackup && backup(drive) || !isBackup && restore(drive)) {
+            return Result.success();
+        } else {
             return Result.failure();
+        }
+    }
 
-        final String fileName = "timetracker_backup.json";
-        String fileId = drive.createFile(fileName, dir);
+    private boolean backup(DriveHelper drive) {
+        String dir = drive.createFolder(BACKUP_DIR);
+        if (dir == null)
+            return false;
+
+        String fileId = drive.createFile(BACKUP_FILE, dir);
         if (fileId != null) {
 
             StringWriter w = new StringWriter();
@@ -64,11 +81,27 @@ public class DriveBackupWorker extends Worker {
             ByteArrayContent content = ByteArrayContent.fromString("application/json",
                     w.getBuffer().toString());
 
-            if (drive.updateFile(fileId, fileName, content))
-                return Result.success();
+            return drive.updateFile(fileId, BACKUP_FILE, content);
         }
+        return false;
+    }
 
-        return Result.failure();
+    private boolean restore(DriveHelper drive) {
+        try (InputStream is = drive.getFileContent(BACKUP_DIR, BACKUP_FILE);
+             Reader reader = is != null ? new InputStreamReader(new BufferedInputStream(is)) : null) {
+            if (reader != null)
+                return DatabaseJsonConverter.fromJson(mDatabaseProvider.getDatabase().getValue(),
+                        reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static Data makeArgs(boolean isBackup) {
+        return new Data.Builder()
+                .putBoolean(ARGS_IS_BACKUP, isBackup)
+                .build();
     }
 
     private DriveHelper signIn() {
@@ -99,7 +132,7 @@ public class DriveBackupWorker extends Worker {
         credential.setSelectedAccount(account.getAccount());
 
         Drive drive = new Drive.Builder(
-                AndroidHttp.newCompatibleTransport(), new GsonFactory(), credential)
+                new NetHttpTransport(), new GsonFactory(), credential)
                 .setApplicationName(getApplicationContext().getString(R.string.app_name))
                 .build();
         return new DriveHelper(drive);

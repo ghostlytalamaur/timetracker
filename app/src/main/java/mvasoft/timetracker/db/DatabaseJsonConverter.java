@@ -2,11 +2,12 @@ package mvasoft.timetracker.db;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 import androidx.annotation.NonNull;
 import mvasoft.timetracker.vo.DayDescription;
@@ -23,13 +24,29 @@ public class DatabaseJsonConverter {
     public static boolean toJson(@NonNull AppDatabase db, Writer writer) {
         Gson gson = createGson();
         DatabaseView view = DatabaseView.from(db);
-        gson.toJson(view, writer);
-        return true;
+        try {
+            gson.toJson(view, writer);
+            return true;
+        } catch (JsonIOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public static boolean fromJson(AppDatabase db, Reader reader) {
         Gson gson = createGson();
-        DatabaseView view = gson.fromJson(reader, DatabaseView.class);
+        DatabaseView view = null;
+        try {
+            view = gson.fromJson(reader, DatabaseView.class);
+        } catch (JsonIOException e) {
+            e.printStackTrace();
+        } catch (JsonSyntaxException e){
+            e.printStackTrace();
+        }
+
+        if (view == null)
+            return false;
+
         db.beginTransaction();
         try {
             db.groupsModel().clearSessions();

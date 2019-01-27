@@ -3,7 +3,6 @@ package mvasoft.timetracker.ui.preferences;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -27,7 +26,6 @@ import mvasoft.dialogs.DialogResultData;
 import mvasoft.dialogs.DialogResultListener;
 import mvasoft.timetracker.R;
 import mvasoft.timetracker.sync.DriveBackupWorker;
-import mvasoft.timetracker.sync.LocalBackupWorker;
 
 public class PreferencesFragment extends PreferenceFragmentCompat
         implements DialogResultListener {
@@ -93,19 +91,6 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         }
     }
 
-    /* Checks if external storage is available for read and write */
-    private boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
-    }
-
-    /* Checks if external storage is available to at least read */
-    private boolean isExternalStorageReadable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
-    }
-
     private void showToast(@StringRes int resId) {
         Toast.makeText(getContext(), resId, Toast.LENGTH_LONG).show();
     }
@@ -114,29 +99,20 @@ public class PreferencesFragment extends PreferenceFragmentCompat
         if (getContext() == null)
             return;
 
-        if (!isBackup && !isExternalStorageReadable() ||
-                isBackup && !isExternalStorageWritable()) {
-            showToast(R.string.msg_external_storage_unavailable);
-            return;
-        }
-
         if (GoogleSignIn.getLastSignedInAccount(getContext()) == null) {
             requestSignIn();
             return;
         }
 
-        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(LocalBackupWorker.class)
-                .setInputData(LocalBackupWorker.makeArgs(isBackup))
-                .build();
         Constraints driveConstraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
         OneTimeWorkRequest driveRequest = new OneTimeWorkRequest.Builder(DriveBackupWorker.class)
                 .setConstraints(driveConstraints)
+                .setInputData(DriveBackupWorker.makeArgs(isBackup))
                 .build();
         WorkManager.getInstance()
-                .beginWith(request)
-                .then(driveRequest)
+                .beginWith(driveRequest)
                 .enqueue();
 
         Observer<? super WorkInfo> workInfoObserver = workInfo -> {
@@ -156,7 +132,7 @@ public class PreferencesFragment extends PreferenceFragmentCompat
             }
         };
 
-        WorkManager.getInstance().getWorkInfoByIdLiveData(request.getId())
+        WorkManager.getInstance().getWorkInfoByIdLiveData(driveRequest.getId())
                 .observe(this, workInfoObserver);
     }
 
