@@ -1,15 +1,12 @@
 package mvasoft.timetracker.sync;
 
-import com.google.api.client.http.AbstractInputStreamContent;
+import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 
@@ -72,11 +69,11 @@ class DriveHelper {
         return null;
     }
 
-    boolean updateFile(String fileId, String name, AbstractInputStreamContent content) {
+    boolean updateFile(String fileId, String name, String type, InputStream content) {
         try {
             File metadata = new File()
                     .setName(name);
-            mDrive.files().update(fileId, metadata, content).execute();
+            mDrive.files().update(fileId, metadata, new InputStreamContent(type, content)).execute();
 
             return true;
         } catch (IOException e) {

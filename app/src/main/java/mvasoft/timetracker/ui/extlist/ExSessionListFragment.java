@@ -287,8 +287,9 @@ public class ExSessionListFragment
             if (mActionMode == null)
                 ((AppCompatActivity) getActivity()).startSupportActionMode(mActionModeCallbacks);
             if (mActionMode != null)
-                mActionMode.setTitle(
-                        getResources().getQuantityString(R.plurals.title_session_selected, cnt));
+                mActionMode.setTitle(String.format(
+                        getResources().getQuantityString(R.plurals.title_session_selected, cnt),
+                        cnt));
         } else if (mActionMode != null)
             mActionMode.finish();
     }

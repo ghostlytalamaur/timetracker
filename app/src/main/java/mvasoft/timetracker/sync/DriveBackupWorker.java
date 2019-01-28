@@ -10,20 +10,24 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import javax.inject.Inject;
 
@@ -40,8 +44,9 @@ import timber.log.Timber;
 public class DriveBackupWorker extends Worker {
 
     private static final String BACKUP_DIR = "timetracker_backup";
-    private static final String BACKUP_FILE = "timetracker_backup.json";
+    private static final String BACKUP_DB_FILE = "timetracker_backup.json";
     private static final String ARGS_IS_BACKUP = "args_is_backup";
+    private static final String BACKUP_FILE = "timetracker_bakcup.zip";
 
     private final DatabaseProvider mDatabaseProvider;
 
@@ -75,13 +80,23 @@ public class DriveBackupWorker extends Worker {
 
         String fileId = drive.createFile(BACKUP_FILE, dir);
         if (fileId != null) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ZipOutputStream zOut = new ZipOutputStream(out);
+            OutputStreamWriter writer = new OutputStreamWriter(zOut);
+            try {
+                zOut.putNextEntry(new ZipEntry(BACKUP_DB_FILE));
 
-            StringWriter w = new StringWriter();
-            DatabaseJsonConverter.toJson(mDatabaseProvider.getDatabase().getValue(), w);
-            ByteArrayContent content = ByteArrayContent.fromString("application/json",
-                    w.getBuffer().toString());
+                DatabaseJsonConverter.toJson(mDatabaseProvider.getDatabase().getValue(), writer);
+                writer.flush();
+                zOut.closeEntry();
+                zOut.finish();
 
-            return drive.updateFile(fileId, BACKUP_FILE, content);
+                ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+
+                return drive.updateFile(fileId, BACKUP_FILE, "application/zip", in);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -89,9 +104,17 @@ public class DriveBackupWorker extends Worker {
     private boolean restore(DriveHelper drive) {
         try (InputStream is = drive.getFileContent(BACKUP_DIR, BACKUP_FILE);
              Reader reader = is != null ? new InputStreamReader(new BufferedInputStream(is)) : null) {
-            if (reader != null)
-                return DatabaseJsonConverter.fromJson(mDatabaseProvider.getDatabase().getValue(),
-                        reader);
+            if (reader != null) {
+                ZipInputStream zIn = new ZipInputStream(is);
+                zIn.getNextEntry();
+                Reader zReader = new InputStreamReader(zIn);
+
+                boolean wasOk = DatabaseJsonConverter.fromJson(
+                        mDatabaseProvider.getDatabase().getValue(),
+                        zReader);
+                zIn.closeEntry();
+                return wasOk;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
